@@ -24,8 +24,7 @@ public class DatabaseInitializer {
             String createTableSQL = "CREATE TABLE IF NOT EXISTS users (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "username TEXT NOT NULL, " +
-                    "password TEXT NOT NULL, " +
-                    "placeholder INTEGER NOT NULL)";
+                    "password TEXT NOT NULL)";
             stmt.executeUpdate(createTableSQL);
             System.out.println("Table users created");
         } catch (SQLException e) {

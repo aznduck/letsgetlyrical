@@ -26,8 +26,7 @@ class DatabaseInitializerTest {
         String sqlString = "CREATE TABLE IF NOT EXISTS users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "username TEXT NOT NULL, " +
-                "password TEXT NOT NULL, " +
-                "placeholder INTEGER NOT NULL)";
+                "password TEXT NOT NULL)";
 
         Statement st = mock(Statement.class);
         when(conn.createStatement()).thenReturn(st);
@@ -42,8 +41,7 @@ class DatabaseInitializerTest {
         String sqlString = "CREATE TABLE IF NOT EXISTS users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "username TEXT NOT NULL, " +
-                "password TEXT NOT NULL, " +
-                "placeholder INTEGER NOT NULL)";
+                "password TEXT NOT NULL)";
 
         Statement st = mock(Statement.class);
         when(conn.createStatement()).thenThrow(new SQLException("SQL test exception"));
