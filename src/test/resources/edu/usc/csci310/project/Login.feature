@@ -27,7 +27,7 @@ Feature: login
 
   Scenario: empty password field
     When I enter in a valid username
-    And I click the "log in button
+    And I click the "log in button"
     Then I should see an error message saying "username and password are required"
 
   Scenario: user times out after 3 fails
