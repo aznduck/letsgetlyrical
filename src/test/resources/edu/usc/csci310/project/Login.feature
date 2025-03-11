@@ -1,62 +1,50 @@
-Feature: login
-  Background:
+Feature: Login to the app
+
+  Scenario:
     Given I am on the login page
+    When I enter "testuser" for username AND "testpassword" for password
+    And I click on "login"
+    Then I should be redirected to the homepage
 
-  Scenario: error-free login
-    When I enter in a valid username
-    And I enter in the correct password
-    And I click the "log in" button
-    Then I should be redirected to the main page
-    And I should see a success message
+    Scenario: Login with invalid credentials
+    Given I am on the login page
+    When I enter "invaliduser" for username AND "invalidpassword" for password
+    And I click on "login"
+    Then I should see an error message "Invalid username or password"
+    And I should remain on the login page
 
-  Scenario: username does not exist
-    When I enter in a username that does not exist
-    And I enter in an invalid password
-    And I click the "log in" button
-    Then I should see an error message saying "invalid username"
+    Scenario: Login with empty fields
+    Given I am on the login page
+    When I leave the username and password fields empty
+    And I click on "login"
+    Then I should see an error message "Username and password cannot be empty"
+    And I should remain on the login page
 
-  Scenario: incorrect password
-    When I enter in a valid username
-    And I enter in an invalid password
-    And I click the "log in" button
-    Then I should see an error message saying "incorrect password"
+    Scenario: Three failed logins within 1 minute
+    Given I am on the login page
+    When I enter "testuser" for username AND "wrongpassword" for password
+    And I click on "login"
+    And I enter "testuser" for username AND "wrongpassword" for password
+    And I click on "login"
+    And I enter "testuser" for username AND "wrongpassword" for password
+    And I click on "login"
+    Then I should see an error message "Too many failed login attempts. Try again in 1 minute"
 
-  Scenario: empty username field
-    When I click the "login in" button
-    Then I should see an error message saying "username and password are required"
+    Scenario: Toggle between login and register
+    Given I am on the login page
+    When I click on "Register"
+    Then I should be redirected to the register page
+    When I click on "Login"
+    Then I should be redirected back to the login page
 
-  Scenario: empty password field
-    When I enter in a valid username
-    And I click the "log in button"
-    Then I should see an error message saying "username and password are required"
+    Scenario: App name and team name
+    Given I am on the login page
+    Then I should see "Let's Get Lyrical" on the screen
+    And I should see "Team 23" on the screen
 
-  Scenario: user times out after 3 fails
-    When I enter in a valid username
-    And I enter in an invalid password
-    And I press the "log in" button
-    And I enter in an invalid password
-    And I press the "log in" button
-    And I enter in an invalid password
-    And I press the "log in" button
-    Then I should see an error message saying "you have been timed out for 30 seconds"
-    And I enter in an invalid password
-    And I press the "log in" button
-    Then I should see an error message saying "you have been timed out. Please try again in 30 seconds"
-
-  Scenario: user account locks after 6 attempts
-    When I enter in a valid username
-    And I enter in an invalid password
-    And I press the "log in" button
-    And I enter in an invalid password
-    And I press the "log in" button
-    And I enter in an invalid password
-    And I press the "log in" button
-    Then I wait 30 seconds
-    And I enter in an invalid password
-    And I press the "log in" button
-    And I enter in an invalid password
-    And I press the "log in" button
-    And I enter in an invalid password
-    And I press the "log in" button
-    Then I should see an error message saying "password failed too many times. Account locked."
+    Scenario: Test for keyboard accessibility
+    Given I am on the login page
+    When I enter "testuser" for username AND "testpassword" for password
+    And I press the Enter key
+    Then I should be redirected to the homepage
 
