@@ -21,8 +21,10 @@ public class RegisterService {
     public int createUser(CreateUserRequest request) throws SQLException {
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
-            pst.setString(1, request.getUsername());
-            pst.setString(2, request.getPassword());
+            String hashedUsername = hashPassword(request.getUsername());
+            String hashedPassword = hashPassword(request.getPassword());
+            pst.setString(1, hashedUsername);
+            pst.setString(2, hashedPassword);
 
             int rowsAffected = pst.executeUpdate();
 

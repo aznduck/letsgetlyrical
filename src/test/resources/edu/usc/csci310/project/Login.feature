@@ -47,3 +47,4 @@ Feature: Login to the app
     When I enter "testuser" for username AND "testpassword" for password
     And I press the Enter key
     Then I should be redirected to the homepage
+
