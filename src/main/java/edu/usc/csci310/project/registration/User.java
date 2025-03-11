@@ -1,4 +1,4 @@
-package edu.usc.csci310.project;
+package edu.usc.csci310.project.registration;
 
 public class User {
     private int id;
