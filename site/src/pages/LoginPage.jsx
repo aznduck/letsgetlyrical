@@ -40,8 +40,8 @@ const LoginPage = () => {
                 <img
                     src="/images/logo_xL_64.png"
                     alt="Let's get lyrical!"
-                    width={400}
-                    height={150}
+                    width={300}
+                    height={100}
                 />
             </div>
 
