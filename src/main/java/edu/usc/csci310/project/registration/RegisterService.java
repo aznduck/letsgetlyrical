@@ -1,5 +1,7 @@
 package edu.usc.csci310.project.registration;
 
+import org.springframework.stereotype.Service;
+
 import java.security.KeyStore;
 import java.sql.*;
 import java.security.NoSuchAlgorithmException;
@@ -11,6 +13,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.spec.KeySpec;
 
+@Service
 public class RegisterService {
     private final Connection connection;
 
