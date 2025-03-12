@@ -8,6 +8,9 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class RegistrationStepDefs {
     private static final String ROOT_URL = "http://localhost:8080";
@@ -39,6 +42,8 @@ public class RegistrationStepDefs {
 
     @And("I should be redirected to the login page")
     public void iShouldBeRedirectedToTheLoginPage() {
+        WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(3));
+        wait.until(webDriver -> webDriver.getCurrentUrl().equals(ROOT_URL + "/login"));
         assert driver.getCurrentUrl().equals(ROOT_URL + "/login");
     }
 
