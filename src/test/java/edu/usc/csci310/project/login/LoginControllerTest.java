@@ -1,7 +1,7 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.login;
 
+import edu.usc.csci310.project.registration.CreateUserRequest;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.sql.SQLException;
 
@@ -16,11 +16,11 @@ class LoginControllerTest {
 
     @Test
     void loginUser() throws SQLException {
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername("john_doe");
-        createUserRequest.setPassword("Passw0rd");
-        when(service.loginUser(createUserRequest)).thenReturn(1);
-        assertEquals(200, controller.loginUser(createUserRequest).getStatusCode().value());
+        LoginUserRequest loginUserRequest = new LoginUserRequest();
+        loginUserRequest.setUsername("john_doe");
+        loginUserRequest.setPassword("Passw0rd");
+        when(service.loginUser(loginUserRequest)).thenReturn(1);
+        assertEquals(200, controller.loginUser(loginUserRequest).getStatusCode().value());
     }
 
     @Test

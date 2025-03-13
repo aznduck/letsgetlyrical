@@ -1,5 +1,6 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.login;
 
+import edu.usc.csci310.project.registration.CreateUserRequest;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -28,5 +29,12 @@ class LoginServiceTest {
         createUserRequest.setUsername("testuser");
         createUserRequest.setPassword("testpassword");
         assertTrue(loginService.loginUser(createUserRequest)>0);
+    }
+    @Test
+    void testHashPasswordValid() {
+        LoginService loginService = new LoginService(null);
+        String hashedPW = loginService.hashPassword("Password1");
+        boolean isHashedPWCorrect = loginService.verifyPassword("Password1", hashedPW);
+        assertTrue(isHashedPWCorrect);
     }
 }

@@ -1,6 +1,7 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.login;
 
 
+import edu.usc.csci310.project.registration.UserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +20,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> loginUser(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserResponse> loginUser(@RequestBody LoginUserRequest request) {
         try {
             if (!isValidUsername(request.getUsername())) {
                 throw new RuntimeException("Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens.");
@@ -36,6 +37,7 @@ public class LoginController {
         }
     }
 
+
     public boolean isValidUsername(String username) {
         return username != null && username.matches("^[a-zA-Z0-9 _-]+$");
     }
@@ -43,4 +45,6 @@ public class LoginController {
     public boolean isValidPassword(String username) {
         return username != null && username.matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*");
     }
+
+
 }
