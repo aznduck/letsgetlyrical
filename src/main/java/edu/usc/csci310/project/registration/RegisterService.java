@@ -3,6 +3,7 @@ package edu.usc.csci310.project.registration;
 import org.springframework.stereotype.Service;
 
 import java.security.KeyStore;
+import java.security.MessageDigest;
 import java.sql.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -24,7 +25,8 @@ public class RegisterService {
     public int createUser(CreateUserRequest request) throws SQLException {
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
-            String hashedUsername = hashPassword(request.getUsername());
+            if(!isUsernameAvailable(request.getUsername())) throw new SQLException("Username not available.");
+            String hashedUsername = hashUsername(request.getPassword());
             String hashedPassword = hashPassword(request.getPassword());
             pst.setString(1, hashedUsername);
             pst.setString(2, hashedPassword);
@@ -49,6 +51,34 @@ public class RegisterService {
         catch (SQLException e) {
             System.out.println(e.getMessage());
             throw new SQLException(e);
+        }
+    }
+
+    public String hashUsername(String username) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(username.getBytes());
+            StringBuilder hexString = new StringBuilder(2 * hash.length);
+            for (byte b : hash) {
+                hexString.append(String.format("%02x", b));
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public boolean isUsernameAvailable(String username) {
+        String hashedUsername = hashUsername(username);
+        String sql = "SELECT * FROM users WHERE username = ?";
+
+        try(PreparedStatement pst = connection.prepareStatement(sql)) {
+            pst.setString(1, hashedUsername);
+            ResultSet rs = pst.executeQuery();
+            return !rs.next();
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
