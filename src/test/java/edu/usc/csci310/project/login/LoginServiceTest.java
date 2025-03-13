@@ -1,6 +1,5 @@
 package edu.usc.csci310.project.login;
 
-import edu.usc.csci310.project.registration.CreateUserRequest;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -8,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,8 +27,9 @@ class LoginServiceTest {
         LoginUserRequest loginUserRequest = new LoginUserRequest();
         loginUserRequest.setUsername("testuser");
         loginUserRequest.setPassword("testpassword");
-        assertTrue(loginService.loginUser(loginUserRequest)>0);
+        assertTrue(loginService.loginUser(loginUserRequest) > 0);
     }
+
     @Test
     void testHashPasswordValid() {
         LoginService loginService = new LoginService(null);

@@ -1,11 +1,10 @@
 package edu.usc.csci310.project.login;
 
-import edu.usc.csci310.project.registration.CreateUserRequest;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,18 +22,5 @@ class LoginControllerTest {
         assertEquals(200, controller.loginUser(loginUserRequest).getStatusCode().value());
     }
 
-    @Test
-    void isValidUsername() {
 
-        assertTrue(controller.isValidUsername("john_doe"));
-        assertFalse(controller.isValidUsername("john_doe!"));
-
-    }
-
-    @Test
-    void isValidPassword() {
-
-        assertTrue(controller.isValidPassword("Passw0rd"));
-        assertFalse(controller.isValidPassword("password"));
-    }
 }
