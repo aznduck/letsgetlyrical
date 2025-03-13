@@ -1,17 +1,13 @@
 package edu.usc.csci310.project.registration;
 
-import org.springframework.stereotype.Service;
 
-import java.security.KeyStore;
-import java.sql.*;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.SecureRandom;
-import java.util.Base64;
+import org.springframework.stereotype.Service;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
+import java.security.SecureRandom;
 import java.security.spec.KeySpec;
+import java.sql.*;
+import java.util.Base64;
 
 @Service
 public class RegisterService {

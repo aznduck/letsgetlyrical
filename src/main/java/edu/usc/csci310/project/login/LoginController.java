@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static edu.usc.csci310.project.Utils.isValidPassword;
+import static edu.usc.csci310.project.Utils.isValidUsername;
+
 import java.sql.SQLException;
 
 @RestController
@@ -38,13 +41,6 @@ public class LoginController {
     }
 
 
-    public boolean isValidUsername(String username) {
-        return username != null && username.matches("^[a-zA-Z0-9 _-]+$");
-    }
-
-    public boolean isValidPassword(String username) {
-        return username != null && username.matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*");
-    }
 
 
 }
