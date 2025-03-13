@@ -12,7 +12,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotAvailableException.class)
     public ResponseEntity<Map<String, String>> handleUsernameNotAvailableException(UsernameNotAvailableException ex) {
         Map<String, String> errorResponse = new HashMap<String, String>();
-        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("error", ex.getMessage());
         return ResponseEntity.badRequest().body(errorResponse);
     }
 }

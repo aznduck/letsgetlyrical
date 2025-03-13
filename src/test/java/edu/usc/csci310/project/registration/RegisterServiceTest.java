@@ -221,8 +221,8 @@ class RegisterServiceTest {
 
         doReturn(false).when(registerService).isUsernameAvailable(username);
 
-        SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
-        assertTrue(sqle.getMessage().contains("Username not available"));
+        UsernameNotAvailableException unae = assertThrows(UsernameNotAvailableException.class, () -> registerService.createUser(createUserRequest));
+        assertTrue(unae.getMessage().contains("Username not available"));
     }
 
 
