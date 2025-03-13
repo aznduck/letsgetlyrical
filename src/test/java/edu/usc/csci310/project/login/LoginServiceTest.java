@@ -25,10 +25,10 @@ class LoginServiceTest {
         when(conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?")).thenReturn(ps);
         when(ps.executeQuery()).thenReturn(rs);
         LoginService loginService = new LoginService(conn);
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername("testuser");
-        createUserRequest.setPassword("testpassword");
-        assertTrue(loginService.loginUser(createUserRequest)>0);
+        LoginUserRequest loginUserRequest = new LoginUserRequest();
+        loginUserRequest.setUsername("testuser");
+        loginUserRequest.setPassword("testpassword");
+        assertTrue(loginService.loginUser(loginUserRequest)>0);
     }
     @Test
     void testHashPasswordValid() {

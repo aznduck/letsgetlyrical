@@ -23,7 +23,7 @@ public class LoginService {
         this.conn = conn;
     }
 
-    public int loginUser(CreateUserRequest request) throws SQLException {
+    public int loginUser(LoginUserRequest request) throws SQLException {
         String query = "SELECT * FROM users WHERE username = ? AND password = ?";
         PreparedStatement stmt = conn.prepareStatement(query);
         stmt.setString(1, hashPassword(request.getUsername()));
