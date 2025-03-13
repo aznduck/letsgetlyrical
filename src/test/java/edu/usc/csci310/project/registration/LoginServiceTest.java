@@ -3,6 +3,8 @@ package edu.usc.csci310.project.registration;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,8 +17,12 @@ class LoginServiceTest {
     void loginUser() throws SQLException {
         Connection conn = mock();
 
-        when(conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?")).thenReturn(null);
-
+        ResultSet rs = mock();
+        when(rs.next()).thenReturn(true);
+        when(rs.getInt("id")).thenReturn(1);
+        PreparedStatement ps = mock();
+        when(conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?")).thenReturn(ps);
+        when(ps.executeQuery()).thenReturn(rs);
         LoginService loginService = new LoginService(conn);
         CreateUserRequest createUserRequest = new CreateUserRequest();
         createUserRequest.setUsername("testuser");

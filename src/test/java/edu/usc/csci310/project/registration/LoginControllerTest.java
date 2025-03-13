@@ -17,24 +17,24 @@ class LoginControllerTest {
     @Test
     void loginUser() throws SQLException {
         CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername("testuser");
-        createUserRequest.setPassword("testpassword");
+        createUserRequest.setUsername("john_doe");
+        createUserRequest.setPassword("Passw0rd");
         when(service.loginUser(createUserRequest)).thenReturn(1);
-        assertEquals(1, controller.loginUser(createUserRequest));
+        assertEquals(200, controller.loginUser(createUserRequest).getStatusCode().value());
     }
 
     @Test
     void isValidUsername() {
 
-        assertTrue(controller.isValidUsername("testuser"));
-        assertFalse(controller.isValidUsername("testuser!"));
+        assertTrue(controller.isValidUsername("john_doe"));
+        assertFalse(controller.isValidUsername("john_doe!"));
 
     }
 
     @Test
     void isValidPassword() {
 
-        assertTrue(controller.isValidPassword("testpassword"));
-        assertFalse(controller.isValidPassword("testpassword!"));
+        assertTrue(controller.isValidPassword("Passw0rd"));
+        assertFalse(controller.isValidPassword("password"));
     }
 }
