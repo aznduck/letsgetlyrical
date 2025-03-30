@@ -62,7 +62,7 @@ body {
     max-width: 450px;
     background-color: white;
     border-radius: 24px;
-    padding: 2rem 2rem;
+    padding: 2rem 3rem;
 }
 
 .log-in-form {
@@ -99,6 +99,158 @@ body {
     border-radius: 8px;
     font-size: 0.9rem;
     border: 1px solid #fecaca;
+    margin-top: 0.5rem;
+}
+
+.input-error {
+    border-color: #ef4444 !important;
+}
+
+/* Success Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.success-modal {
+    background-color: #edfde7;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: scaleIn 0.3s ease-out;
+}
+
+.success-icon {
+    color: #28770e;
+    margin: 0 auto 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.success-modal h2 {
+    font-size: 1.5rem;
+    color: #28770e;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+}
+
+.success-modal p {
+    color: #28770e;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+}
+
+.redirect-text {
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+/* Cancel Modal Styles */
+.cancel-modal {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: scaleIn 0.3s ease-out;
+}
+
+.cancel-icon {
+    color: #f50b0b;
+    margin: 0 auto 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.cancel-modal h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.cancel-modal p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.cancel-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.cancel-button-primary {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancel-button-primary:hover {
+    background-color: #dc2626;
+}
+
+.cancel-button-secondary {
+    background-color: #e5e7eb;
+    color: #374151;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancel-button-secondary:hover {
+    background-color: #d1d5db;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .sign-up-subtitle {
