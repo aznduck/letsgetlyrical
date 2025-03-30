@@ -119,6 +119,13 @@ class RegisterServiceTest {
         }
     }
 
+    CreateUserRequest generateValidCreateUserRequest(String username, String password) {
+        CreateUserRequest createUserRequest = new CreateUserRequest();
+        createUserRequest.setUsername(username);
+        createUserRequest.setPassword(password);
+        return createUserRequest;
+    }
+
     @Test
     void createRegistrationValid() throws SQLException {
         int id = 1;
@@ -126,9 +133,7 @@ class RegisterServiceTest {
         String password = "TestPassword1";
         String hashedPW = registerService.hashPassword(password);
 
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername(username);
-        createUserRequest.setPassword(hashedPW);
+        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
         Statement st = mock(Statement.class);
@@ -155,9 +160,7 @@ class RegisterServiceTest {
         String username = "test";
         String password = "TestPassword1";
 
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername(username);
-        createUserRequest.setPassword(password);
+        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
         Statement st = mock(Statement.class);
@@ -180,10 +183,8 @@ class RegisterServiceTest {
         int id = 1;
         String username = "test";
         String password = "TestPassword1";
-
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername(username);
-        createUserRequest.setPassword(password);
+        
+        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
         Statement st = mock(Statement.class);
@@ -210,9 +211,7 @@ class RegisterServiceTest {
         String username = "test";
         String password = "TestPassword1";
 
-        CreateUserRequest createUserRequest = new CreateUserRequest();
-        createUserRequest.setUsername(username);
-        createUserRequest.setPassword(password);
+        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
         Statement st = mock(Statement.class);
