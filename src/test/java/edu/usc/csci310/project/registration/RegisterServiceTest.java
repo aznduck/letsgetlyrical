@@ -60,9 +60,7 @@ class RegisterServiceTest {
         }
     }
 
-    @Test
-    void testIsUsernameAvailableYes() throws SQLException {
-        String username = "Username";
+    private PreparedStatement setupUsernameCheck(String username, boolean isAvailable) throws SQLException {
         String hashedUsername = registerService.hashUsername(username);
         String sqlString = "SELECT * FROM users WHERE username = ?";
 
@@ -71,7 +69,15 @@ class RegisterServiceTest {
 
         when(conn.prepareStatement(sqlString)).thenReturn(pst);
         when(pst.executeQuery()).thenReturn(rs);
-        when(rs.next()).thenReturn(false);
+        when(rs.next()).thenReturn(!isAvailable);
+
+        return pst;
+    }
+
+    @Test
+    void testIsUsernameAvailableYes() throws SQLException {
+        String username = "Username";
+        setupUsernameCheck(username, true);
 
         assertTrue(registerService.isUsernameAvailable(username));
     }
@@ -79,15 +85,7 @@ class RegisterServiceTest {
     @Test
     void testIsUsernameAvailableNo() throws SQLException {
         String username = "Username";
-        String hashedUsername = registerService.hashUsername(username);
-        String sqlString = "SELECT * FROM users WHERE username = ?";
-
-        PreparedStatement pst = mock(PreparedStatement.class);
-        ResultSet rs = mock(ResultSet.class);
-
-        when(conn.prepareStatement(sqlString)).thenReturn(pst);
-        when(pst.executeQuery()).thenReturn(rs);
-        when(rs.next()).thenReturn(true);
+        setupUsernameCheck(username, false);
 
         assertFalse(registerService.isUsernameAvailable(username));
     }
