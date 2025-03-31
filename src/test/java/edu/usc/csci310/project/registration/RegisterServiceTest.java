@@ -1,5 +1,6 @@
 package edu.usc.csci310.project.registration;
 
+import edu.usc.csci310.project.Utils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,9 @@ import static org.mockito.Mockito.*;
 
 import java.security.MessageDigest;
 
+import static edu.usc.csci310.project.Utils.hashPassword;
+import static edu.usc.csci310.project.Utils.verifyPassword;
+
 class RegisterServiceTest {
     private RegisterService registerService;
     private Connection conn;
@@ -28,8 +32,8 @@ class RegisterServiceTest {
 
     @Test
     void testHashPasswordValid() {
-        String hashedPW = registerService.hashPassword("Password1");
-        boolean isHashedPWCorrect = registerService.verifyPassword("Password1", hashedPW);
+        String hashedPW = hashPassword("Password1");
+        boolean isHashedPWCorrect = Utils.verifyPassword("Password1", hashedPW);
         assertTrue(isHashedPWCorrect);
     }
 
@@ -38,7 +42,7 @@ class RegisterServiceTest {
         try(MockedStatic<SecretKeyFactory> mockedSKF = Mockito.mockStatic(SecretKeyFactory.class);) {
             mockedSKF.when(() -> SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")).thenThrow(new NoSuchAlgorithmException());
 
-            assertThrows(RuntimeException.class, () -> registerService.hashPassword("Password1"));
+            assertThrows(RuntimeException.class, () -> Utils.hashPassword("Password1"));
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -112,7 +116,7 @@ class RegisterServiceTest {
         try(MockedStatic<SecretKeyFactory> mockedSKF = Mockito.mockStatic(SecretKeyFactory.class);) {
             mockedSKF.when(() -> SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")).thenThrow(new NoSuchAlgorithmException());
 
-            assertThrows(RuntimeException.class, () -> registerService.verifyPassword("Password1", "HashedPassword1"));
+            assertThrows(RuntimeException.class, () -> Utils.verifyPassword("Password1", "HashedPassword1"));
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -131,7 +135,6 @@ class RegisterServiceTest {
         int id = 1;
         String username = "test";
         String password = "TestPassword1";
-        String hashedPW = registerService.hashPassword(password);
 
         CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
@@ -142,16 +145,21 @@ class RegisterServiceTest {
 
         doReturn(true).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
-        doReturn("hashedPassword").when(registerService).hashPassword(password);
-        when(conn.createStatement()).thenReturn(st);
-        when(conn.prepareStatement(sqlString)).thenReturn(pst);
-        when(pst.executeUpdate()).thenReturn(1);
 
-        when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
-        when(rs.next()).thenReturn(true);
-        when(rs.getInt(1)).thenReturn(200);
+        // Mock the static Utils.hashPassword method
+        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+            mockedUtils.when(() -> Utils.hashPassword(password)).thenReturn("hashedPassword");
 
-        assertEquals(200, registerService.createUser(createUserRequest));
+            when(conn.createStatement()).thenReturn(st);
+            when(conn.prepareStatement(sqlString)).thenReturn(pst);
+            when(pst.executeUpdate()).thenReturn(1);
+
+            when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
+            when(rs.next()).thenReturn(true);
+            when(rs.getInt(1)).thenReturn(200);
+
+            assertEquals(200, registerService.createUser(createUserRequest));
+        }
     }
 
     @Test
@@ -169,13 +177,16 @@ class RegisterServiceTest {
 
         doReturn(true).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
-        doReturn("hashedPassword").when(registerService).hashPassword(password);
-        when(conn.createStatement()).thenReturn(st);
-        when(conn.prepareStatement(sqlString)).thenReturn(pst);
-        when(pst.executeUpdate()).thenReturn(-1);
+        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+            mockedUtils.when(() -> Utils.hashPassword(password)).thenReturn("hashedPassword");
 
-        SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
-        assertTrue(sqle.getMessage().contains("No rows affected"));
+            when(conn.createStatement()).thenReturn(st);
+            when(conn.prepareStatement(sqlString)).thenReturn(pst);
+            when(pst.executeUpdate()).thenReturn(-1);
+
+            SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
+            assertTrue(sqle.getMessage().contains("No rows affected"));
+        }
     }
 
     @Test
@@ -193,15 +204,18 @@ class RegisterServiceTest {
 
         doReturn(true).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
-        doReturn("hashedPassword").when(registerService).hashPassword(password);
-        when(conn.createStatement()).thenReturn(st);
-        when(conn.prepareStatement(sqlString)).thenReturn(pst);
-        when(pst.executeUpdate()).thenReturn(1);
-        when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
-        when(rs.next()).thenReturn(false);
+        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+            mockedUtils.when(() -> Utils.hashPassword(password)).thenReturn("hashedPassword");
 
-        SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
-        assertTrue(sqle.getMessage().contains("Failed to retrieve the generated ID"));
+            when(conn.createStatement()).thenReturn(st);
+            when(conn.prepareStatement(sqlString)).thenReturn(pst);
+            when(pst.executeUpdate()).thenReturn(1);
+            when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
+            when(rs.next()).thenReturn(false);
+
+            SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
+            assertTrue(sqle.getMessage().contains("Failed to retrieve the generated ID"));
+        }
 
     }
 
