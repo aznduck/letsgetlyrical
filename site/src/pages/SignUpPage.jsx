@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from "../App"
+// import { useAuth } from "../App"
 import { Eye, EyeOff } from "lucide-react"
 
 const SignUpPage = () => {
@@ -13,14 +13,14 @@ const SignUpPage = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [error, setError] = useState("")
     const navigate = useNavigate()
-    const { user } = useAuth()
+    // const { user } = useAuth()
 
     // If user is already logged in, redirect to landing page
-    useEffect(() => {
-        if (user) {
-            navigate("/landing")
-        }
-    }, [user, navigate])
+    // useEffect(() => {
+    //     if (user) {
+    //         navigate("/landing")
+    //     }
+    // }, [user, navigate])
 
     const validateForm = () => {
         setError("")

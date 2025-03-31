@@ -1,6 +1,5 @@
 package edu.usc.csci310.project.login;
 
-import edu.usc.csci310.project.registration.CreateUserRequest;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKeyFactory;

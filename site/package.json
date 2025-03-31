@@ -9,6 +9,8 @@
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.12",
     "@types/react-dom": "^18.0.11",
+    "dotenv": "^16.4.7",
+    "fetch": "^1.1.0",
     "jest-fetch-mock": "^3.0.3",
     "lucide-react": "^0.479.0",
     "react": "^18.2.0",

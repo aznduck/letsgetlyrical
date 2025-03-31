@@ -38,6 +38,9 @@ public class RegisterController {
             e.printStackTrace();
             throw new RuntimeException("Error adding User: " + e.getMessage(), e);
         }
+        catch(UsernameNotAvailableException unae) {
+            throw new RuntimeException("Service says Username not available " + unae.getMessage(), unae);
+        }
     }
 
     public boolean isValidUsername(String username) {
