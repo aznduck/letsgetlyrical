@@ -22,6 +22,8 @@ public class RegisterService {
     }
 
     public int createUser(CreateUserRequest request) throws SQLException {
+
+        //insert user
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
             String hashedUsername = hashPassword(request.getUsername());

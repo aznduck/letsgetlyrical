@@ -19,6 +19,12 @@ public class RegisterController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@RequestBody CreateUserRequest request) {
         try {
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+                throw new RuntimeException("Username cannot be empty");
+            }
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                throw new RuntimeException("Password cannot be empty");
+            }
             if (!isValidUsername(request.getUsername())) {
                 throw new RuntimeException("Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens.");
             }
