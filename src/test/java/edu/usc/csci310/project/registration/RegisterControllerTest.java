@@ -77,6 +77,20 @@ class RegisterControllerTest {
     }
 
     @Test
+    void registerUserUsernameException() throws SQLException {
+        String username = "test";
+        String password = "Real1";
+        CreateUserRequest request = new CreateUserRequest();
+        request.setUsername(username);
+        request.setPassword(password);
+
+        when(registerService.createUser(request)).thenThrow(UsernameNotAvailableException.class);
+
+        RuntimeException rte = assertThrows(RuntimeException.class, () -> registerController.registerUser(request));
+        assertTrue(rte.getMessage().contains("Username not available"));
+    }
+
+    @Test
     void isValidUsernameValid() {
         String username = "test";
         assertTrue(registerController.isValidUsername(username));

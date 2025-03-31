@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
+
 import { useAuth } from "../App"
 import {AlertCircle, CheckCircle, Eye, EyeOff} from "lucide-react"
 
@@ -48,6 +49,7 @@ const CancelModal = ({ onConfirm, onCancel }) => {
     )
 }
 
+
 const SignUpPage = () => {
 
     const [username, setUsername] = useState("")
@@ -66,11 +68,11 @@ const SignUpPage = () => {
     const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
 
     // If user is already logged in, redirect to landing page
-    useEffect(() => {
-        if (user) {
-            navigate("/landing")
-        }
-    }, [user, navigate])
+    // useEffect(() => {
+    //     if (user) {
+    //         navigate("/landing")
+    //     }
+    // }, [user, navigate])
 
     useEffect(() => {
         let redirectTimer

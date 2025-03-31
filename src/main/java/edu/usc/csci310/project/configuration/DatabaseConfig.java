@@ -1,4 +1,5 @@
 package edu.usc.csci310.project.configuration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
