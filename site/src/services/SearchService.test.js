@@ -81,7 +81,7 @@ describe("SearchService", () => {
 
         global.fetch.mockResolvedValue(mockErrorResponse);
 
-        const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+        const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(jest.fn());
 
         const results = await SearchService.search("test query");
 
