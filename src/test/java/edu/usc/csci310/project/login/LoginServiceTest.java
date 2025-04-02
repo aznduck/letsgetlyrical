@@ -2,6 +2,7 @@ package edu.usc.csci310.project.login;
 
 import edu.usc.csci310.project.Utils;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,26 +11,60 @@ import java.sql.SQLException;
 
 import static edu.usc.csci310.project.Utils.hashPassword;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 class LoginServiceTest {
 
     @Test
-    void loginUser() throws SQLException {
+    void loginUserValid() throws SQLException {
         Connection conn = mock();
-
-        ResultSet rs = mock();
-        when(rs.next()).thenReturn(true);
-        when(rs.getInt("id")).thenReturn(1);
         PreparedStatement ps = mock();
-        when(conn.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?")).thenReturn(ps);
+        ResultSet rs = mock();
+
+        when(conn.prepareStatement("SELECT * FROM users WHERE username = ?")).thenReturn(ps);
         when(ps.executeQuery()).thenReturn(rs);
-        LoginService loginService = new LoginService(conn);
-        LoginUserRequest loginUserRequest = new LoginUserRequest();
-        loginUserRequest.setUsername("testuser");
-        loginUserRequest.setPassword("testpassword");
-        assertTrue(loginService.loginUser(loginUserRequest) > 0);
+        when(rs.next()).thenReturn(true);
+        when(rs.getString("password")).thenReturn("Password0");
+        when(rs.getInt("id")).thenReturn(1);
+
+        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+            mockedUtils.when(() -> Utils.verifyPassword("Password0", "Password0")).thenReturn(true);
+
+            LoginService loginService = new LoginService(conn);
+            LoginUserRequest loginUserRequest = new LoginUserRequest();
+            loginUserRequest.setUsername("testuser");
+            loginUserRequest.setPassword("Password0");
+            assertTrue(loginService.loginUser(loginUserRequest) > 0);
+        }
+    }
+
+//    @Test
+//    void loginUserNoUser() throws SQLException {
+//        Connection conn = mock();
+//        PreparedStatement ps = mock();
+//        ResultSet rs = mock();
+//
+//        when(conn.prepareStatement("SELECT * FROM users WHERE username = ?")).thenReturn(ps);
+//        when(ps.executeQuery()).thenReturn(rs);
+//        when(rs.next()).thenReturn(false);
+//        when(rs.getString("password")).thenReturn("Password0");
+//        when(rs.getInt("id")).thenReturn(1);
+//
+//        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
+//            mockedUtils.when(() -> Utils.verifyPassword("Password0", "Password0")).thenReturn(true);
+//
+//            LoginService loginService = new LoginService(conn);
+//            LoginUserRequest loginUserRequest = new LoginUserRequest();
+//            loginUserRequest.setUsername("testuser");
+//            loginUserRequest.setPassword("Password0");
+//            assertTrue(loginService.loginUser(loginUserRequest) > 0);
+//        }
+//    }
+
+    @Test
+    void loginUserWrongPassword() throws SQLException {
+
     }
 
     @Test

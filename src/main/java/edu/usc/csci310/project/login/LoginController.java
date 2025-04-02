@@ -31,9 +31,23 @@ public class LoginController {
             if (!isValidPassword(request.getPassword())) {
                 throw new RuntimeException("Invalid input: password must contain a lowercase, uppercase, and number.");
             }
+            // login result
             int id = loginService.loginUser(request);
-            UserResponse response = new UserResponse(id, request.getUsername(), request.getPassword());
-            return ResponseEntity.ok().body(response);
+
+            // if user doesn't exist
+            if(id == -1) {
+                return ResponseEntity.status(404).body(new UserResponse(id, "User not found", ""));
+            }
+            // if password is incorrect
+            else if(id == -2) {
+                return ResponseEntity.status(401).body(new UserResponse(id, "Invalid password", ""));
+            }
+            // if successful
+            else {
+                return ResponseEntity.ok().body(new UserResponse(id, "Successfully logged in", ""));
+            }
+
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Error adding User: " + e.getMessage(), e);
