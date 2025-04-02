@@ -1,8 +1,53 @@
 import React from 'react';
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
-// import { useAuth } from "../App"
-import { Eye, EyeOff } from "lucide-react"
+
+import {AlertCircle, CheckCircle, Eye, EyeOff} from "lucide-react"
+
+const MOCK_USERS = [
+    { username: "user1", password: "Password1" },
+    { username: "admin", password: "Admin123" },
+]
+
+// Success Modal Component
+const SuccessModal = ({  }) => {
+    return (
+        <div className="modal-overlay">
+            <div className="success-modal">
+                <div className="success-icon">
+                    <CheckCircle size={50}/>
+                </div>
+                <h2>Account Created!</h2>
+                <p>Your account has been created successfully.</p>
+                <p className="redirect-text">Redirecting to login...</p>
+            </div>
+        </div>
+    )
+}
+
+// Cancel Modal Component
+const CancelModal = ({ onConfirm, onCancel }) => {
+    return (
+        <div className="modal-overlay">
+            <div className="cancel-modal">
+                <div className="cancel-icon">
+                    <AlertCircle size={50} />
+                </div>
+                <h2>Are you sure?</h2>
+                <p>All info entered will be cleared.</p>
+                <div className="cancel-buttons">
+                    <button className="cancel-button-secondary" onClick={onCancel}>
+                        No, continue
+                    </button>
+                    <button className="cancel-button-primary" onClick={onConfirm}>
+                        Yes, cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
 
 const SignUpPage = () => {
 
@@ -11,9 +56,14 @@ const SignUpPage = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const [error, setError] = useState("")
     const navigate = useNavigate()
-    // const { user } = useAuth()
+    const [errors, setErrors] = useState({
+        username: "",
+        password: "",
+        confirmPassword: "",
+    })
+    const [success, setSuccess] = useState(false)
+    const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
 
     // If user is already logged in, redirect to landing page
     // useEffect(() => {
@@ -21,58 +71,97 @@ const SignUpPage = () => {
     //         navigate("/landing")
     //     }
     // }, [user, navigate])
-
-    const validateForm = () => {
-        setError("")
-
-        if (password !== confirmPassword) {
-            setError("Passwords do not match")
-            return false
+    
+    useEffect(() => {
+        let redirectTimer
+        if (success) {
+            redirectTimer = setTimeout(() => {
+                navigate("/login")
+            }, 2000) // 2-second delay before redirecting
         }
+        return () => clearTimeout(redirectTimer)
+    }, [success, navigate])
 
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
-        if(!passwordRegex.test(password)) {
-            setError("Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number")
-            return false
-        }
+    const validatePassword = (password) => {
+        const hasUppercase = /[A-Z]/.test(password)
+        const hasLowercase = /[a-z]/.test(password)
+        const hasNumber = /[0-9]/.test(password)
 
-        return true
+        return hasUppercase && hasLowercase && hasNumber
     }
 
-    const handleSubmit = async (e) => {
+    const isUsernameTaken = (username) => {
+        return MOCK_USERS.some((user) =>
+            user.username.toLowerCase() === username.toLowerCase())
+    }
+
+    // Handle cancel confirmation
+    const handleCancelClick = () => {
+        setShowCancelConfirmation(true)
+    }
+
+    // Handle confirmation result
+    const handleConfirmCancel = () => {
+        // Clear all inputs
+        setUsername("")
+        setPassword("")
+        setConfirmPassword("")
+        setErrors({
+            username: "",
+            password: "",
+            confirmPassword: "",
+        })
+        setShowCancelConfirmation(false)
+    }
+
+    const handleCancelConfirmation = () => {
+        setShowCancelConfirmation(false)
+    }
+
+    const handleSubmit = (e) => {
         e.preventDefault()
 
-        if(!validateForm()) {
+        setErrors({
+            username: "",
+            password: "",
+            confirmPassword: "",
+        })
+
+        let hasErrors = false
+        const newErrors = {
+            username: "",
+            password: "",
+            confirmPassword: "",
+        }
+
+        if (isUsernameTaken(username)) {
+            newErrors.username = "Username is already taken"
+            hasErrors = true
+        }
+
+        if (!validatePassword(password)) {
+            newErrors.password = "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number"
+            hasErrors = true
+        }
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            newErrors.confirmPassword = "Passwords do not match"
+            hasErrors = true
+        }
+
+        if (hasErrors) {
+            setErrors(newErrors)
             return
         }
 
-        try {
-            const response = await fetch('/api/register/register', {
-                method:'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                }),
-            })
-
-            if(response.ok) {
-                navigate("/login")
-            } else {
-                const errorData = await response.json()
-                setError(errorData.message || 'Registration failed. Please try again.')
-            }
-
-        } catch(error) {
-            console.error('Error during registration:', error)
-            setError("Registration failed. Please try again.")
-        }
+        setSuccess(true)
     }
 
     return (
         <div className="auth-container">
+            {success && <SuccessModal onClose={() => setSuccess(false)} />}
+            {showCancelConfirmation && <CancelModal onConfirm={handleConfirmCancel} onCancel={handleCancelConfirmation} />}
             <div className="logo-container">
                 <img
                     src="/images/logo_40.png"
@@ -88,27 +177,16 @@ const SignUpPage = () => {
                         Already have an account? <Link to="/login">Log in</Link>
                     </div>
 
-                    {error && (
-                    <div
-                        className="error-message"
-                        style={{
-                            color: 'red',
-                            padding: '10px',
-                            margin: '10px 0',
-                            backgroundColor: '#ffeeee',
-                            borderRadius: '4px',
-                            borderLeft: '4px solid red',
-                            fontWeight: 'bold',
-                            textAlign: 'left'
-                        }}
-                    >
-                        ⚠️ {error}
-                    </div>
-                    )}
-
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
-                        <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                        <input id="username"
+                               type="text"
+                               value={username}
+                               onChange={(e) => setUsername(e.target.value)}
+                               className={errors.username ? "input-error" : ""}
+                               required
+                        />
+                        {errors.username && <div className="error-message">{errors.username}</div>}
                     </div>
 
                     <div className="form-group">
@@ -123,8 +201,10 @@ const SignUpPage = () => {
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            className={errors.password ? "input-error" : ""}
                             required
                         />
+                        {errors.password && <div className="error-message">{errors.password}</div>}
                         <div className="password-req">Must use 1 uppercase, 1 lowercase, and 1 number</div>
                     </div>
 
@@ -144,12 +224,14 @@ const SignUpPage = () => {
                             type={showConfirmPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
+                            className={errors.confirmPassword ? "input-error" : ""}
                             required
                         />
+                        {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
                     </div>
 
                     <div className="button-group">
-                        <button type="button" className="cancel-button" onClick={() => navigate("/login")}>
+                        <button type="button" className="cancel-button" onClick={handleCancelClick} disabled={success}>
                             Cancel
                         </button>
                         <button type="submit" className="submit-button">
