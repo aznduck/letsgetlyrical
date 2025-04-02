@@ -57,6 +57,7 @@ const SignUpPage = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [error, setError] = useState("")
     const navigate = useNavigate()
     const { user } = useAuth()
     const [errors, setErrors] = useState({
@@ -73,7 +74,7 @@ const SignUpPage = () => {
     //         navigate("/landing")
     //     }
     // }, [user, navigate])
-
+    
     useEffect(() => {
         let redirectTimer
         if (success) {
@@ -178,6 +179,24 @@ const SignUpPage = () => {
                     <div className="sign-up-subtitle">
                         Already have an account? <Link to="/login">Log in</Link>
                     </div>
+
+                    {error && (
+                    <div
+                        className="error-message"
+                        style={{
+                            color: 'red',
+                            padding: '10px',
+                            margin: '10px 0',
+                            backgroundColor: '#ffeeee',
+                            borderRadius: '4px',
+                            borderLeft: '4px solid red',
+                            fontWeight: 'bold',
+                            textAlign: 'left'
+                        }}
+                    >
+                        ⚠️ {error}
+                    </div>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="username">Username</label>

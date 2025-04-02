@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
+import static edu.usc.csci310.project.Utils.hashPassword;
 
 
 @Service
@@ -32,45 +33,6 @@ public class LoginService {
             return rs.getInt("id");
         } else {
             throw new RuntimeException("Invalid username or password");
-        }
-    }
-
-    public String hashPassword(String password) {
-        try {
-            SecureRandom random = new SecureRandom();
-            byte[] salt = new byte[16];
-            random.nextBytes(salt);
-
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-
-            byte[] hash = factory.generateSecret(spec).getEncoded();
-
-            String encodedSalt = Base64.getEncoder().encodeToString(salt);
-            String encodedHash = Base64.getEncoder().encodeToString(hash);
-
-            return encodedSalt + "$" + encodedHash;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
-    public boolean verifyPassword(String password, String hashedPassword) {
-        try {
-            String[] saltAndHash = hashedPassword.split("\\$");
-
-            byte[] salt = Base64.getDecoder().decode(saltAndHash[0]);
-            byte[] hash = Base64.getDecoder().decode(saltAndHash[1]);
-
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
-
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-            byte[] reverseHash = factory.generateSecret(spec).getEncoded();
-
-            return java.util.Arrays.equals(hash, reverseHash);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
