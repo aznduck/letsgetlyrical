@@ -1,5 +1,7 @@
 package edu.usc.csci310.project.login;
 
+import edu.usc.csci310.project.Utils;
+import edu.usc.csci310.project.registration.RegisterService;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKeyFactory;
@@ -11,7 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
-import static edu.usc.csci310.project.Utils.hashPassword;
+
+import static edu.usc.csci310.project.Utils.*;
 
 
 @Service
@@ -24,15 +27,21 @@ public class LoginService {
     }
 
     public int loginUser(LoginUserRequest request) throws SQLException {
-        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+        String query = "SELECT * FROM users WHERE username = ?";
         PreparedStatement stmt = conn.prepareStatement(query);
-        stmt.setString(1, hashPassword(request.getUsername()));
-        stmt.setString(2, hashPassword(request.getPassword()));
+        stmt.setString(1, Utils.hashUsername(request.getUsername()));
+//        System.out.println("username=" + request.getUsername() + " and hash=" + Utils.hashUsername(request.getUsername()));
         ResultSet rs = stmt.executeQuery();
         if (rs.next()) {
-            return rs.getInt("id");
-        } else {
-            throw new RuntimeException("Invalid username or password");
+            if(Utils.verifyPassword(request.getPassword(), rs.getString("password"))) {
+                return rs.getInt("id");
+            }
+            else {
+                return -2; // -2 represents failed password
+            }
+        }
+        else {
+            return -1; // represents that the username did not exist
         }
     }
 

@@ -17,6 +17,7 @@ import java.security.spec.KeySpec;
 import java.sql.*;
 import java.util.Base64;
 import static edu.usc.csci310.project.Utils.hashPassword;
+import static edu.usc.csci310.project.Utils.hashUsername;
 
 @Service
 public class RegisterService {
@@ -32,7 +33,7 @@ public class RegisterService {
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
             if(!isUsernameAvailable(request.getUsername())) throw new UsernameNotAvailableException("Username not available.");
-            String hashedUsername = hashUsername(request.getPassword());
+            String hashedUsername = hashUsername(request.getUsername());
             String hashedPassword = hashPassword(request.getPassword());
             pst.setString(1, hashedUsername);
             pst.setString(2, hashedPassword);
