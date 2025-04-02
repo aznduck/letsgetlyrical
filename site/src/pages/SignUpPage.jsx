@@ -2,7 +2,6 @@ import React from 'react';
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 
-import { useAuth } from "../App"
 import {AlertCircle, CheckCircle, Eye, EyeOff} from "lucide-react"
 
 const MOCK_USERS = [
@@ -11,7 +10,7 @@ const MOCK_USERS = [
 ]
 
 // Success Modal Component
-const SuccessModal = ({ onClose }) => {
+const SuccessModal = ({  }) => {
     return (
         <div className="modal-overlay">
             <div className="success-modal">
@@ -57,9 +56,7 @@ const SignUpPage = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const [error, setError] = useState("")
     const navigate = useNavigate()
-    const { user } = useAuth()
     const [errors, setErrors] = useState({
         username: "",
         password: "",
@@ -179,24 +176,6 @@ const SignUpPage = () => {
                     <div className="sign-up-subtitle">
                         Already have an account? <Link to="/login">Log in</Link>
                     </div>
-
-                    {error && (
-                    <div
-                        className="error-message"
-                        style={{
-                            color: 'red',
-                            padding: '10px',
-                            margin: '10px 0',
-                            backgroundColor: '#ffeeee',
-                            borderRadius: '4px',
-                            borderLeft: '4px solid red',
-                            fontWeight: 'bold',
-                            textAlign: 'left'
-                        }}
-                    >
-                        ⚠️ {error}
-                    </div>
-                    )}
 
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
