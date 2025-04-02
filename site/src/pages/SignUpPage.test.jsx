@@ -1,5 +1,5 @@
 import React from "react";
-import {render, screen, fireEvent, act} from "@testing-library/react";
+import {render, screen, fireEvent, act, waitFor} from "@testing-library/react";
 import SignUpPage from "./SignUpPage";
 import {MemoryRouter} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
@@ -8,6 +8,7 @@ import {useNavigate} from "react-router-dom";
 // jest.mock("../App", () => ({
 //     useAuth: jest.fn(),
 // }));
+global.fetch = jest.fn();
 
 jest.mock("react-router-dom", () => ({
     ...jest.requireActual("react-router-dom"),
@@ -43,18 +44,40 @@ describe("SignUpPage Component", () => {
         expect(screen.getByRole("button", {name: /cancel/i})).toBeInTheDocument();
     });
 
-    test("handleSubmit() and redirects to login", () => {
+    test("handleSubmit() and redirects to login", async () => {
+        global.fetch.mockImplementation(() =>
+            Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ message: "Success" })
+            })
+        );
+
         render(
             <MemoryRouter>
-                <SignUpPage/>
-            </MemoryRouter>);
+                <SignUpPage />
+            </MemoryRouter>
+        );
 
-        fireEvent.change(screen.getByLabelText("Username"), {target: {value: "testUsername"}});
-        fireEvent.change(screen.getByLabelText("Password"), {target: {value: "testPass1"}});
-        fireEvent.change(screen.getByLabelText("Confirm Password"), {target: {value: "testPass1"}});
-        fireEvent.submit(screen.getByRole("button", {name: /create an account/i}));
+        fireEvent.change(screen.getByLabelText(/^username$/i), { target: { value: "testuser" } });
+        fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "Password123" } });
+        fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "Password123" } });
 
-        expect(mockNavigation).toHaveBeenCalledWith("/login");
+        await fireEvent.submit(screen.getByRole("button", { name: /create an account/i }));
+
+        expect(global.fetch).toHaveBeenCalledWith('/api/register/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: "testuser",
+                password: "Password123"
+            }),
+        });
+
+        await waitFor(() => {
+            expect(mockNavigation).toHaveBeenCalledWith("/login");
+        }, { timeout: 3000 });
     });
 
     test("password toggle visibility", async () => {

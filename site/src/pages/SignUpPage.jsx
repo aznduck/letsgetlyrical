@@ -11,6 +11,7 @@ const SignUpPage = () => {
     const [confirmPassword, setConfirmPassword] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [error, setError] = useState("")
     const navigate = useNavigate()
     // const { user } = useAuth()
 
@@ -21,11 +22,53 @@ const SignUpPage = () => {
     //     }
     // }, [user, navigate])
 
-    const handleSubmit = (e) => {
+    const validateForm = () => {
+        setError("")
+
+        if (password !== confirmPassword) {
+            setError("Passwords do not match")
+            return false
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
+        if(!passwordRegex.test(password)) {
+            setError("Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number")
+            return false
+        }
+
+        return true
+    }
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        // In a real app, you would validate and create the account here
-        // As per requirements, redirect to login page
-        navigate("/login")
+
+        if(!validateForm()) {
+            return
+        }
+
+        try {
+            const response = await fetch('/api/register/register', {
+                method:'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+            })
+
+            if(response.ok) {
+                navigate("/login")
+            } else {
+                const errorData = await response.json()
+                setError(errorData.message || 'Registration failed. Please try again.')
+            }
+
+        } catch(error) {
+            console.error('Error during registration:', error)
+            setError("Registration failed. Please try again.")
+        }
     }
 
     return (
@@ -44,6 +87,24 @@ const SignUpPage = () => {
                     <div className="sign-up-subtitle">
                         Already have an account? <Link to="/login">Log in</Link>
                     </div>
+
+                    {error && (
+                    <div
+                        className="error-message"
+                        style={{
+                            color: 'red',
+                            padding: '10px',
+                            margin: '10px 0',
+                            backgroundColor: '#ffeeee',
+                            borderRadius: '4px',
+                            borderLeft: '4px solid red',
+                            fontWeight: 'bold',
+                            textAlign: 'left'
+                        }}
+                    >
+                        ⚠️ {error}
+                    </div>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
