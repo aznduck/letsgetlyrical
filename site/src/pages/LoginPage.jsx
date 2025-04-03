@@ -50,7 +50,7 @@ const LoginPage = () => {
         //     redirect in 3 seconds to landing page
             setTimeout(() => {
                 navigate("/landing");
-            }, 3000);
+            }, 2000);
         }
         else {
             if(response.status === HTTP_STATUS_UNAUTHORIZED) {
