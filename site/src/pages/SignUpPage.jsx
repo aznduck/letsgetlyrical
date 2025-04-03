@@ -10,7 +10,7 @@ const MOCK_USERS = [
 ]
 
 // Success Modal Component
-const SuccessModal = ({  }) => {
+const SuccessModal = () => {
     return (
         <div className="modal-overlay">
             <div className="success-modal">
@@ -61,6 +61,7 @@ const SignUpPage = () => {
         username: "",
         password: "",
         confirmPassword: "",
+        general: "" // Added general error field for API errors
     })
     const [success, setSuccess] = useState(false)
     const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
@@ -71,7 +72,7 @@ const SignUpPage = () => {
     //         navigate("/landing")
     //     }
     // }, [user, navigate])
-    
+
     useEffect(() => {
         let redirectTimer
         if (success) {
@@ -110,6 +111,7 @@ const SignUpPage = () => {
             username: "",
             password: "",
             confirmPassword: "",
+            general: ""
         })
         setShowCancelConfirmation(false)
     }
@@ -118,13 +120,14 @@ const SignUpPage = () => {
         setShowCancelConfirmation(false)
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
 
         setErrors({
             username: "",
             password: "",
             confirmPassword: "",
+            general: ""
         })
 
         let hasErrors = false
@@ -132,6 +135,7 @@ const SignUpPage = () => {
             username: "",
             password: "",
             confirmPassword: "",
+            general: ""
         }
 
         if (isUsernameTaken(username)) {
@@ -155,12 +159,41 @@ const SignUpPage = () => {
             return
         }
 
-        setSuccess(true)
+        try {
+            const response = await fetch('/api/register/register', {
+                method:'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+            })
+
+            if(response.ok) {
+                setSuccess(true)
+                // The navigation to login happens in the useEffect after success is set to true
+            } else {
+                const errorData = await response.json()
+                setErrors({
+                    ...newErrors,
+                    general: errorData.message || 'Registration failed. Please try again.'
+                })
+            }
+
+        } catch(error) {
+            console.error('Error during registration:', error)
+            setErrors({
+                ...newErrors,
+                general: "Registration failed. Please try again."
+            })
+        }
     }
 
     return (
         <div className="auth-container">
-            {success && <SuccessModal onClose={() => setSuccess(false)} />}
+            {success && <SuccessModal />}
             {showCancelConfirmation && <CancelModal onConfirm={handleConfirmCancel} onCancel={handleCancelConfirmation} />}
             <div className="logo-container">
                 <img
@@ -176,6 +209,13 @@ const SignUpPage = () => {
                     <div className="sign-up-subtitle">
                         Already have an account? <Link to="/login">Log in</Link>
                     </div>
+
+                    {/* Display general error if present */}
+                    {errors.general && (
+                        <div className="error-message general-error">
+                            {errors.general}
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label htmlFor="username">Username</label>

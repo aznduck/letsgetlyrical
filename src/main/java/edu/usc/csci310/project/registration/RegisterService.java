@@ -32,7 +32,7 @@ public class RegisterService {
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
             if(!isUsernameAvailable(request.getUsername())) throw new UsernameNotAvailableException("Username not available.");
-            String hashedUsername = hashUsername(request.getPassword());
+            String hashedUsername = hashUsername(request.getUsername());
             String hashedPassword = hashPassword(request.getPassword());
             pst.setString(1, hashedUsername);
             pst.setString(2, hashedPassword);
