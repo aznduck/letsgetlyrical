@@ -341,7 +341,6 @@ input {
     cursor: pointer;
     transition: background-color 0.2s;
     flex: 2.5;
-    margin-top: 1.5rem;
 }
 
 .submit-button:hover {

@@ -1,0 +1,253 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.1rem 2rem;
+    background-color: #051025;
+    height: 72px;
+    min-width: 300px;
+}
+
+
+.logo {
+    height: auto;
+    width: auto;
+    max-height: 57px;
+    margin-right: 1rem;
+}
+.navbar-content {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 300px;
+}
+
+.navbar-middle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+    min-width: 300px;
+}
+
+.mobile-logo-container {
+    display: none;
+    margin-bottom: 1rem;
+}
+
+.mobile-logo {
+    height: 58px;
+    width: auto;
+    filter: drop-shadow(0 0 5px rgba(80, 160, 255, 0.4));
+}
+
+.navbar-center {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    min-width: 300px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 610px;
+    gap: 0.5rem;
+    min-width: 300px;
+}
+
+.home-button {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.home-button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255);
+}
+
+.search-input-container {
+    flex: 1 1 auto;
+    display: flex;
+    min-width: 80px;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    padding: 0 1rem;
+    height: 44px;
+    transition: all 0.2s ease;
+}
+
+.search-input-container.focused {
+    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.search-icon {
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 0.2rem;
+    flex-shrink: 0;
+}
+
+.search-input {
+    flex: auto;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    min-width: 80px;
+}
+
+.search-input::placeholder {
+    color: transparent;
+}
+
+.clear-search {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Num Songs Input Styles */
+.num-songs-container {
+    min-width: 100px;
+    max-width: 150px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    align-content: center;
+}
+
+.num-songs-container.focused {
+    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.num-songs-input {
+    background-color: transparent;
+    border: none;
+    border-radius: 100px;
+    height: 44px;
+    max-width: 100px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    text-align: center;
+    padding: 0;
+}
+
+.num-songs-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.num-songs-input.focused {
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.navbar-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.logout-button {
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: 0.5rem;
+}
+
+.logout-button:hover {
+    color: rgba(255, 255, 255);
+}
+
+.logout-text {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+@media (min-width: 420px) {
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .logout-button {
+        padding: 0;
+    }
+    .num-songs-input {
+        max-width: 100px;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 715px) {
+    .num-songs-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .navbar {
+        padding: 1rem;
+        height: auto;
+    }
+
+    .navbar-left {
+        display: none; /* Hide logo on mobile */
+    }
+
+    .mobile-logo-container {
+        display: flex; /* Change to flex for better centering */
+        justify-content: center; /* Center horizontally */
+        width: auto;
+    }
+
+    .navbar-center {
+        flex: 3; /* Give more space to the center section */
+    }
+
+    .search-input {
+        flex: auto;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 14px;
+        outline: none;
+        width: 100px;
+    }
+
+    .logout-text {
+        display: none; /* Hide logout text on smaller screens */
+    }
+}
+
+
+@media (min-width: 1512px) {
+    .navbar {
+        max-width: 1512px;
+        margin: 0 auto;
+        width: 100%;
+    }
+}
