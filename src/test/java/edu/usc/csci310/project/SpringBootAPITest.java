@@ -3,17 +3,15 @@ package edu.usc.csci310.project;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.springframework.boot.SpringApplication;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 
 class SpringBootAPITest {
+
     private SpringBootAPI api;
 
     @BeforeEach
@@ -22,19 +20,26 @@ class SpringBootAPITest {
     }
 
     @Test
-    void testMain() throws SQLException {
-        Connection conn = mock(Connection.class);
-        Statement st = mock(Statement.class);
-        when(conn.createStatement()).thenReturn(st);
+    void testMain() {
+        // Use mockStatic to prevent the actual Spring application from starting
+        try (MockedStatic<SpringApplication> mockedSpringApplication = mockStatic(SpringApplication.class)) {
+            // Call the main method
+            SpringBootAPI.main(new String[]{});
 
-        try (MockedStatic<DriverManager> mockedDM = mockStatic(DriverManager.class)) {
-            mockedDM.when(() -> DriverManager.getConnection(anyString())).thenReturn(conn);
-            SpringBootAPI.main(new String[0]);
+            // Verify that SpringApplication.run was called with the correct parameters
+            mockedSpringApplication.verify(() ->
+                    SpringApplication.run(
+                            eq(SpringBootAPI.class),
+                            any(String[].class)
+                    )
+            );
         }
     }
 
     @Test
-    void redirect() {
-        assertEquals("forward:/", api.redirect());
+    void testRedirect() {
+        // Simply test that the redirect method returns the expected string
+        String result = api.redirect();
+        assertEquals("forward:/", result);
     }
 }
