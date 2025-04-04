@@ -92,6 +92,7 @@ body {
     margin-bottom: 0;
 }
 
+
 .error-message {
     background-color: #fee2e2;
     color: #b91c1c;
@@ -100,6 +101,16 @@ body {
     font-size: 0.9rem;
     border: 1px solid #fecaca;
     margin-top: 0.5rem;
+}
+
+.general-error {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid #fecaca;
+    margin-bottom: 1rem;
 }
 
 .input-error {
@@ -254,12 +265,12 @@ body {
 }
 
 .login-message {
-    background-color: #deffda;
-    color: #166213;
+    background-color: #edfde7;
+    color: #28770e;
     padding: 0.75rem;
     border-radius: 8px;
     font-size: 0.9rem;
-    border: 1px solid #d5feca;
+    border: 1px solid #28770e;
 }
 
 .sign-up-subtitle {

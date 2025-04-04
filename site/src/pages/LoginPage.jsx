@@ -31,7 +31,7 @@ const LoginPage = () => {
             return;
         }
 
-        const response = await fetch("api/login/login", {
+        const response = await fetch("api/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -51,7 +51,7 @@ const LoginPage = () => {
         //     redirect in 3 seconds to landing page
             setTimeout(() => {
                 navigate("/landing");
-            }, 3000);
+            }, 2000);
         }
         else {
             if(response.status === HTTP_STATUS_WRONG_PASSWORD) {

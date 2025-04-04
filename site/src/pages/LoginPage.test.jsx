@@ -245,7 +245,6 @@ describe('LoginPage Component', () => {
     });
 
 
-
     test("tests for valid form submission and returns with a successful redirect", async () => {
         const mockResponseData = { username: "Successfully logged in" };
 
@@ -286,7 +285,6 @@ describe('LoginPage Component', () => {
             expect(mockLogin).toHaveBeenCalledWith({ username: "gooduser" })
         })
     });
-
 
 
 });
