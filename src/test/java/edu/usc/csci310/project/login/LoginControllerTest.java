@@ -44,23 +44,29 @@ class LoginControllerTest {
     }
 
     @Test
-    void loginUserInvalidUsername() {
+    void loginUserInvalidUsername() throws SQLException {
         LoginUserRequest loginUserRequest = new LoginUserRequest();
         loginUserRequest.setUsername("```");
         loginUserRequest.setPassword("Passw0rd1");
 
-        RuntimeException re = assertThrows(RuntimeException.class, () -> controller.loginUser(loginUserRequest));
-        assertTrue(re.getMessage().contains("Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens"));
+
+        when(service.loginUser(loginUserRequest)).thenReturn(-3);
+        assertEquals(400, controller.loginUser(loginUserRequest).getStatusCode().value());
+//        RuntimeException re = assertThrows(RuntimeException.class, () -> controller.loginUser(loginUserRequest));
+//        assertTrue(re.getMessage().contains("Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens"));
     }
 
     @Test
-    void loginUserInvalidPassword() {
+    void loginUserInvalidPassword() throws SQLException {
         LoginUserRequest loginUserRequest = new LoginUserRequest();
         loginUserRequest.setUsername("validUsername");
         loginUserRequest.setPassword("```");
 
-        RuntimeException re = assertThrows(RuntimeException.class, () -> controller.loginUser(loginUserRequest));
-        assertTrue(re.getMessage().contains("Invalid input: password must contain a lowercase, uppercase, and number"));
+        when(service.loginUser(loginUserRequest)).thenReturn(-3);
+        assertEquals(400, controller.loginUser(loginUserRequest).getStatusCode().value());
+
+//        RuntimeException re = assertThrows(RuntimeException.class, () -> controller.loginUser(loginUserRequest));
+//        assertTrue(re.getMessage().contains("Invalid input: password must contain a lowercase, uppercase, and number"));
     }
 
     @Test

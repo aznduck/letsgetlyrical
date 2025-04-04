@@ -26,10 +26,12 @@ public class LoginController {
     public ResponseEntity<UserResponse> loginUser(@RequestBody LoginUserRequest request) {
         try {
             if (!isValidUsername(request.getUsername())) {
-                throw new RuntimeException("Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens.");
+//                throw new RuntimeException("Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens.");
+                return ResponseEntity.status(400).body(new UserResponse(-3, "Invalid input: username must only contain letters, numbers, spaces, underscores, or hyphens.", ""));
             }
             if (!isValidPassword(request.getPassword())) {
-                throw new RuntimeException("Invalid input: password must contain a lowercase, uppercase, and number.");
+//                throw new RuntimeException("Invalid input: password must contain a lowercase, uppercase, and number.");
+                return ResponseEntity.status(400).body(new UserResponse(-3, "Invalid input: password must contain a lowercase, uppercase, and number", ""));
             }
             // login result
             int id = loginService.loginUser(request);

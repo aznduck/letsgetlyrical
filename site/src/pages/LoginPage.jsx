@@ -4,9 +4,10 @@ import { Link, useNavigate } from "react-router-dom"
 import { EyeOff, Eye } from "lucide-react"
 import { useAuth } from "../App"
 
-const HTTP_STATUS_UNAUTHORIZED = 401;
+const HTTP_STATUS_WRONG_PASSWORD = 401;
 const HTTP_STATUS_NOT_FOUND = 404;
 const HTTP_STATUS_OK = 200;
+const LOGIN_TOKEN = ""
 
 const LoginPage = () => {
     const [username, setUsername] = useState("")
@@ -53,7 +54,7 @@ const LoginPage = () => {
             }, 3000);
         }
         else {
-            if(response.status === HTTP_STATUS_UNAUTHORIZED) {
+            if(response.status === HTTP_STATUS_WRONG_PASSWORD) {
                 // track failed login attempts
                 let failedAttempts = JSON.parse(localStorage.getItem("failedAttempts")) || [];
 
@@ -74,8 +75,8 @@ const LoginPage = () => {
             else if(response.status === HTTP_STATUS_NOT_FOUND) {
                 setError(data.username);
             }
-            else {
-                setError("Something went wrong.");
+            else { // for either invalid username or invalid password
+                setError(data.username);
             }
         }
     }
