@@ -101,7 +101,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("handles wrong password submission", async () => {
@@ -124,7 +124,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("lockout after three failed password attempts", async() => {
@@ -190,7 +190,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("removes failed login attempts older than 60 seconds", async () => {
@@ -271,7 +271,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("successful login", async () => {
