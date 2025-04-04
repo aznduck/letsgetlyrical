@@ -101,7 +101,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("handles wrong password submission", async () => {
@@ -124,7 +124,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("lockout after three failed password attempts", async() => {
@@ -190,7 +190,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("removes failed login attempts older than 60 seconds", async () => {
@@ -205,7 +205,10 @@ describe('LoginPage Component', () => {
 
         render(<LoginPage />);
 
-        jest.advanceTimersByTime(60000);
+        await act(() => {{
+            jest.advanceTimersByTime(60000);
+            return Promise.resolve();
+        }})
 
         await waitFor(() => {
             const updatedAttempts = JSON.parse(localStorage.getItem("failedAttempts"));
@@ -227,7 +230,10 @@ describe('LoginPage Component', () => {
 
         render(<LoginPage />);
 
-        jest.advanceTimersByTime(60000);
+        await act(() => {{
+            jest.advanceTimersByTime(60000);
+            return Promise.resolve();
+        }})
 
         await waitFor(() => {
             const updatedAttempts = JSON.parse(localStorage.getItem("failedAttempts"));
@@ -265,7 +271,7 @@ describe('LoginPage Component', () => {
             expect(errorMessage).toBeInTheDocument();
         });
 
-        expect(fetchMock).toHaveBeenCalledWith("api/login/login", expect.anything());
+        expect(fetchMock).toHaveBeenCalledWith("api/login", expect.anything());
     });
 
     test("successful login", async () => {
@@ -274,9 +280,9 @@ describe('LoginPage Component', () => {
 
         render(<LoginPage />)
 
-        await userEvent.type(screen.getByLabelText(/username/i), "gooduser")
-        await userEvent.type(screen.getByLabelText(/password/i), "Password0")
         await act(async () => {
+            await userEvent.type(screen.getByLabelText(/username/i), "gooduser")
+            await userEvent.type(screen.getByLabelText(/password/i), "Password0")
             await userEvent.click(screen.getByRole("button", { name: /sign in/i }))
         })
 
