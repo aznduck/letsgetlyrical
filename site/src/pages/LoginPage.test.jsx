@@ -127,4 +127,66 @@ describe('LoginPage Component', () => {
         const signupLink = screen.getByText(/sign up/i);
         expect(signupLink.closest('a')).toHaveAttribute('href', '/signup');
     });
+
+    // After user enter wrong creds for 3 times, the account get locked. Unlock in 30 seconds
+    test('locks account after 3 failed attempts', async () => {
+        // Mock localStorage
+        Object.defineProperty(window, 'localStorage', {
+            value: {
+                getItem: jest.fn(() => JSON.stringify([])),
+                setItem: jest.fn()
+            },
+            writable: true
+        });
+        jest.spyOn(Date, 'now').mockReturnValue(0); // Mock Date.now() to control time
+        const originalDateNow = Date.now;
+        Date.now = jest.fn(() => 0); // Mock Date.now() to return 0
+        // Mock the fetch function
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                status: 401,
+                json: () => Promise.resolve({ message: 'Invalid credentials' })
+            })
+        );
+        render(<LoginPage />);
+
+        const usernameInput = screen.getByLabelText(/username/i);
+        const passwordInput = screen.getByLabelText(/password/i);
+        const submitButton = screen.getByRole('button', { name: /Sign In/i });
+
+        for (let i = 0; i < 3; i++) {
+            await act(async () => {
+                await userEvent.type(usernameInput, 'wronguser');
+                await userEvent.type(passwordInput, 'wrongpass');
+                await userEvent.click(submitButton);
+            });
+        }
+
+        expect(screen.getByText(/sign up/i)).toBeInTheDocument();
+    });
+    //mock fetch return http not found
+
+    test('shows error message for server error', async () => {
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                status: 404,
+                json: () => Promise.resolve({ message: 'Not Found' })
+            })
+        );
+
+        render(<LoginPage />);
+
+        const usernameInput = screen.getByLabelText(/username/i);
+        const passwordInput = screen.getByLabelText(/password/i);
+        const submitButton = screen.getByRole('button', { name: /sign in/i });
+
+        await act(async () => {
+            await userEvent.type(usernameInput, 'testuser');
+            await userEvent.type(passwordInput, 'password123');
+            await userEvent.click(submitButton);
+        });
+
+        expect(screen.getByText(/Sign Up/i)).toBeInTheDocument();
+    });
+
 });
