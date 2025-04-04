@@ -1,0 +1,374 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+    "Helvetica Neue", sans-serif;
+}
+
+body {
+    background: linear-gradient(180deg, #002574 35%, #09162F 96%);
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem ;
+}
+
+
+.logo-container {
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.logo {
+    max-width: 300px;
+    height: auto;
+}
+
+.team-label-container {
+    margin-top: 4rem;
+}
+
+.team-label {
+    max-width: 150px;
+    height: auto;
+}
+
+.log-in-container {
+    width: 100%;
+    max-width: 450px;
+    background-color: white;
+    border-radius: 24px;
+    padding: 3rem 3rem;
+}
+
+.sign-up-container {
+    width: 100%;
+    max-width: 450px;
+    background-color: white;
+    border-radius: 24px;
+    padding: 2rem 3rem;
+}
+
+.log-in-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sign-up-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.log-in-form h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0;
+}
+
+.sign-up-form h1 {
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0;
+}
+
+.error-message {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid #fecaca;
+    margin-top: 0.5rem;
+}
+
+.input-error {
+    border-color: #ef4444 !important;
+}
+
+/* Success Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.success-modal {
+    background-color: #edfde7;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: scaleIn 0.3s ease-out;
+}
+
+.success-icon {
+    color: #28770e;
+    margin: 0 auto 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.success-modal h2 {
+    font-size: 1.5rem;
+    color: #28770e;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+}
+
+.success-modal p {
+    color: #28770e;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+}
+
+.redirect-text {
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+/* Cancel Modal Styles */
+.cancel-modal {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: scaleIn 0.3s ease-out;
+}
+
+.cancel-icon {
+    color: #f50b0b;
+    margin: 0 auto 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.cancel-modal h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.cancel-modal p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.cancel-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.cancel-button-primary {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancel-button-primary:hover {
+    background-color: #dc2626;
+}
+
+.cancel-button-secondary {
+    background-color: #e5e7eb;
+    color: #374151;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cancel-button-secondary:hover {
+    background-color: #d1d5db;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.login-message {
+    background-color: #deffda;
+    color: #166213;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid #d5feca;
+}
+
+.sign-up-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.password-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+
+.password-toggle {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.password-req {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.15rem;
+}
+
+input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.submit-button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 36px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    flex: 2.5;
+}
+
+.submit-button:hover {
+    background-color: #1d4ed8;
+}
+
+.cancel-button {
+    background-color: #d1d5db;
+    color: #333;
+    border: none;
+    border-radius: 36px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    flex: 1;
+    margin-top: 1.5rem;
+}
+
+.cancel-button:hover {
+    background-color: #9ca3af;
+}
+
+.log-in-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.log-in-footer a,
+.sign-up-subtitle a {
+    color: #333;
+    text-decoration: none;
+}
+
+.log-in-footer a:hover,
+.sign-up-subtitle a:hover {
+    text-decoration: underline;
+}
+
+

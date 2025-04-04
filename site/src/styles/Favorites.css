@@ -1,0 +1,522 @@
+.favorites-section {
+    flex: 1;
+    width: auto;
+    min-width: 350px;
+    max-height: 550px;
+    height: auto;
+    border-radius: 12px 0 0 0;
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
+    display: flex;
+    flex-direction: column;
+    margin-left: 1rem;
+    padding: 2rem 2.5rem;
+    z-index: 1;
+    align-self: stretch;
+}
+
+@media (min-width: 300px) {
+    .favorites-section {
+        min-width: 200px;
+        border-radius: 0;
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 1000px) {
+    .favorites-section {
+        min-width: 200px;
+        border-radius: 12px 0 0 0;
+        margin-left: 1rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .favorites-section {
+        max-height: 600px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .favorites-section {
+        max-height: 680px;
+    }
+}
+
+@media (min-width: 1510px) {
+    .favorites-section {
+        max-height: 705px;
+    }
+}
+
+.favorites-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+}
+
+.favorites-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+
+.favorites-title h2 {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.favorites-menu-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorites-table-header {
+    display: flex;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+}
+
+.favorites-column-header:first-child {
+    width: 40px;
+}
+
+.favorites-column-header:nth-child(2) {
+    flex: 1;
+}
+
+.favorites-column-header:last-child {
+    width: 40px;
+}
+
+.favorites-list {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0);
+}
+
+.favorite-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.favorite-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.favorite-number {
+    width: 40px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.favorite-title {
+    flex: 1;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-overflow: ellipsis;
+    max-height: 22px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    cursor: pointer;
+}
+
+.favorite-actions {
+    width: 40px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.favorite-action-button {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorites-menu-container {
+    position: relative;
+}
+
+.favorites-menu-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.favorites-menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Popup Menu Styles */
+.favorites-popup-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 160px;
+    background-color: #2c3e5d;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    overflow: hidden;
+    margin-top: 8px;
+    animation: fadeIn 0.2s ease-out;
+    padding: 16px 16px;
+}
+
+.popup-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    width: 100%;
+    background: none;
+    border: none;
+    border-radius: 100px;
+    color: white;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    justify-content: center;
+}
+
+.popup-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.popup-menu-item.selected {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+.popup-menu-item span {
+    font-weight: 500;
+}
+
+.popup-menu-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.3);
+    width: 100%;
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.popup-menu-item-delete:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.confirmation-dialog {
+    background-color: white;
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: left;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: scaleIn 0.2s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.confirmation-dialog h2 {
+    font-size: 1.8rem;
+    color: #000;
+    margin-bottom: 32px;
+    font-weight: 600;
+}
+
+.confirmation-dialog p {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 28px;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: left;
+    gap: 16px;
+}
+
+.confirmation-actions button {
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    flex: 1;
+    min-width: 140px;
+    max-width: 180px;
+    padding: 12px 0;
+}
+
+.cancel-button {
+    background-color: #b8b8b8;
+    color: #333;
+    margin: 0;
+}
+
+.cancel-button:hover {
+    background-color: #8f8f8f;
+}
+
+.delete-button {
+    background-color: #0a1e5c;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #2147a4;
+}
+
+.empty-favorites {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+/* Song Details Modal Styles */
+.song-details-modal {
+    background-color: #2c3e5d;
+    border-radius: 16px;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.2s ease-out;
+    overflow: hidden;
+    display: flex;
+}
+
+.close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.song-details-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+}
+
+.album-cover {
+    width: 150px;
+    height: 150px;
+    background-color: #d1d5db;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.song-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.album-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.song-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 8px 0;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: nowrap;
+    max-width: 150px;
+}
+
+.artist-name {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+}
+
+@media (min-width: 450px) {
+    .song-details-content {
+        display: flex;
+        flex-direction: unset;
+        justify-content: center;
+        align-items: center;
+        padding: 57px;
+    }
+
+    .song-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: white;
+        margin: 0 0 8px 0;
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-wrap: nowrap;
+        max-width: 250px;
+    }
+
+    .song-info {
+        margin-left: 24px;
+        margin-top: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+}
+
+.song-action-menu {
+    background-color: #2c3e5d;
+    border-radius: 12px;
+    width: 210px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-out;
+
+}
+
+.action-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+}
+
+.action-menu-header span {
+    color: white;
+    font-size: 14px;
+    font-weight: 350;
+}
+
+.action-menu-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-menu-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding-bottom: 0.1rem;
+}
+
+.action-menu-button:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.action-menu-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.down-button {
+    padding-top: 0.25rem;
+}
+
+.action-menu-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.1);
+    width: 100%;
+}
+
+.remove-song-button {
+    width: 80%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50rem;
+    color: white;
+    font-size: 14px;
+    font-weight: 300;
+    padding: 8px 12px;
+    margin: 16px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.remove-song-button:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #2c3e5d;
+    font-weight: 500;
+}
