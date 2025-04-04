@@ -27,8 +27,8 @@
 
 .cloud-graphic-container {
     display: flex;
-    justify-content: end;
-    align-items: start;
+    justify-content: flex-end;
+    align-items: flex-start;
     z-index: 0;
     width: auto;
     height: auto;
@@ -47,7 +47,7 @@
 
 .action-buttons {
     display: flex;
-    justify-content: end;
+    justify-content: flex-end;
     gap: 1rem;
     margin: 1.5rem 1rem;
     position: relative;
@@ -135,13 +135,13 @@
 }
 
 @media (min-width: 820px) {
-    main-content {
+    .main-content {
         min-height: 550px;
         border-radius: 0px 12px 0px 0px;
     }
     .cloud-graphic-container {
         min-height: 550px;
-        justify-content: end;
+        justify-content: flex-end;
     }
     .cloud-graphic {
         min-height: 550px;
@@ -152,13 +152,13 @@
 }
 
 @media (min-width: 1000px) {
-    main-content {
+    .main-content {
         min-height: 550px;
         border-radius: 0px 12px 0px 0px;
     }
     .cloud-graphic-container {
         min-height: 550px;
-        justify-content: end;
+        justify-content: flex-end;
     }
     .cloud-graphic {
         min-height: 550px;
@@ -168,12 +168,12 @@
     }
     .action-buttons {
         display: flex;
-        justify-content: end;
+        justify-content: flex-end;
     }
 }
 
 @media (min-width: 1200px) {
-    main-content {
+    .main-content {
         min-height: 600px;
         border-radius: 0px 12px 0px 0px;
     }
@@ -189,7 +189,7 @@
 }
 
 @media (min-width: 1400px) {
-    main-content {
+    .main-content {
         min-height: 680px;
         border-radius: 0px 12px 0px 0px;
     }

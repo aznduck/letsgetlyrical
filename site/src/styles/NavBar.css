@@ -165,7 +165,7 @@
 .navbar-right {
     display: flex;
     justify-content: flex-end;
-    align-items: end;
+    align-items: flex-end;
 }
 
 .logout-button {
