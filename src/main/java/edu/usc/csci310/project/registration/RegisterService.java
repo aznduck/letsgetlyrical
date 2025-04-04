@@ -9,6 +9,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.SecureRandom;
 import java.util.Base64;
+
+import edu.usc.csci310.project.Utils;
 import org.springframework.stereotype.Service;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -62,17 +64,7 @@ public class RegisterService {
     }
 
     public String hashUsername(String username) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(username.getBytes());
-            StringBuilder hexString = new StringBuilder(2 * hash.length);
-            for (byte b : hash) {
-                hexString.append(String.format("%02x", b));
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+        return Utils.hashUsername(username);
     }
 
     public boolean isUsernameAvailable(String username) {

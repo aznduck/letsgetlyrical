@@ -13,8 +13,8 @@ public class Utils {
         return username != null && username.matches("^[a-zA-Z0-9 _-]+$");
     }
 
-    public static boolean isValidPassword(String username) {
-        return username != null && username.matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*");
+    public static boolean isValidPassword(String password) {
+        return password != null && password.matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*");
     }
 
     public static String hashPassword(String password) {

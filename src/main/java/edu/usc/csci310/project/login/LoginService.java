@@ -30,8 +30,7 @@ public class LoginService {
         String query = "SELECT * FROM users WHERE username = ?";
         PreparedStatement stmt = conn.prepareStatement(query);
         stmt.setString(1, Utils.hashUsername(request.getUsername()));
-//        System.out.println("username=" + request.getUsername() + " and hash=" + Utils.hashUsername(request.getUsername()));
-        ResultSet rs = stmt.executeQuery();
+       ResultSet rs = stmt.executeQuery();
         if (rs.next()) {
             if(Utils.verifyPassword(request.getPassword(), rs.getString("password"))) {
                 return rs.getInt("id");
