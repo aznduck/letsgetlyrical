@@ -1,42 +1,68 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import LandingPage from './LandingPage';
+import { AuthContext } from '../App';
+
+// Mock the child components
+jest.mock('../components/NavBar', () => ({ onLogout }) => (
+    <div data-testid="navbar">
+        <button onClick={onLogout}>Mock Logout</button>
+    </div>
+));
+jest.mock('../components/Footer', () => () => <div data-testid="footer">Footer</div>);
+jest.mock('../components/Favorites', () => () => <div data-testid="favorites">Favorites</div>);
+
+// Mock the useNavigate hook
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: () => mockNavigate
+}));
 
 describe('LandingPage Component', () => {
-    test('renders without crashing', () => {
-        render(<LandingPage />);
+    const mockLogout = jest.fn();
+
+    beforeEach(() => {
+        // Reset mocks
+        jest.clearAllMocks();
+
+        render(
+            <BrowserRouter>
+                <AuthContext.Provider value={{ user: { username: 'testuser' }, logout: mockLogout }}>
+                    <LandingPage />
+                </AuthContext.Provider>
+            </BrowserRouter>
+        );
     });
 
-    test('displays the "Landing Page" heading', () => {
-        render(<LandingPage />);
-        const headingElement = screen.getByText('Landing Page');
-        expect(headingElement).toBeInTheDocument();
+    test('renders landing page with all components', () => {
+        expect(screen.getByTestId('navbar')).toBeInTheDocument();
+        expect(screen.getByTestId('footer')).toBeInTheDocument();
+        expect(screen.getByTestId('favorites')).toBeInTheDocument();
     });
 
-    test('heading has correct text and styling', () => {
-        render(<LandingPage />);
-        const headingElement = screen.getByText('Landing Page');
-
-        expect(headingElement.textContent).toBe('Landing Page');
-
-        expect(headingElement).toHaveClass('text-4xl');
-        expect(headingElement).toHaveClass('font-bold');
-        expect(headingElement).toHaveClass('text-pink-600');
+    test('renders cloud graphic and action buttons', () => {
+        expect(screen.getByAltText('Cloud with Welcome back text')).toBeInTheDocument();
+        expect(screen.getByText('Generate favorites cloud')).toBeInTheDocument();
+        expect(screen.getByText('Compare with friends!')).toBeInTheDocument();
     });
 
-    test('container has proper styling', () => {
-        const { container } = render(<LandingPage />);
-        const mainDiv = container.firstChild;
+    test('handles logout correctly', () => {
+        const logoutButton = screen.getByText('Mock Logout');
+        fireEvent.click(logoutButton);
 
-        expect(mainDiv).toHaveClass('min-h-screen');
-        expect(mainDiv).toHaveClass('flex');
-        expect(mainDiv).toHaveClass('items-center');
-        expect(mainDiv).toHaveClass('justify-center');
-        expect(mainDiv).toHaveClass('bg-pink-100');
+        expect(mockLogout).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('/login');
     });
 
-    test('snapshot test', () => {
-        const { container } = render(<LandingPage />);
-        expect(container).toMatchSnapshot();
+    test('action buttons are clickable', () => {
+        const generateButton = screen.getByText('Generate favorites cloud');
+        const compareButton = screen.getByText('Compare with friends!');
+
+        // We can't test the actual functionality since it's not implemented in the code
+        // But we can verify the buttons are not disabled
+        expect(generateButton).not.toBeDisabled();
+        expect(compareButton).not.toBeDisabled();
     });
 });
