@@ -205,7 +205,10 @@ describe('LoginPage Component', () => {
 
         render(<LoginPage />);
 
-        jest.advanceTimersByTime(60000);
+        await act(() => {{
+            jest.advanceTimersByTime(60000);
+            return Promise.resolve();
+        }})
 
         await waitFor(() => {
             const updatedAttempts = JSON.parse(localStorage.getItem("failedAttempts"));
@@ -227,7 +230,10 @@ describe('LoginPage Component', () => {
 
         render(<LoginPage />);
 
-        jest.advanceTimersByTime(60000);
+        await act(() => {{
+            jest.advanceTimersByTime(60000);
+            return Promise.resolve();
+        }})
 
         await waitFor(() => {
             const updatedAttempts = JSON.parse(localStorage.getItem("failedAttempts"));
@@ -274,9 +280,9 @@ describe('LoginPage Component', () => {
 
         render(<LoginPage />)
 
-        await userEvent.type(screen.getByLabelText(/username/i), "gooduser")
-        await userEvent.type(screen.getByLabelText(/password/i), "Password0")
         await act(async () => {
+            await userEvent.type(screen.getByLabelText(/username/i), "gooduser")
+            await userEvent.type(screen.getByLabelText(/password/i), "Password0")
             await userEvent.click(screen.getByRole("button", { name: /sign in/i }))
         })
 
