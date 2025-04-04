@@ -1,6 +1,4 @@
-package edu.usc.csci310.project.login;
-
-import edu.usc.csci310.project.registration.CreateUserRequest;
+package edu.usc.csci310.project.requests;
 
 public class LoginUserRequest extends CreateUserRequest {
 

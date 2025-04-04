@@ -1,20 +1,13 @@
-package edu.usc.csci310.project.login;
+package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
-import edu.usc.csci310.project.registration.RegisterService;
+import edu.usc.csci310.project.requests.LoginUserRequest;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Base64;
-
-import static edu.usc.csci310.project.Utils.*;
 
 
 @Service

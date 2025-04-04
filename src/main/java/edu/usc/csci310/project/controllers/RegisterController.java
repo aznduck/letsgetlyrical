@@ -1,5 +1,9 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.controllers;
 
+import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.services.RegisterService;
+import edu.usc.csci310.project.requests.CreateUserRequest;
+import edu.usc.csci310.project.responses.UserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

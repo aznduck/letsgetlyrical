@@ -1,5 +1,6 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.models;
 
+import edu.usc.csci310.project.models.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

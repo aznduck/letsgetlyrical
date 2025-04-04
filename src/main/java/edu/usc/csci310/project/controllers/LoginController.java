@@ -1,7 +1,9 @@
-package edu.usc.csci310.project.login;
+package edu.usc.csci310.project.controllers;
 
 
-import edu.usc.csci310.project.registration.UserResponse;
+import edu.usc.csci310.project.services.LoginService;
+import edu.usc.csci310.project.requests.LoginUserRequest;
+import edu.usc.csci310.project.responses.UserResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

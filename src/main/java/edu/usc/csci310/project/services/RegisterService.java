@@ -1,25 +1,15 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.services;
 
 
 
-import java.security.KeyStore;
-import java.security.MessageDigest;
 import java.sql.*;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.SecureRandom;
-import java.util.Base64;
 
 import edu.usc.csci310.project.Utils;
+import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.requests.CreateUserRequest;
 import org.springframework.stereotype.Service;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
-import java.sql.*;
-import java.util.Base64;
+
 import static edu.usc.csci310.project.Utils.hashPassword;
-import static edu.usc.csci310.project.Utils.hashUsername;
 
 @Service
 public class RegisterService {

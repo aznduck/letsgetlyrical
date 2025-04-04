@@ -1,8 +1,9 @@
-package edu.usc.csci310.project.login;
+package edu.usc.csci310.project.controllers;
 
-import edu.usc.csci310.project.Utils;
+import edu.usc.csci310.project.controllers.LoginController;
+import edu.usc.csci310.project.requests.LoginUserRequest;
+import edu.usc.csci310.project.services.LoginService;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
 import java.sql.SQLException;
 

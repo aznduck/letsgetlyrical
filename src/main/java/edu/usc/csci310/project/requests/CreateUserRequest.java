@@ -1,4 +1,4 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.requests;
 
 public class CreateUserRequest {
     private String username;

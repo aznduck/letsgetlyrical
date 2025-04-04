@@ -1,6 +1,8 @@
-package edu.usc.csci310.project.login;
+package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
+import edu.usc.csci310.project.requests.LoginUserRequest;
+import edu.usc.csci310.project.services.LoginService;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
@@ -12,7 +14,6 @@ import java.sql.SQLException;
 import static edu.usc.csci310.project.Utils.hashPassword;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class LoginServiceTest {

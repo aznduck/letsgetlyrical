@@ -1,4 +1,4 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.responses;
 
 public class UserResponse {
     private int id;

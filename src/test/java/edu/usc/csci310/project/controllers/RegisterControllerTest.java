@@ -1,11 +1,15 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.controllers;
 
+import edu.usc.csci310.project.controllers.RegisterController;
+import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.requests.CreateUserRequest;
+import edu.usc.csci310.project.responses.UserResponse;
+import edu.usc.csci310.project.services.RegisterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,12 +1,13 @@
-package edu.usc.csci310.project.registration;
+package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
-import org.junit.jupiter.api.BeforeAll;
+import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.requests.CreateUserRequest;
+import edu.usc.csci310.project.services.RegisterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.openqa.selenium.devtools.Message;
 
 import javax.crypto.SecretKeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -18,7 +19,6 @@ import static org.mockito.Mockito.*;
 import java.security.MessageDigest;
 
 import static edu.usc.csci310.project.Utils.hashPassword;
-import static edu.usc.csci310.project.Utils.verifyPassword;
 
 class RegisterServiceTest {
     private RegisterService registerService;
