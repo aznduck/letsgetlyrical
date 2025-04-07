@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/genius")
-@CrossOrigin(origins = "*") // Configure this appropriately for production
 public class GeniusController {
 
     private final GeniusService geniusService;
@@ -21,13 +20,29 @@ public class GeniusController {
 
     @GetMapping("/search")
     public ResponseEntity<List<Map<String, Object>>> searchArtist(@RequestParam String q) {
-        List<Map<String, Object>> results = geniusService.searchArtist(q);
-        return ResponseEntity.ok(results);
+        try {
+            List<Map<String, Object>> results = geniusService.searchArtist(q);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            System.err.println("Error in searchArtist controller: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(List.of(Map.of("error", "Failed to search artists")));
+        }
     }
 
     @GetMapping("/artists/{artistId}/songs")
-    public ResponseEntity<List<Map<String, Object>>> getTopSongs(@PathVariable Long artistId) {
-        List<Map<String, Object>> songs = geniusService.getTopSongs(artistId);
-        return ResponseEntity.ok(songs);
+    public ResponseEntity<List<Map<String, Object>>> getTopSongs(
+            @PathVariable Long artistId,
+            @RequestParam(value = "per_page", defaultValue = "10") int perPage
+    ) {
+        try {
+            if (perPage < 1) perPage = 1;
+            if (perPage > 50) perPage = 50;
+
+            List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+            return ResponseEntity.ok(songs);
+        } catch (Exception e) {
+            System.err.println("Error in getTopSongs controller: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(List.of(Map.of("error", "Failed to fetch top songs")));
+        }
     }
 }

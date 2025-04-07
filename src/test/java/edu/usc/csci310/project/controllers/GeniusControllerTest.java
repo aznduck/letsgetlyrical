@@ -2,139 +2,169 @@ package edu.usc.csci310.project.controllers;
 
 import edu.usc.csci310.project.services.GeniusService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(GeniusController.class)
 class GeniusControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
     private GeniusService geniusService;
 
-    @InjectMocks
-    private GeniusController geniusController;
-
     @Test
-    void searchArtist_Success() {
+    void searchArtist_whenServiceReturnsArtists_shouldReturnOkWithArtists() throws Exception {
         String query = "Queen";
         List<Map<String, Object>> mockResults = List.of(
-                Map.of("artist_id", 1L, "artist_name", "Queen"),
-                Map.of("artist_id", 2L, "artist_name", "Queen Latifah")
+                Map.of("artist_id", 1L, "artist_name", "Queen")
         );
         when(geniusService.searchArtist(query)).thenReturn(mockResults);
 
-        ResponseEntity<List<Map<String, Object>>> response = geniusController.searchArtist(query);
+        mockMvc.perform(get("/api/genius/search").param("q", query))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].artist_id", is(1)))
+                .andExpect(jsonPath("$[0].artist_name", is("Queen")));
 
-        // Assert
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        assertEquals(mockResults, response.getBody());
-        assertEquals(1L, response.getBody().get(0).get("artist_id"));
-        assertEquals("Queen", response.getBody().get(0).get("artist_name"));
-
-        verify(geniusService, times(1)).searchArtist(query);
-        verifyNoMoreInteractions(geniusService);
+        verify(geniusService).searchArtist(query);
     }
 
     @Test
-    void searchArtist_ServiceReturnsEmpty() {
-        String query = "NonExistentBand123";
-        List<Map<String, Object>> emptyList = new ArrayList<>();
-        when(geniusService.searchArtist(query)).thenReturn(emptyList);
+    void searchArtist_whenServiceReturnsEmptyList_shouldReturnOkWithEmptyList() throws Exception {
+        String query = "NonExistent";
+        when(geniusService.searchArtist(query)).thenReturn(Collections.emptyList());
 
-        ResponseEntity<List<Map<String, Object>>> response = geniusController.searchArtist(query);
+        mockMvc.perform(get("/api/genius/search").param("q", query))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(0)));
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
-
-        verify(geniusService, times(1)).searchArtist(query);
-        verifyNoMoreInteractions(geniusService);
+        verify(geniusService).searchArtist(query);
     }
 
     @Test
-    void searchArtist_ServiceThrowsException() {
-        String query = "ProblematicQuery";
-        RuntimeException serviceException = new RuntimeException("Service layer error");
-        when(geniusService.searchArtist(query)).thenThrow(serviceException);
+    void searchArtist_whenServiceThrowsException_shouldReturnInternalServerError() throws Exception {
+        String query = "ErrorCase";
+        when(geniusService.searchArtist(query)).thenThrow(new RuntimeException("Service layer error"));
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            geniusController.searchArtist(query);
-        }, "Expected searchArtist to throw RuntimeException, but it didn't");
+        mockMvc.perform(get("/api/genius/search").param("q", query))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].error", is("Failed to search artists")));
 
-        assertEquals(serviceException, thrown);
-
-        verify(geniusService, times(1)).searchArtist(query);
-        verifyNoMoreInteractions(geniusService);
+        verify(geniusService).searchArtist(query);
     }
 
-
     @Test
-    void getTopSongs_Success() {
+    void getTopSongs_withValidArtistIdAndDefaultPerPage_shouldReturnOkWithSongs() throws Exception {
         Long artistId = 123L;
         List<Map<String, Object>> mockSongs = List.of(
-                Map.of("id", 101L, "title", "Bohemian Rhapsody"),
-                Map.of("id", 102L, "title", "Another One Bites the Dust")
+                Map.of("id", 101L, "title", "Song A"),
+                Map.of("id", 102L, "title", "Song B")
         );
-        when(geniusService.getTopSongs(artistId)).thenReturn(mockSongs);
+        when(geniusService.getTopSongs(eq(artistId), eq(10))).thenReturn(mockSongs);
 
-        ResponseEntity<List<Map<String, Object>>> response = geniusController.getTopSongs(artistId);
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].title", is("Song A")))
+                .andExpect(jsonPath("$[1].title", is("Song B")));
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().size());
-        assertEquals(mockSongs, response.getBody());
-        assertEquals("Bohemian Rhapsody", response.getBody().get(0).get("title"));
-
-        verify(geniusService, times(1)).getTopSongs(artistId);
-        verifyNoMoreInteractions(geniusService);
+        verify(geniusService).getTopSongs(artistId, 10);
     }
 
     @Test
-    void getTopSongs_ServiceReturnsEmpty() {
-        Long artistId = 404L;
-        List<Map<String, Object>> emptyList = new ArrayList<>();
-        when(geniusService.getTopSongs(artistId)).thenReturn(emptyList);
+    void getTopSongs_withValidArtistIdAndSpecificPerPage_shouldReturnOkWithSongs() throws Exception {
+        Long artistId = 123L;
+        int perPage = 5;
+        List<Map<String, Object>> mockSongs = List.of(
+                Map.of("id", 101L, "title", "Song A")
+        );
+        when(geniusService.getTopSongs(eq(artistId), eq(perPage))).thenReturn(mockSongs);
 
-        ResponseEntity<List<Map<String, Object>>> response = geniusController.getTopSongs(artistId);
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
+                        .param("per_page", String.valueOf(perPage)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(101)));
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEmpty());
-
-        verify(geniusService, times(1)).getTopSongs(artistId);
-        verifyNoMoreInteractions(geniusService);
+        verify(geniusService).getTopSongs(artistId, perPage);
     }
 
     @Test
-    void getTopSongs_ServiceThrowsException() {
-        Long artistId = 999L;
-        RuntimeException serviceException = new RuntimeException("Song retrieval error");
-        when(geniusService.getTopSongs(artistId)).thenThrow(serviceException);
+    void getTopSongs_withPerPageTooLow_shouldCallServiceWithPerPageOne() throws Exception {
+        Long artistId = 123L;
+        List<Map<String, Object>> mockSongs = List.of(Map.of("id", 101L, "title", "Song A"));
+        when(geniusService.getTopSongs(eq(artistId), eq(1))).thenReturn(mockSongs);
 
-        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
-            geniusController.getTopSongs(artistId);
-        });
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
+                        .param("per_page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
 
-        assertEquals(serviceException, thrown);
+        verify(geniusService).getTopSongs(artistId, 1);
+    }
 
-        verify(geniusService, times(1)).getTopSongs(artistId);
-        verifyNoMoreInteractions(geniusService);
+    @Test
+    void getTopSongs_withPerPageTooHigh_shouldCallServiceWithPerPageFifty() throws Exception {
+        Long artistId = 123L;
+        List<Map<String, Object>> mockSongs = List.of(Map.of("id", 101L, "title", "Song A"));
+        when(geniusService.getTopSongs(eq(artistId), eq(50))).thenReturn(mockSongs);
+
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
+                        .param("per_page", "100"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
+
+        verify(geniusService).getTopSongs(artistId, 50);
+    }
+
+    @Test
+    void getTopSongs_whenServiceReturnsEmptyList_shouldReturnOkWithEmptyList() throws Exception {
+        Long artistId = 456L;
+        when(geniusService.getTopSongs(eq(artistId), anyInt())).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(0)));
+
+        verify(geniusService).getTopSongs(artistId, 10);
+    }
+
+    @Test
+    void getTopSongs_whenServiceThrowsException_shouldReturnInternalServerError() throws Exception {
+        Long artistId = 789L;
+        when(geniusService.getTopSongs(eq(artistId), anyInt())).thenThrow(new RuntimeException("Service layer error"));
+
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].error", is("Failed to fetch top songs")));
+
+        verify(geniusService).getTopSongs(artistId, 10);
     }
 }

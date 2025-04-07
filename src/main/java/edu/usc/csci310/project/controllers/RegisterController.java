@@ -20,7 +20,7 @@ public class RegisterController {
         this.registerService = registerService;
     }
 
-    @PostMapping("/register")
+    @PostMapping()
     public ResponseEntity<UserResponse> registerUser(@RequestBody CreateUserRequest request) {
         try {
             if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
@@ -51,7 +51,7 @@ public class RegisterController {
         return username != null && username.matches("^[a-zA-Z0-9 _-]+$");
     }
 
-    public boolean isValidPassword(String username) {
-        return username != null && username.matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*");
+    public boolean isValidPassword(String password) {
+        return password != null && password.matches("(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*");
     }
 }

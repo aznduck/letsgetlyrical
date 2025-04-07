@@ -24,7 +24,7 @@ public class LoginController {
         this.loginService = loginService;
     }
 
-    @PostMapping("/login")
+    @PostMapping
     public ResponseEntity<UserResponse> loginUser(@RequestBody LoginUserRequest request) {
         try {
             if (!isValidUsername(request.getUsername())) {

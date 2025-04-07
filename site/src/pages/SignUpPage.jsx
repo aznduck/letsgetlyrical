@@ -4,10 +4,6 @@ import { useNavigate, Link } from "react-router-dom"
 
 import {AlertCircle, CheckCircle, Eye, EyeOff} from "lucide-react"
 
-const MOCK_USERS = [
-    { username: "user1", password: "Password1" },
-    { username: "admin", password: "Admin123" },
-]
 
 // Success Modal Component
 const SuccessModal = () => {
@@ -91,11 +87,6 @@ const SignUpPage = () => {
         return hasUppercase && hasLowercase && hasNumber
     }
 
-    const isUsernameTaken = (username) => {
-        return MOCK_USERS.some((user) =>
-            user.username.toLowerCase() === username.toLowerCase())
-    }
-
     // Handle cancel confirmation
     const handleCancelClick = () => {
         setShowCancelConfirmation(true)
@@ -138,10 +129,6 @@ const SignUpPage = () => {
             general: ""
         }
 
-        if (isUsernameTaken(username)) {
-            newErrors.username = "Username is already taken"
-            hasErrors = true
-        }
 
         if (!validatePassword(password)) {
             newErrors.password = "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number"
@@ -160,7 +147,7 @@ const SignUpPage = () => {
         }
 
         try {
-            const response = await fetch('/api/register/register', {
+            const response = await fetch('/api/register', {
                 method:'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -101,3 +101,72 @@
         flex-direction: column;
     }
 }
+
+/* Add to your CSS file (e.g., App.css or a dedicated SearchPage.css) */
+
+.artist-selection-container {
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9; /* Light background for the selection area */
+    border-radius: 8px;
+    max-width: 600px; /* Or adjust as needed */
+    border: 1px solid #eee;
+}
+
+.artist-selection-container h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #333;
+}
+
+.artist-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px; /* Allow scrolling if many artists */
+    overflow-y: auto;
+}
+
+.artist-list-item {
+    margin-bottom: 8px;
+}
+
+.artist-list-item button {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.artist-list-item button:hover,
+.artist-list-item button:focus {
+    background-color: #eef; /* Highlight on hover/focus */
+    border-color: #aac;
+    outline: none;
+}
+
+.loading-indicator,
+.error-message,
+.initial-prompt {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.error-message {
+    color: #d9534f; /* Red color for errors */
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 20px auto;
+    max-width: 600px;
+}
