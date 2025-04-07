@@ -72,7 +72,7 @@ class GeniusServiceTest {
         RequestEntity<Void> capturedRequest = requestEntityCaptor.getValue();
         assertEquals(HttpMethod.GET, capturedRequest.getMethod());
         assertTrue(capturedRequest.getUrl().toString().startsWith(baseUrl + "/search"));
-        assertTrue(capturedRequest.getUrl().toString().contains("q=Test+Artist"));
+        assertTrue(capturedRequest.getUrl().toString().contains("q=Test%20Artist"));
         assertEquals("Bearer " + testToken, capturedRequest.getHeaders().getFirst("Authorization"));
         assertEquals("application/json", capturedRequest.getHeaders().getFirst("Accept"));
     }

@@ -1,4 +1,3 @@
-// src/services/GeniusService.js
 const BACKEND_URL = "http://localhost:8080/api/genius";
 
 const GeniusService = {
@@ -14,6 +13,7 @@ const GeniusService = {
                 throw new Error(`Backend API returned an error: ${response.status} ${response.statusText}`);
             }
 
+            // Check if the response is actually JSON
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 const artists = await response.json();
@@ -30,8 +30,9 @@ const GeniusService = {
         }
     },
 
-    getTopSongs: async (artistId, numSongs = 10) => {
+    getTopSongs: async (artistId, numSongs = 10) => { // Add numSongs parameter with default
         try {
+            // Pass numSongs as per_page query parameter
             const response = await fetch(
                 `${BACKEND_URL}/artists/${artistId}/songs?per_page=${numSongs}`
             );
@@ -42,6 +43,7 @@ const GeniusService = {
                 throw new Error(`Backend API returned an error: ${response.status} ${response.statusText}`);
             }
 
+            // Check response is JSOn
             const contentType = response.headers.get("content-type");
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 const songs = await response.json();
@@ -54,6 +56,7 @@ const GeniusService = {
 
         } catch (err) {
             console.error("Error fetching top songs:", err.message);
+            // Return an empty array or re-throw the error
             return [];
         }
     }

@@ -1,129 +1,217 @@
 import GeniusService from './GeniusService';
 
 global.fetch = jest.fn();
-global.console.error = jest.fn();
 
-const BACKEND_URL = "http://localhost:8080/api/genius";
+let consoleErrorSpy;
+
+beforeEach(() => {
+    jest.clearAllMocks();
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterEach(() => {
+    consoleErrorSpy.mockRestore();
+});
 
 describe('GeniusService', () => {
-    beforeEach(() => {
-        fetch.mockClear();
-        console.error.mockClear();
-    });
+    const BACKEND_URL = "http://localhost:8080/api/genius";
 
+    describe('searchArtist', () => {
+        const searchQuery = 'Queen';
+        const encodedQuery = encodeURIComponent(searchQuery);
+        const expectedUrl = `${BACKEND_URL}/search?q=${encodedQuery}`;
+        const mockArtists = [{ id: 1, name: 'Queen' }, { id: 2, name: 'Queen Latifah' }];
 
-    it('searchArtist should fetch artists successfully', async () => {
-        const mockArtists = [{ artist_id: 1, artist_name: 'Artist One' }];
-        const query = 'Test Artist';
+        it('should fetch artists successfully and return JSON data', async () => {
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({ 'Content-Type': 'application/json' }),
+                json: jest.fn().mockResolvedValueOnce(mockArtists),
+                text: jest.fn(),
+            });
 
-        fetch.mockResolvedValueOnce({
-            ok: true,
-            json: async () => mockArtists,
+            const artists = await GeniusService.searchArtist(searchQuery);
+
+            expect(artists).toEqual(mockArtists);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrl);
+            expect(console.error).not.toHaveBeenCalled();
         });
 
-        const artists = await GeniusService.searchArtist(query);
+        it('should return an empty array and log error if response is not ok', async () => {
+            const errorStatus = 404;
+            const errorStatusText = 'Not Found';
+            const errorBody = 'Artist not found';
+            global.fetch.mockResolvedValueOnce({
+                ok: false,
+                status: errorStatus,
+                statusText: errorStatusText,
+                headers: new Headers({ 'Content-Type': 'text/plain' }),
+                json: jest.fn(),
+                text: jest.fn().mockResolvedValueOnce(errorBody),
+            });
 
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith(
-            `${BACKEND_URL}/search?q=${encodeURIComponent(query)}`
-        );
-        expect(artists).toEqual(mockArtists);
-        expect(console.error).not.toHaveBeenCalled();
-    });
+            const artists = await GeniusService.searchArtist(searchQuery);
 
-    it('searchArtist should return empty array on backend API error', async () => {
-        const query = 'Test Artist';
-        fetch.mockResolvedValueOnce({
-            ok: false,
-            statusText: 'Not Found',
+            expect(artists).toEqual([]);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrl);
+            expect(console.error).toHaveBeenCalledTimes(2); // Once for the API error, once for the catch block
+            expect(console.error).toHaveBeenCalledWith("Backend API error response:", errorBody);
+            expect(console.error).toHaveBeenCalledWith(
+                "Error searching for artists:",
+                `Backend API returned an error: ${errorStatus} ${errorStatusText}`
+            );
         });
 
-        const artists = await GeniusService.searchArtist(query);
+        it('should return an empty array and log error if response is not JSON', async () => {
+            const nonJsonBody = '<!DOCTYPE html><html></html>';
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({ 'Content-Type': 'text/html' }),
+                json: jest.fn(), // This won't be called
+                text: jest.fn().mockResolvedValueOnce(nonJsonBody),
+            });
 
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith(
-            `${BACKEND_URL}/search?q=${encodeURIComponent(query)}`
-        );
-        expect(artists).toEqual([]);
-        expect(console.error).toHaveBeenCalledWith(
-            "Error searching for artists:",
-            "Backend API returned an error: Not Found"
-        );
-    });
+            const artists = await GeniusService.searchArtist(searchQuery);
 
-    it('searchArtist should return empty array on network error', async () => {
-        const query = 'Test Artist';
-        const networkError = new Error('Network failure');
-        fetch.mockRejectedValueOnce(networkError);
-
-        const artists = await GeniusService.searchArtist(query);
-
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith(
-            `${BACKEND_URL}/search?q=${encodeURIComponent(query)}`
-        );
-        expect(artists).toEqual([]);
-        expect(console.error).toHaveBeenCalledWith(
-            "Error searching for artists:",
-            networkError.message
-        );
-    });
-
-
-    it('getTopSongs should fetch songs successfully', async () => {
-        const mockSongs = [{ id: 101, title: 'Song One' }];
-        const artistId = 1;
-
-        fetch.mockResolvedValueOnce({
-            ok: true,
-            json: async () => mockSongs,
+            expect(artists).toEqual([]);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrl);
+            expect(console.error).toHaveBeenCalledTimes(2); // Once for non-JSON, once for the catch
+            expect(console.error).toHaveBeenCalledWith("Received non-JSON response from searchArtist:", nonJsonBody);
+            expect(console.error).toHaveBeenCalledWith(
+                "Error searching for artists:",
+                "Received non-JSON response from backend"
+            );
         });
 
-        const songs = await GeniusService.getTopSongs(artistId);
+        it('should return an empty array and log error if fetch throws an error', async () => {
+            const networkError = new Error('Network failed');
+            global.fetch.mockRejectedValueOnce(networkError);
 
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith(
-            `${BACKEND_URL}/artists/${artistId}/songs`
-        );
-        expect(songs).toEqual(mockSongs);
-        expect(console.error).not.toHaveBeenCalled();
+            const artists = await GeniusService.searchArtist(searchQuery);
+
+            expect(artists).toEqual([]);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrl);
+            expect(console.error).toHaveBeenCalledTimes(1);
+            expect(console.error).toHaveBeenCalledWith("Error searching for artists:", networkError.message);
+        });
     });
 
-    it('getTopSongs should return empty array on backend API error', async () => {
-        const artistId = 1;
-        fetch.mockResolvedValueOnce({
-            ok: false,
-            statusText: 'Server Error',
+    describe('getTopSongs', () => {
+        const artistId = 1678;
+        const defaultNumSongs = 10;
+        const customNumSongs = 5;
+        const expectedUrlDefault = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${defaultNumSongs}`;
+        const expectedUrlCustom = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${customNumSongs}`;
+        const mockSongs = [
+            { id: 1, title: 'Bohemian Rhapsody' },
+            { id: 2, title: 'Don\'t Stop Me Now' },
+        ];
+
+        it('should fetch top songs successfully using default number of songs', async () => {
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({ 'Content-Type': 'application/json' }),
+                json: jest.fn().mockResolvedValueOnce(mockSongs),
+                text: jest.fn(),
+            });
+
+            const songs = await GeniusService.getTopSongs(artistId);
+
+            expect(songs).toEqual(mockSongs);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrlDefault);
+            expect(console.error).not.toHaveBeenCalled();
         });
 
-        const songs = await GeniusService.getTopSongs(artistId);
+        it('should fetch top songs successfully using specified number of songs', async () => {
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({ 'Content-Type': 'application/json' }),
+                json: jest.fn().mockResolvedValueOnce(mockSongs.slice(0, customNumSongs)),
+                text: jest.fn(),
+            });
 
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith(
-            `${BACKEND_URL}/artists/${artistId}/songs`
-        );
-        expect(songs).toEqual([]);
-        expect(console.error).toHaveBeenCalledWith(
-            "Error fetching top songs:",
-            "Backend API returned an error: Server Error"
-        );
-    });
+            const songs = await GeniusService.getTopSongs(artistId, customNumSongs);
 
-    it('getTopSongs should return empty array on network error', async () => {
-        const artistId = 1;
-        const networkError = new Error('Fetch failed');
-        fetch.mockRejectedValueOnce(networkError);
+            expect(songs).toEqual(mockSongs.slice(0, customNumSongs));
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrlCustom);
+            expect(console.error).not.toHaveBeenCalled();
+        });
 
-        const songs = await GeniusService.getTopSongs(artistId);
+        it('should return an empty array and log error if response is not ok', async () => {
+            const errorStatus = 500;
+            const errorStatusText = 'Internal Server Error';
+            const errorBody = 'Server exploded';
+            global.fetch.mockResolvedValueOnce({
+                ok: false,
+                status: errorStatus,
+                statusText: errorStatusText,
+                headers: new Headers({ 'Content-Type': 'text/plain' }),
+                json: jest.fn(),
+                text: jest.fn().mockResolvedValueOnce(errorBody),
+            });
 
-        expect(fetch).toHaveBeenCalledTimes(1);
-        expect(fetch).toHaveBeenCalledWith(
-            `${BACKEND_URL}/artists/${artistId}/songs`
-        );
-        expect(songs).toEqual([]);
-        expect(console.error).toHaveBeenCalledWith(
-            "Error fetching top songs:",
-            networkError.message
-        );
+            const songs = await GeniusService.getTopSongs(artistId);
+
+            expect(songs).toEqual([]);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrlDefault);
+            expect(console.error).toHaveBeenCalledTimes(2); // API error + catch block
+            expect(console.error).toHaveBeenCalledWith("Backend API error response:", errorBody);
+            expect(console.error).toHaveBeenCalledWith(
+                "Error fetching top songs:",
+                `Backend API returned an error: ${errorStatus} ${errorStatusText}`
+            );
+        });
+
+        it('should return an empty array and log error if response is not JSON', async () => {
+            const nonJsonBody = 'Error page content';
+            global.fetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({ 'Content-Type': 'text/plain' }),
+                json: jest.fn(),
+                text: jest.fn().mockResolvedValueOnce(nonJsonBody),
+            });
+
+            const songs = await GeniusService.getTopSongs(artistId);
+
+            expect(songs).toEqual([]);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrlDefault);
+            expect(console.error).toHaveBeenCalledTimes(2); // non-JSON error + catch block
+            expect(console.error).toHaveBeenCalledWith("Received non-JSON response from getTopSongs:", nonJsonBody);
+            expect(console.error).toHaveBeenCalledWith(
+                "Error fetching top songs:",
+                "Received non-JSON response from backend"
+            );
+        });
+
+        it('should return an empty array and log error if fetch throws an error', async () => {
+            const networkError = new Error('Connection refused');
+            global.fetch.mockRejectedValueOnce(networkError);
+
+            const songs = await GeniusService.getTopSongs(artistId);
+
+            expect(songs).toEqual([]);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledWith(expectedUrlDefault);
+            expect(console.error).toHaveBeenCalledTimes(1);
+            expect(console.error).toHaveBeenCalledWith("Error fetching top songs:", networkError.message);
+        });
     });
 });
