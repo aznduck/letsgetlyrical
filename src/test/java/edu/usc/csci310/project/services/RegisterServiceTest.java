@@ -23,11 +23,17 @@ import static edu.usc.csci310.project.Utils.hashPassword;
 class RegisterServiceTest {
     private RegisterService registerService;
     private Connection conn;
+    private Statement st;
+    private PreparedStatement pst;
+    private ResultSet rs;
 
     @BeforeEach
     void setUpBeforeClass() throws Exception {
         conn = mock(Connection.class);
         registerService = spy(new RegisterService(conn));
+        st = mock(Statement.class);
+        pst = mock(PreparedStatement.class);
+        rs = mock(ResultSet.class);
     }
 
     @Test
@@ -128,6 +134,7 @@ class RegisterServiceTest {
         return createUserRequest;
     }
 
+
     @Test
     void createRegistrationValid() throws SQLException {
         int id = 1;
@@ -137,9 +144,6 @@ class RegisterServiceTest {
         CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
-        Statement st = mock(Statement.class);
-        PreparedStatement pst = mock(PreparedStatement.class);
-        ResultSet rs = mock(ResultSet.class);
 
         doReturn(true).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
@@ -169,9 +173,6 @@ class RegisterServiceTest {
         CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
-        Statement st = mock(Statement.class);
-        PreparedStatement pst = mock(PreparedStatement.class);
-        ResultSet rs = mock(ResultSet.class);
 
         doReturn(true).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
