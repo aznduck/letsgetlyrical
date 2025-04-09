@@ -19,6 +19,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock useAuth hook by mocking the entire '../App' module
+// different mocklogout implementation than wordcloudpage
 const mockLogout = jest.fn(); // Define mockLogout separately to check calls
 jest.mock('../App', () => {
     // Capture the actual AuthContext if needed, though likely not for these tests
