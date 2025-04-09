@@ -134,35 +134,52 @@ class RegisterServiceTest {
         return createUserRequest;
     }
 
-
-    @Test
-    void createRegistrationValid() throws SQLException {
-        int id = 1;
+    private void testCreateUserScenario(boolean rsNextReturns, Integer expectedId) throws SQLException {
         String username = "test";
         String password = "TestPassword1";
-
         CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
-
         String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
+
+        Statement st = mock(Statement.class);
+        PreparedStatement pst = mock(PreparedStatement.class);
+        ResultSet rs = mock(ResultSet.class);
+
+        when(rs.next()).thenReturn(rsNextReturns);
+        if (rsNextReturns && expectedId != null) {
+            when(rs.getInt(1)).thenReturn(expectedId);
+        }
 
         doReturn(true).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
+        when(conn.createStatement()).thenReturn(st);
+        when(conn.prepareStatement(sqlString)).thenReturn(pst);
+        when(pst.executeUpdate()).thenReturn(1);
+        when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
 
-        // Mock the static Utils.hashPassword method
         try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
             mockedUtils.when(() -> Utils.hashPassword(password)).thenReturn("hashedPassword");
 
-            when(conn.createStatement()).thenReturn(st);
-            when(conn.prepareStatement(sqlString)).thenReturn(pst);
-            when(pst.executeUpdate()).thenReturn(1);
-
-            when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
-            when(rs.next()).thenReturn(true);
-            when(rs.getInt(1)).thenReturn(200);
-
-            assertEquals(200, registerService.createUser(createUserRequest));
+            if (!rsNextReturns) {
+                SQLException sqle = assertThrows(SQLException.class,
+                        () -> registerService.createUser(createUserRequest));
+                assertTrue(sqle.getMessage().contains("Failed to retrieve the generated ID"));
+            } else {
+                int actualId = registerService.createUser(createUserRequest);
+                assertEquals(expectedId, actualId);
+            }
         }
     }
+
+    @Test
+    void createRegistrationRsNextFalse() throws SQLException {
+        testCreateUserScenario(false, null);
+    }
+
+    @Test
+    void createRegistrationValid() throws SQLException {
+        testCreateUserScenario(true, 200);
+    }
+
 
     @Test
     void createRegistrationNoRowsAffected() throws SQLException {
@@ -188,35 +205,6 @@ class RegisterServiceTest {
         }
     }
 
-    @Test
-    void createRegistrationRsNextFalse() throws SQLException {
-        int id = 1;
-        String username = "test";
-        String password = "TestPassword1";
-        
-        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
-
-        String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
-        Statement st = mock(Statement.class);
-        PreparedStatement pst = mock(PreparedStatement.class);
-        ResultSet rs = mock(ResultSet.class);
-
-        doReturn(true).when(registerService).isUsernameAvailable(username);
-        doReturn("hashedUsername").when(registerService).hashUsername(username);
-        try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
-            mockedUtils.when(() -> Utils.hashPassword(password)).thenReturn("hashedPassword");
-
-            when(conn.createStatement()).thenReturn(st);
-            when(conn.prepareStatement(sqlString)).thenReturn(pst);
-            when(pst.executeUpdate()).thenReturn(1);
-            when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(rs);
-            when(rs.next()).thenReturn(false);
-
-            SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
-            assertTrue(sqle.getMessage().contains("Failed to retrieve the generated ID"));
-        }
-
-    }
 
     @Test
     void createRegistrationUserNotAvailable() throws SQLException {
