@@ -1,6 +1,6 @@
 import { Heart, MoreHorizontal, AlignJustify, Lock, Globe, SquareMinus , ChevronUp, ChevronDown } from "lucide-react"
 import {useEffect, useRef, useState} from "react";
-import SongDetailsPopup from "./SongDetailsPopup"
+import SongDetailsPopup from "./SongDetailsPopUp"
 import "../styles/Favorites.css"
 
 const mockFavorites = [
