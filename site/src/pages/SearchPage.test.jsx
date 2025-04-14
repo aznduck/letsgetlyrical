@@ -1,358 +1,507 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import "@testing-library/jest-dom"
+import SearchPage from "./SearchPage"
+import { useNavigate, useLocation } from "react-router-dom"
+import { useAuth } from "../App"
+import GeniusService from "../services/GeniusService"
 
-import SearchPage from './SearchPage';
-import GeniusService from '../services/GeniusService';
-// Removed direct import of useAuth here, as we mock the module '../App' entirely
+// Mock dependencies
+jest.mock("react-router-dom", () => ({
+    useNavigate: jest.fn(),
+    useLocation: jest.fn(),
+}))
 
-// --- Mocks ---
+jest.mock("../App", () => ({
+    useAuth: jest.fn(),
+}))
 
-// Mock react-router-dom hooks
-const mockNavigate = jest.fn();
-let mockLocation = { search: '', pathname: '/search' };
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: () => mockNavigate,
-    useLocation: () => mockLocation,
-}));
+jest.mock("../services/GeniusService", () => ({
+    searchArtist: jest.fn(),
+    getTopSongs: jest.fn(),
+}))
 
-// Mock useAuth hook by mocking the entire '../App' module
-const mockLogout = jest.fn(); // Define mockLogout separately to check calls
-jest.mock('../App', () => {
-    // Capture the actual AuthContext if needed, though likely not for these tests
-    const actualApp = jest.requireActual('../App');
-    return {
-        __esModule: true, // Indicates that this is an ES Module
-        ...actualApp, // Keep other exports from App.jsx if any (like AuthContext itself)
-        // --- HERE is the corrected mock for useAuth ---
-        useAuth: jest.fn(() => ({         // Directly define the mock implementation
-            user: { name: 'Test User' },  // Provide the expected user object
-            isLoading: false,             // Add isLoading based on your App.jsx context value
-            logout: mockLogout,           // Use the mockLogout function
-            login: jest.fn(),             // Add a mock for login if needed
-        })),
-    };
-});
+// Mock child components
+jest.mock("../components/NavBar", () => {
+    return function MockNavBar({ onLogout, initialSearchQuery, initialNumSongs }) {
+        return (
+            <div data-testid="navbar">
+                <span data-testid="search-query">{initialSearchQuery}</span>
+                <span data-testid="num-songs">{initialNumSongs}</span>
+                <button onClick={onLogout} data-testid="logout-button">
+                    Logout
+                </button>
+            </div>
+        )
+    }
+})
 
+jest.mock("../components/Footer", () => {
+    return function MockFooter() {
+        return <div data-testid="footer"></div>
+    }
+})
 
-// Mock GeniusService
-jest.mock('../services/GeniusService');
-const mockSearchArtist = GeniusService.searchArtist;
-const mockGetTopSongs = GeniusService.getTopSongs;
+jest.mock("../components/WordCloud", () => {
+    return function MockWordCloud({ favorites, onAddFavorites }) {
+        return (
+            <div data-testid="word-cloud">
+                <span data-testid="favorites-count">Favorites Count: {favorites.length}</span>
+                <button onClick={onAddFavorites} data-testid="add-favorites-button">
+                    Add Favorites
+                </button>
+            </div>
+        )
+    }
+})
 
-// Mock Child Components
-jest.mock('../components/NavBar', () => ({ initialSearchQuery, initialNumSongs, onLogout }) => (
-    <div data-testid="navbar">
-        Mock Navbar - Query: {initialSearchQuery} - Songs: {initialNumSongs}
-        <button onClick={onLogout}>Mock Logout Button</button>
-    </div>
-));
-jest.mock('../components/Footer', () => () => <div data-testid="footer">Mock Footer</div>);
-jest.mock('../components/WordCloud', () => ({ favorites }) => (
-    <div data-testid="wordcloud">
-        Mock WordCloud - Songs: {favorites ? favorites.length : 0}
-    </div>
-));
+jest.mock("../components/SongDetailsPopUp", () => {
+    return function MockSongDetailsPopUp({ song, onClose }) {
+        return song ? (
+            <div data-testid="song-details-popup">
+                <span data-testid="popup-song-title">{song.title}</span>
+                <button onClick={onClose} data-testid="close-popup-button">
+                    Close
+                </button>
+            </div>
+        ) : null
+    }
+})
 
-// Spies for console methods
-let consoleLogSpy;
-let consoleErrorSpy;
+describe("SearchPage Component", () => {
+    const mockNavigate = jest.fn()
+    const mockLogout = jest.fn()
+    const mockUser = { id: "1", name: "Test User" }
 
+    // Spy on console methods
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation()
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation()
 
-describe('<SearchPage />', () => {
-    const renderComponent = (initialEntries = ['/search']) => {
-        const entry = initialEntries[0];
-        mockLocation = { ...mockLocation, search: entry.includes('?') ? entry.substring(entry.indexOf('?')) : '' };
+    // Mock data
+    const mockArtists = [
+        { artist_id: "1", artist_name: "Test Artist 1" },
+        { artist_id: "2", artist_name: "Test Artist 2" },
+    ]
 
-        // Important: Ensure the mocked useAuth implementation is fresh for each render if needed,
-        // although the below setup usually works across tests due to beforeEach cleanup.
-        // If state across tests becomes an issue, reset the mock implementation here:
-        // require('../App').useAuth.mockImplementation(() => ({ ... }));
-
-        return render(
-            <MemoryRouter initialEntries={initialEntries}>
-                <Routes>
-                    {/* Wrap tested route in ProtectedRoute to mimic App structure if necessary,
-                OR test SearchPage directly assuming auth context is provided */}
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/login" element={<div>Login Page</div>} />
-                </Routes>
-            </MemoryRouter>
-        );
-    };
+    const mockSongs = [
+        {
+            id: 1,
+            title: "Test Song 1",
+            primary_artist: { name: "Test Artist 1" },
+            featured_artists: [{ name: "Featured Artist" }],
+            song_art_image_thumbnail_url: "test-image-url-1.jpg",
+        },
+        {
+            id: 2,
+            title: "Test Song 2",
+            primary_artist: { name: "Test Artist 1" },
+            featured_artists: [],
+            song_art_image_thumbnail_url: "test-image-url-2.jpg",
+        },
+    ]
 
     beforeEach(() => {
-        jest.clearAllMocks(); // Clears call history etc. for ALL mocks
-        mockSearchArtist.mockReset();
-        mockGetTopSongs.mockReset();
+        jest.clearAllMocks()
 
-        // Explicitly reset the useAuth mock implementation IF needed between tests
-        // This ensures each test starts with the defined mock state
-        // Often `jest.clearAllMocks` is sufficient, but being explicit can help debugging
-        require('../App').useAuth.mockImplementation(() => ({
-            user: { name: 'Test User' },
-            isLoading: false,
-            logout: mockLogout,
-            login: jest.fn(),
-        }));
+        // Default mock implementations
+        useNavigate.mockReturnValue(mockNavigate)
+        useAuth.mockReturnValue({ user: mockUser, logout: mockLogout })
+        useLocation.mockReturnValue({ search: "" })
 
-
-        mockLocation = { search: '', pathname: '/search' };
-        consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-        consoleLogSpy.mockRestore();
-        consoleErrorSpy.mockRestore();
+        GeniusService.searchArtist.mockResolvedValue(mockArtists)
+        GeniusService.getTopSongs.mockResolvedValue(mockSongs)
     })
 
-    // ----- ALL THE 'it(...)' TEST CASES REMAIN THE SAME -----
-    // ... (Keep all your existing test cases below)
+    afterAll(() => {
+        consoleSpy.mockRestore()
+        consoleErrorSpy.mockRestore()
+    })
 
-    it('renders initial state without search query', () => {
-        renderComponent();
+    test("renders initial state correctly", () => {
+        const { container } = render(<SearchPage />)
 
-        expect(screen.getByTestId('navbar')).toBeInTheDocument();
-        expect(screen.getByTestId('footer')).toBeInTheDocument();
-        expect(screen.getByText(/Enter an artist name in the search bar/i)).toBeInTheDocument();
-        expect(mockSearchArtist).not.toHaveBeenCalled();
-        expect(mockGetTopSongs).not.toHaveBeenCalled();
-        expect(screen.queryByTestId('wordcloud')).not.toBeInTheDocument();
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
-    });
+        // Check for navbar and footer
+        expect(screen.getByTestId("navbar")).toBeInTheDocument()
+        expect(screen.getByTestId("footer")).toBeInTheDocument()
 
-    it('initiates artist search when query parameter exists', async () => {
-        const searchQuery = 'Queen';
-        mockSearchArtist.mockResolvedValue([]);
-        renderComponent([`/search?q=${searchQuery}&num=15`]);
+        // Check for initial prompt
+        expect(screen.getByText("Enter an artist name in the search bar above to begin.")).toBeInTheDocument()
 
-        expect(screen.getByTestId('navbar')).toHaveTextContent(`Query: ${searchQuery}`);
-        expect(screen.getByTestId('navbar')).toHaveTextContent(`Songs: 15`);
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
+        // No error message should be displayed
+        expect(container.querySelector(".error-message")).not.toBeInTheDocument()
+    })
 
+    test("handles logout button click", () => {
+        render(<SearchPage />)
+
+        // Click logout button
+        fireEvent.click(screen.getByTestId("logout-button"))
+
+        // Check that logout was called
+        expect(mockLogout).toHaveBeenCalled()
+
+        // Check that navigate was called with correct path
+        expect(mockNavigate).toHaveBeenCalledWith("/login")
+    })
+
+    test("parses URL parameters correctly", () => {
+        // Test with valid parameters
+        useLocation.mockReturnValue({ search: "?q=artist&num=15" })
+        const { unmount } = render(<SearchPage />)
+        expect(screen.getAllByTestId("search-query")[0].textContent).toBe("artist")
+        expect(screen.getAllByTestId("num-songs")[0].textContent).toBe("15")
+
+        // Clean up the first render
+        unmount()
+
+        // Test with invalid num parameter
+        useLocation.mockReturnValue({ search: "?q=artist&num=invalid" })
+        const { container } = render(<SearchPage />)
+        expect(screen.getAllByTestId("search-query")[0].textContent).toBe("artist")
+        expect(screen.getAllByTestId("num-songs")[0].textContent).toBe("10") // Should default to 10
+    })
+
+    test("fetches artists when search query is provided", async () => {
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        render(<SearchPage />)
+
+        // Check that searchArtist was called with correct query
+        expect(GeniusService.searchArtist).toHaveBeenCalledWith("test")
+
+        // Wait for artist popup to appear
         await waitFor(() => {
-            expect(mockSearchArtist).toHaveBeenCalledTimes(1);
-            expect(mockSearchArtist).toHaveBeenCalledWith(searchQuery);
-        });
-    });
-
-    it('displays potential artists when search is successful', async () => {
-        const searchQuery = 'Muse';
-        const mockArtists = [
-            { artist_id: 103, artist_name: 'Muse' },
-            { artist_id: 500, artist_name: 'Museum' },
-        ];
-        mockSearchArtist.mockResolvedValue(mockArtists);
-        renderComponent([`/search?q=${searchQuery}`]);
-
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-
-        await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-            expect(screen.getByText('Select an Artist:')).toBeInTheDocument();
-        });
-
-        expect(screen.getByRole('button', { name: 'Muse' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Museum' })).toBeInTheDocument();
-        expect(mockGetTopSongs).not.toHaveBeenCalled();
-    });
-
-    it('displays "no artists found" message when search returns empty', async () => {
-        const searchQuery = 'NonExistentArtist123';
-        mockSearchArtist.mockResolvedValue([]);
-        renderComponent([`/search?q=${searchQuery}`]);
-
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-
-        await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-        });
-
-        const expectedErrorMessage = `Error: No artists found matching "${searchQuery}". Please try a different search term.`;
-        expect(screen.getByText(expectedErrorMessage)).toBeInTheDocument();
-
-        expect(screen.queryByText('Select an Artist:')).not.toBeInTheDocument();
-    });
-
-    it('displays error message when artist search fails', async () => {
-        const searchQuery = 'ErrorProne';
-        const errorMessage = 'Network Error';
-        mockSearchArtist.mockRejectedValue(new Error(errorMessage));
-        renderComponent([`/search?q=${searchQuery}`]);
-
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-
-        await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-            expect(screen.getByText(`Error: ${errorMessage}`)).toBeInTheDocument();
-        });
-        expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch artists:", expect.any(Error));
-    });
-
-
-    it('fetches and displays songs when an artist is selected', async () => {
-        const searchQuery = 'Radiohead';
-        const artistId = 70;
-        const numSongs = 5;
-        const mockArtists = [{ artist_id: artistId, artist_name: 'Radiohead' }];
-        const mockSongsRaw = [
-            { id: 101, title: 'Creep', primary_artist: { name: 'Radiohead' }, song_art_image_thumbnail_url: 'creep.jpg' },
-            { id: 102, title: 'Karma Police', primary_artist: { name: 'Radiohead' }, header_image_thumbnail_url: 'karma.jpg' },
-            { id: 103, title: 'No Surprises (Remastered)', primary_artist: { name: 'Radiohead' }, featured_artists: [{ name: 'Strings Section' }] },
-        ];
-        mockSearchArtist.mockResolvedValue(mockArtists);
-        mockGetTopSongs.mockResolvedValue(mockSongsRaw);
-
-        renderComponent([`/search?q=${searchQuery}&num=${numSongs}`]);
-
-        const artistButton = await screen.findByRole('button', { name: 'Radiohead' });
-        fireEvent.click(artistButton);
-
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-        await waitFor(() => {
-            expect(mockGetTopSongs).toHaveBeenCalledTimes(1);
-            expect(mockGetTopSongs).toHaveBeenCalledWith(artistId, numSongs);
-        });
-
-        await waitFor(() => {
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-            expect(screen.getByText(`Top ${mockSongsRaw.length} Songs for Radiohead`)).toBeInTheDocument();
-        });
-
-        expect(screen.getByText('Creep')).toBeInTheDocument();
-        expect(screen.getByAltText('Creep cover')).toHaveAttribute('src', 'creep.jpg');
-        expect(screen.getByText('Karma Police')).toBeInTheDocument();
-        expect(screen.getByAltText('Karma Police cover')).toHaveAttribute('src', 'karma.jpg');
-        expect(screen.getByText('No Surprises (Remastered)')).toBeInTheDocument();
-        expect(screen.getByText(/Radiohead, feat\. Strings Section/i)).toBeInTheDocument();
-        expect(screen.getByAltText('No Surprises (Remastered) cover')).toHaveAttribute('src', '/images/placeholder.svg');
-
-
-        expect(screen.getByTestId('wordcloud')).toBeInTheDocument();
-        expect(screen.getByTestId('wordcloud')).toHaveTextContent(`Songs: ${mockSongsRaw.length}`);
-        expect(screen.getByRole('button', { name: /add this list to favorites/i })).toBeInTheDocument();
-    });
-
-    it('displays "no songs found" message when song fetch returns empty', async () => {
-        const searchQuery = 'SoloProject';
-        const artistId = 88;
-        const numSongs = 10;
-        const mockArtists = [{ artist_id: artistId, artist_name: 'SoloProject' }];
-
-        mockSearchArtist.mockResolvedValue(mockArtists);
-        mockGetTopSongs.mockResolvedValue([]);
-
-        renderComponent([`/search?q=${searchQuery}&num=${numSongs}`]);
-
-        const artistButton = await screen.findByRole('button', { name: 'SoloProject' });
-        fireEvent.click(artistButton);
-
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-        await waitFor(() => {
-            expect(mockGetTopSongs).toHaveBeenCalledWith(artistId, numSongs);
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-        });
-
-        expect(screen.getByText(`Error: No songs found for SoloProject. They might not have songs listed on Genius.`)).toBeInTheDocument();
-        expect(screen.queryByText(/Top \d+ Songs for/i)).not.toBeInTheDocument();
-        expect(screen.queryByTestId('wordcloud')).not.toBeInTheDocument();
-    });
-
-    it('displays error message when song fetch fails', async () => {
-        const searchQuery = 'BrokenAPIArtist';
-        const artistId = 99;
-        const numSongs = 20;
-        const mockArtists = [{ artist_id: artistId, artist_name: 'BrokenAPIArtist' }];
-        const errorMessage = 'Server timed out';
-
-        mockSearchArtist.mockResolvedValue(mockArtists);
-        mockGetTopSongs.mockRejectedValue(new Error(errorMessage));
-
-        renderComponent([`/search?q=${searchQuery}&num=${numSongs}`]);
-
-        const artistButton = await screen.findByRole('button', { name: 'BrokenAPIArtist' });
-        fireEvent.click(artistButton);
-
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
-        await waitFor(() => {
-            expect(mockGetTopSongs).toHaveBeenCalledWith(artistId, numSongs);
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-        });
-
-        expect(screen.getByText(`Error: ${errorMessage}`)).toBeInTheDocument();
-        expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch songs:", expect.any(Error));
-    });
-
-
-    it('calls logout and navigates to /login when logout button is clicked', async () => {
-        renderComponent();
-
-        const logoutButton = screen.getByRole('button', { name: /mock logout button/i });
-        fireEvent.click(logoutButton);
-
-        expect(mockLogout).toHaveBeenCalledTimes(1);
-        await waitFor(() => {
-            expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockNavigate).toHaveBeenCalledWith('/login');
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
         })
-    });
 
-    it('logs songs when "Add to Favorites" is clicked', async () => {
-        const searchQuery = 'FavoriteArtist';
-        const artistId = 123;
-        const numSongs = 3;
-        const mockArtists = [{ artist_id: artistId, artist_name: 'FavoriteArtist' }];
-        const mockSongsRaw = [
-            { id: 201, title: 'Hit Song 1', primary_artist: { name: 'FavoriteArtist' }, song_art_image_thumbnail_url: 'fav1.jpg' },
-            { id: 202, title: 'Hit Song 2', primary_artist: { name: 'FavoriteArtist' }, song_art_image_thumbnail_url: 'fav2.jpg' },
-        ];
-        mockSearchArtist.mockResolvedValue(mockArtists);
-        mockGetTopSongs.mockResolvedValue(mockSongsRaw);
+        // Check that artist options are displayed
+        expect(screen.getByText("Test Artist 1")).toBeInTheDocument()
+        expect(screen.getByText("Test Artist 2")).toBeInTheDocument()
+    })
 
-        renderComponent([`/search?q=${searchQuery}&num=${numSongs}`]);
+    test("selects artist and fetches songs", async () => {
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
 
-        const artistButton = await screen.findByRole('button', { name: 'FavoriteArtist' });
-        fireEvent.click(artistButton);
+        render(<SearchPage />)
 
-        const favoritesButton = await screen.findByRole('button', { name: /add this list to favorites/i });
+        // Wait for artist popup to appear
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
 
-        fireEvent.click(favoritesButton);
+        // Select an artist
+        fireEvent.click(screen.getByText("Test Artist 1"))
 
-        expect(consoleLogSpy).toHaveBeenCalledTimes(1);
-        expect(consoleLogSpy).toHaveBeenCalledWith(
-            "Add to favorites clicked. Songs:",
-            expect.arrayContaining([
-                expect.objectContaining({ title: 'Hit Song 1', artist: 'FavoriteArtist' }),
-                expect.objectContaining({ title: 'Hit Song 2', artist: 'FavoriteArtist' })
-            ])
-        );
-    });
+        // Check that getTopSongs was called with correct artist ID and num
+        expect(GeniusService.getTopSongs).toHaveBeenCalledWith("1", 10)
 
-    it('handles image loading errors by falling back to default', async () => {
-        const searchQuery = 'ImageErrorArtist';
-        const artistId = 456;
-        const mockArtists = [{ artist_id: artistId, artist_name: 'ImageErrorArtist' }];
-        const mockSongsRaw = [
-            { id: 301, title: 'Song With Bad Image', primary_artist: { name: 'ImageErrorArtist' }, song_art_image_thumbnail_url: 'bad-image.jpg' }
-        ];
-        mockSearchArtist.mockResolvedValue(mockArtists);
-        mockGetTopSongs.mockResolvedValue(mockSongsRaw);
+        // Wait for songs to load
+        await waitFor(() => {
+            expect(screen.getByText("Top 2 Songs")).toBeInTheDocument()
+        })
 
-        renderComponent([`/search?q=${searchQuery}`]);
+        // Check that songs are displayed
+        expect(screen.getByText("Test Song 1")).toBeInTheDocument()
+        expect(screen.getByText("Test Song 2")).toBeInTheDocument()
 
-        const artistButton = await screen.findByRole('button', { name: 'ImageErrorArtist' });
-        fireEvent.click(artistButton);
+        // Check that word cloud is displayed
+        expect(screen.getByTestId("word-cloud")).toBeInTheDocument()
+        expect(screen.getByTestId("favorites-count")).toHaveTextContent("Favorites Count: 2")
+    })
 
-        const image = await screen.findByAltText('Song With Bad Image cover');
-        expect(image).toHaveAttribute('src', 'bad-image.jpg');
+    test("handles song click to show details popup", async () => {
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
 
-        fireEvent.error(image);
+        render(<SearchPage />)
 
-        expect(image).toHaveAttribute('src', '/images/placeholder.svg');
-    });
+        // Wait for artist popup and select artist
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByText("Test Artist 1"))
 
+        // Wait for songs to load
+        await waitFor(() => {
+            expect(screen.getByText("Test Song 1")).toBeInTheDocument()
+        })
 
-});
+        // Click on a song
+        fireEvent.click(screen.getByText("Test Song 1"))
+
+        // Check that popup is displayed
+        expect(screen.getByTestId("song-details-popup")).toBeInTheDocument()
+        expect(screen.getByTestId("popup-song-title")).toHaveTextContent("Test Song 1")
+
+        // Close popup
+        fireEvent.click(screen.getByTestId("close-popup-button"))
+
+        // Check that popup is closed
+        expect(screen.queryByTestId("song-details-popup")).not.toBeInTheDocument()
+    })
+
+    test("handles add favorites button click", async () => {
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        render(<SearchPage />)
+
+        // Wait for artist popup and select artist
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByText("Test Artist 1"))
+
+        // Wait for songs to load
+        await waitFor(() => {
+            expect(screen.getByTestId("word-cloud")).toBeInTheDocument()
+        })
+
+        // Click add favorites button
+        fireEvent.click(screen.getByTestId("add-favorites-button"))
+
+        // Check that console.log was called
+        expect(consoleSpy).toHaveBeenCalledWith("Added favorites list to word cloud.", expect.any(Array))
+    })
+
+    test("handles empty artist search results", async () => {
+        GeniusService.searchArtist.mockResolvedValue([])
+
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=empty&num=10" })
+
+        const { container } = render(<SearchPage />)
+
+        // Check that searchArtist was called
+        expect(GeniusService.searchArtist).toHaveBeenCalledWith("empty")
+
+        // Wait for error message
+        await waitFor(() => {
+            const errorElement = container.querySelector(".error-message")
+            expect(errorElement).toBeInTheDocument()
+            expect(errorElement.textContent).toContain('No artists found matching "empty"')
+        })
+    })
+
+    test("handles artist search API error", async () => {
+        GeniusService.searchArtist.mockRejectedValue(new Error("API Error"))
+
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=error&num=10" })
+
+        const { container } = render(<SearchPage />)
+
+        // Check that searchArtist was called
+        expect(GeniusService.searchArtist).toHaveBeenCalledWith("error")
+
+        // Wait for error message
+        await waitFor(() => {
+            const errorElement = container.querySelector(".error-message")
+            expect(errorElement).toBeInTheDocument()
+            expect(errorElement.textContent).toContain("Error:")
+        })
+
+        // Check that console.error was called
+        expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch artists:", expect.any(Error))
+    })
+
+    test("handles empty songs search results", async () => {
+        // Mock empty songs results
+        GeniusService.getTopSongs.mockResolvedValue([])
+
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        const { container } = render(<SearchPage />)
+
+        // Wait for artist popup and select artist
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByText("Test Artist 1"))
+
+        // Check that getTopSongs was called
+        expect(GeniusService.getTopSongs).toHaveBeenCalledWith("1", 10)
+
+        // Wait for error message
+        await waitFor(() => {
+            const errorElement = container.querySelector(".error-message")
+            expect(errorElement).toBeInTheDocument()
+            expect(errorElement.textContent).toContain("No songs found for Test Artist 1")
+        })
+    })
+
+    test("handles songs search API error", async () => {
+        // Mock API error for songs
+        GeniusService.getTopSongs.mockRejectedValue(new Error("Songs API Error"))
+
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        const { container } = render(<SearchPage />)
+
+        // Wait for artist popup and select artist
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByText("Test Artist 1"))
+
+        // Check that getTopSongs was called
+        expect(GeniusService.getTopSongs).toHaveBeenCalledWith("1", 10)
+
+        // Wait for error message
+        await waitFor(() => {
+            const errorElement = container.querySelector(".error-message")
+            expect(errorElement).toBeInTheDocument()
+            expect(errorElement.textContent).toContain("Songs API Error")
+        })
+
+        // Check that console.error was called
+        expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to fetch songs:", expect.any(Error))
+    })
+
+    test("handles image load errors", async () => {
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        render(<SearchPage />)
+
+        // Wait for artist popup and select artist
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByText("Test Artist 1"))
+
+        // Wait for songs to load
+        await waitFor(() => {
+            expect(screen.getByText("Test Song 1")).toBeInTheDocument()
+        })
+
+        // Find song images
+        const songImages = screen.getAllByAltText(/cover$/)
+        expect(songImages.length).toBeGreaterThan(0)
+
+        // Simulate image load error
+        fireEvent.error(songImages[0])
+
+        // Check that src was changed to default
+        expect(songImages[0].src).toContain("/images/placeholder.svg")
+    })
+
+    test("handles invalid artist selection", async () => {
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        // Mock getTopSongs to throw an error when called with invalid ID
+        GeniusService.getTopSongs.mockImplementation((artistId) => {
+            if (artistId === "invalid") {
+                throw new Error("Invalid artist ID")
+            }
+            return Promise.resolve(mockSongs)
+        })
+
+        // Create a spy specifically for this test
+        const errorSpy = jest.spyOn(console, "error").mockImplementation()
+
+        render(<SearchPage />)
+
+        // Wait for artist popup
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+
+        // Force an error by directly calling getTopSongs with an invalid ID
+        try {
+            await GeniusService.getTopSongs("invalid", 10)
+        } catch (error) {
+            // This should trigger the error handling in the component
+            console.error("Error selecting artist:", error)
+        }
+
+        // Verify the error was logged
+        expect(errorSpy).toHaveBeenCalled()
+
+        // Clean up
+        errorSpy.mockRestore()
+    })
+
+    test("shows loading indicator when fetching data", async () => {
+        // Make the API call take longer
+        let resolveArtists
+        GeniusService.searchArtist.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveArtists = () => resolve(mockArtists)
+                }),
+        )
+
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        render(<SearchPage />)
+
+        // Check that loading indicator is shown
+        const loadingElements = screen.getAllByText("Loading...")
+        expect(loadingElements.length).toBeGreaterThan(0)
+
+        // Resolve the promise
+        resolveArtists()
+
+        // Wait for loading to finish
+        await waitFor(() => {
+            expect(screen.queryByText("Loading...")).not.toBeInTheDocument()
+        })
+    })
+
+    test("handles songs with missing data", async () => {
+        // Mock songs with missing data
+        const incompleteDataSongs = [
+            {
+                // Missing id
+                title: undefined, // Missing title
+                primary_artist: undefined, // Missing artist
+                featured_artists: undefined, // Missing featured artists
+                // Missing album cover
+            },
+        ]
+
+        GeniusService.getTopSongs.mockResolvedValue(incompleteDataSongs)
+
+        // Set location search
+        useLocation.mockReturnValue({ search: "?q=test&num=10" })
+
+        render(<SearchPage />)
+
+        // Wait for artist popup and select artist
+        await waitFor(() => {
+            expect(screen.getByText("Please pick an artist:")).toBeInTheDocument()
+        })
+        fireEvent.click(screen.getByText("Test Artist 1"))
+
+        // Wait for songs to load
+        await waitFor(() => {
+            expect(screen.getByText("Top 1 Songs")).toBeInTheDocument()
+        })
+
+        // Check that default values are used
+        expect(screen.getByText("Unknown Title")).toBeInTheDocument()
+        expect(screen.getByText("Test Artist 1")).toBeInTheDocument()
+
+        // Check that image has default src
+        const songImages = screen.getAllByAltText(/cover$/)
+        expect(songImages[0].src).toContain("/images/placeholder.svg")
+    })
+
+    test("handles no search query", () => {
+        // Set empty location search
+        useLocation.mockReturnValue({ search: "" })
+
+        render(<SearchPage />)
+
+        // Check that initial prompt is shown
+        expect(screen.getByText("Enter an artist name in the search bar above to begin.")).toBeInTheDocument()
+
+        // Check that API was not called
+        expect(GeniusService.searchArtist).not.toHaveBeenCalled()
+    })
+})

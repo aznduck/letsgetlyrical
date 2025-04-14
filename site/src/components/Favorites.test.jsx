@@ -1,179 +1,261 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Favorites from './Favorites';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import "@testing-library/jest-dom"
+import Favorites from "./Favorites"
 
 // Mock the Lucide React icons
-jest.mock('lucide-react', () => ({
+jest.mock("lucide-react", () => ({
     Heart: () => <div data-testid="heart-icon" />,
     MoreHorizontal: () => <div data-testid="more-icon" />,
-    AlignJustify: () => <div data-testid="align-icon" />,
+    AlignJustify: () => <div data-testid="menu-icon" />,
     Lock: () => <div data-testid="lock-icon" />,
     Globe: () => <div data-testid="globe-icon" />,
     SquareMinus: () => <div data-testid="minus-icon" />,
-    X: () => <div data-testid="x-icon" />,
     ChevronUp: () => <div data-testid="up-icon" />,
-    ChevronDown: () => <div data-testid="down-icon" />
-}));
+    ChevronDown: () => <div data-testid="down-icon" />,
+}))
 
-describe('Favorites Component', () => {
+// Mock SongDetailsPopup
+jest.mock("./SongDetailsPopup", () => ({
+    __esModule: true,
+    default: ({ song, onClose }) => (
+        <div data-testid="song-details-popup">
+            <button onClick={onClose} data-testid="close-popup-button">
+                Close
+            </button>
+            <div data-testid="popup-song-title">{song?.title}</div>
+        </div>
+    ),
+}))
+
+beforeAll(() => {
+    if (!Element.prototype.closest) {
+        Element.prototype.closest = function (s) {
+            let el = this
+            do {
+                if (el.matches(s)) return el
+                el = el.parentElement || el.parentNode
+            } while (el !== null && el.nodeType === 1)
+            return null
+        }
+    }
+
+    // Extend the document object to handle closest calls
+    if (!document.closest) {
+        document.closest = () => null
+    }
+})
+
+describe("Favorites Component", () => {
+    // Test data with guaranteed unique IDs
+    const testFavorites = [
+        { id: 101, title: "Test Song 1", artist: "Test Artist 1", album: "Test Album 1" },
+        { id: 102, title: "Test Song 2", artist: "Test Artist 2", album: "Test Album 2" },
+        { id: 103, title: "Test Song 3", artist: "Test Artist 3", album: "Test Album 3" },
+    ]
+
     beforeEach(() => {
-        render(<Favorites />);
-    });
+        jest.clearAllMocks()
+    })
 
-    test('renders favorites section with title', () => {
-        expect(screen.getByText('Your Favorites')).toBeInTheDocument();
-        expect(screen.getByTestId('heart-icon')).toBeInTheDocument();
-    });
+    test("renders favorites list correctly", () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-    test('renders favorites list with items', () => {
-        expect(screen.getByText('Song Title 1')).toBeInTheDocument();
-        expect(screen.getByText('Song Title 2')).toBeInTheDocument();
-        // Check for the number indicators
-        expect(screen.getByText('1')).toBeInTheDocument();
-        expect(screen.getByText('2')).toBeInTheDocument();
-    });
+        // Check if the favorites title is rendered
+        expect(screen.getByText("Your Favorites")).toBeInTheDocument()
 
-    test('opens menu when menu button is clicked', () => {
-        const menuButton = screen.getByRole('button', { name: /favorites menu/i });
-        fireEvent.click(menuButton);
+        // Check if test songs are rendered
+        expect(screen.getByText("Test Song 1")).toBeInTheDocument()
+        expect(screen.getByText("Test Song 2")).toBeInTheDocument()
+        expect(screen.getByText("Test Song 3")).toBeInTheDocument()
+    })
 
-        expect(screen.getByText('Private')).toBeInTheDocument();
-        expect(screen.getByText('Public')).toBeInTheDocument();
-        expect(screen.getByText('Delete')).toBeInTheDocument();
-    });
+    test("toggles menu when menu button is clicked", () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-    test('toggles between private and public mode', () => {
-        // Open menu
-        const menuButton = screen.getByRole('button', { name: /favorites menu/i });
-        fireEvent.click(menuButton);
+        // Menu should not be visible initially
+        expect(screen.queryByText("Private")).not.toBeInTheDocument()
 
-        // Initially in private mode
-        const privateButton = screen.getByText('Private').closest('button');
-        const publicButton = screen.getByText('Public').closest('button');
+        // Click the menu button
+        fireEvent.click(screen.getByLabelText("Favorites menu"))
 
-        expect(privateButton).toHaveClass('selected');
+        // Menu should now be visible
+        expect(screen.getByText("Private")).toBeInTheDocument()
+        expect(screen.getByText("Public")).toBeInTheDocument()
+        expect(screen.getByText("Delete")).toBeInTheDocument()
 
-        // Switch to public mode
-        fireEvent.click(publicButton);
-        expect(publicButton).toHaveClass('selected');
-        expect(privateButton).not.toHaveClass('selected');
+        // Click outside the menu
+        fireEvent.mouseDown(document)
 
-        // Switch back to private mode
-        fireEvent.click(privateButton);
-        expect(privateButton).toHaveClass('selected');
-        expect(publicButton).not.toHaveClass('selected');
-    });
+        // Menu should be hidden again
+        expect(screen.queryByText("Private")).not.toBeInTheDocument()
+    })
 
-    test('shows delete confirmation when delete is clicked', () => {
-        // Open menu
-        const menuButton = screen.getByRole('button', { name: /favorites menu/i });
-        fireEvent.click(menuButton);
+    test("shows delete confirmation when delete button is clicked", () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-        // Click delete
-        const deleteButton = screen.getByText('Delete').closest('button');
-        fireEvent.click(deleteButton);
+        // Open the menu
+        fireEvent.click(screen.getByLabelText("Favorites menu"))
 
-        // Check confirmation dialog appears
-        expect(screen.getByText('Are you sure?')).toBeInTheDocument();
-        expect(screen.getByText('This will delete your entire favorites list.')).toBeInTheDocument();
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
-        expect(screen.getByText('Delete')).toBeInTheDocument();
-    });
+        // Click the delete button
+        fireEvent.click(screen.getByText("Delete"))
 
-    test('cancels delete when cancel is clicked in confirmation', () => {
-        // Open menu and click delete
-        const menuButton = screen.getByRole('button', { name: /favorites menu/i });
-        fireEvent.click(menuButton);
-        const deleteButton = screen.getByText('Delete').closest('button');
-        fireEvent.click(deleteButton);
+        // Confirmation dialog should be visible
+        expect(screen.getByText("Are you sure?")).toBeInTheDocument()
+        expect(screen.getByText("This will delete your entire favorites list.")).toBeInTheDocument()
 
-        // Click cancel in confirmation
-        const cancelButton = screen.getByText('Cancel');
-        fireEvent.click(cancelButton);
+        // Cancel the deletion
+        fireEvent.click(screen.getByText("Cancel"))
 
-        // Confirmation should be gone
-        expect(screen.queryByText('Are you sure?')).not.toBeInTheDocument();
+        // Confirmation dialog should be hidden
+        expect(screen.queryByText("Are you sure?")).not.toBeInTheDocument()
+    })
 
-        // Songs should still be there
-        expect(screen.getByText('Song Title 1')).toBeInTheDocument();
-    });
+    test("shows song details when a song is clicked", () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-    test('deletes all favorites when delete is confirmed', () => {
-        // Open menu and click delete
-        const menuButton = screen.getByRole('button', { name: /favorites menu/i });
-        fireEvent.click(menuButton);
-        const deleteButton = screen.getByText('Delete').closest('button');
-        fireEvent.click(deleteButton);
+        // Click on a song title
+        const songTitles = screen.getAllByTestId("list-song-title")
+        fireEvent.click(songTitles[0]) // Click the first song
 
-        // Click delete in confirmation
-        const confirmDeleteButton = screen.getByText('Delete').closest('button');
-        fireEvent.click(confirmDeleteButton);
+        // Song details popup should be visible
+        expect(screen.getByTestId("song-details-popup")).toBeInTheDocument()
+        expect(screen.getByTestId("popup-song-title")).toHaveTextContent("Test Song 1")
 
-        // Confirmation should be gone
-        expect(screen.queryByText('Are you sure?')).not.toBeInTheDocument();
+        // Close the popup
+        fireEvent.click(screen.getByTestId("close-popup-button"))
 
-        // Songs should be gone, replaced with empty message
-        expect(screen.queryByText('Song Title 1')).not.toBeInTheDocument();
-        expect(screen.getByText('No favorites yet')).toBeInTheDocument();
-    });
+        // Popup should be hidden
+        expect(screen.queryByTestId("song-details-popup")).not.toBeInTheDocument()
+    })
 
-    test('shows song details when a song is clicked', () => {
-        // Click on a song
-        const songTitle = screen.getByText('Song Title 1');
-        fireEvent.click(songTitle);
+    test("shows action menu when hovering over a song", async () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-        // Song details modal should appear
-        expect(screen.getByText('Album')).toBeInTheDocument();
-        expect(screen.getByTestId('pop-up-song-title')).toBeInTheDocument();
-        expect(screen.getByText('Artist Name 1')).toBeInTheDocument();
-    });
+        // Hover over a song title
+        fireEvent.mouseEnter(screen.getAllByTestId("list-song-title")[0])
 
-    test('closes song details when close button is clicked', () => {
-        // Open song details
-        const songTitle = screen.getByText('Song Title 1');
-        fireEvent.click(songTitle);
+        // Action menu should be visible
+        await waitFor(() => {
+            expect(screen.getByText("Move song")).toBeInTheDocument()
+            expect(screen.getByText("Remove song")).toBeInTheDocument()
+        })
+    })
 
-        // Click close button
-        const closeButton = screen.getByTestId('close-button');
-        fireEvent.click(closeButton);
+    test("toggles between private and public mode", () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-        // Modal should be gone
-        expect(screen.queryByText('Album')).not.toBeInTheDocument();
-    });
+        // Open the popup menu
+        fireEvent.click(screen.getByLabelText("Favorites menu"))
 
-    test('shows action menu when more button is clicked', () => {
-        // Find the first song's action button
-        const actionButtons = screen.getAllByRole('button', { name: '' });
-        const firstSongActionButton = actionButtons.find(button =>
-            button.closest('.favorite-actions')
-        );
+        // Check that Private and Public options are visible
+        expect(screen.getByText("Private")).toBeInTheDocument()
+        expect(screen.getByText("Public")).toBeInTheDocument()
 
-        fireEvent.click(firstSongActionButton);
+        // Initially Private should be selected (default state)
+        const privateButton = screen.getByText("Private").closest("button")
+        expect(privateButton.className).toContain("selected")
 
-        // Action menu should appear
-        expect(screen.getByText('Move song')).toBeInTheDocument();
-        expect(screen.getByText('Remove song')).toBeInTheDocument();
-    });
+        // Click the Public button
+        const publicButton = screen.getByText("Public").closest("button")
+        fireEvent.click(publicButton)
 
-    test('removes a song when remove is clicked in action menu', () => {
-        // Get the initial count of songs
-        const initialSongs = screen.getAllByText(/Song Title/);
-        const initialCount = initialSongs.length;
 
-        // Open action menu for first song
-        const actionButtons = screen.getAllByRole('button', { name: '' });
-        const firstSongActionButton = actionButtons.find(button =>
-            button.closest('.favorite-actions')
-        );
+        // Now Public should be selected
+        const updatedPublicButton = screen.getByText("Public").closest("button")
+        expect(updatedPublicButton.className).toContain("selected")
+    })
 
-        fireEvent.click(firstSongActionButton);
 
-        // Click remove song
-        const removeButton = screen.getByText('Remove song');
-        fireEvent.click(removeButton);
+    test("confirms and deletes all favorites", () => {
+        render(<Favorites initialFavorites={testFavorites} />)
 
-        // Should have one less song
-        const remainingSongs = screen.getAllByText(/Song Title/);
-        expect(remainingSongs.length).toBe(initialCount - 1);
-    });
-});
+        // Open the menu
+        fireEvent.click(screen.getByLabelText("Favorites menu"))
+
+        // Click the delete button
+        fireEvent.click(screen.getByText("Delete"))
+
+        // Confirm deletion
+        fireEvent.click(screen.getByText("Delete", { selector: ".delete-button" }))
+
+        // Check that the empty state is shown
+        expect(screen.getByText("No favorites yet")).toBeInTheDocument()
+    })
+
+    test("handles song removal", async () => {
+        render(<Favorites initialFavorites={testFavorites} />)
+
+        // Hover over a song title to show action menu
+        fireEvent.mouseEnter(screen.getAllByTestId("list-song-title")[0])
+
+        // Click remove song button
+        await waitFor(() => {
+            fireEvent.click(screen.getByText("Remove song"))
+        })
+
+        // Confirmation dialog should be visible
+        expect(screen.getByText("Remove Song")).toBeInTheDocument()
+        expect(screen.getByText(/Are you sure you want to remove "Test Song 1"/)).toBeInTheDocument()
+
+        // Confirm removal
+        fireEvent.click(screen.getByText("Remove", { selector: ".delete-button" }))
+
+        // Check that the song is removed
+        expect(screen.queryByText("Test Song 1")).not.toBeInTheDocument()
+        expect(screen.getByText("Test Song 2")).toBeInTheDocument()
+        expect(screen.getByText("Test Song 3")).toBeInTheDocument()
+    })
+
+    test("cancels song removal", async () => {
+        render(<Favorites initialFavorites={testFavorites} />)
+
+        // Hover over a song title to show action menu
+        fireEvent.mouseEnter(screen.getAllByTestId("list-song-title")[0])
+
+        // Click remove song button
+        await waitFor(() => {
+            fireEvent.click(screen.getByText("Remove song"))
+        })
+
+        // Cancel removal
+        fireEvent.click(screen.getByText("Cancel", { selector: ".cancel-button" }))
+
+        // Check that the song is still there
+        expect(screen.getByText("Test Song 1")).toBeInTheDocument()
+    })
+
+    test("moves song up in the list", async () => {
+        render(<Favorites initialFavorites={testFavorites} />)
+
+        // Hover over the second song to show action menu
+        fireEvent.mouseEnter(screen.getAllByTestId("list-song-title")[1])
+
+        // Click the up button
+        await waitFor(() => {
+            fireEvent.click(screen.getByTestId("up-icon").closest("button"))
+        })
+
+        // Check the new order (this is a bit tricky since we're not checking DOM order)
+        // We'll rely on the fact that the component updates IDs sequentially
+        const favoriteItems = screen.getAllByTestId("list-song-title")
+        expect(favoriteItems[0]).toHaveTextContent("Test Song 2")
+        expect(favoriteItems[1]).toHaveTextContent("Test Song 1")
+    })
+
+    test("moves song down in the list", async () => {
+        render(<Favorites initialFavorites={testFavorites} />)
+
+        // Hover over the first song to show action menu
+        fireEvent.mouseEnter(screen.getAllByTestId("list-song-title")[0])
+
+        // Click the down button
+        await waitFor(() => {
+            fireEvent.click(screen.getByTestId("down-icon").closest("button"))
+        })
+
+        // Check the new order
+        const favoriteItems = screen.getAllByTestId("list-song-title")
+        expect(favoriteItems[0]).toHaveTextContent("Test Song 2")
+        expect(favoriteItems[1]).toHaveTextContent("Test Song 1")
+    })
+})

@@ -15,7 +15,7 @@ const LandingPage = () => {
     }
 
     const handleGenerateCloud = () => {
-        navigate("/wordcloud");
+        navigate("/favscloud", { state: { generateCloud: true } });
     };
 
     return (

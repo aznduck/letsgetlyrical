@@ -1,5 +1,7 @@
-import { Heart, MoreHorizontal, AlignJustify, Lock, Globe, SquareMinus, X , ChevronUp, ChevronDown } from "lucide-react"
-import {useState} from "react";
+import { Heart, MoreHorizontal, AlignJustify, Lock, Globe, SquareMinus , ChevronUp, ChevronDown } from "lucide-react"
+import {useEffect, useRef, useState} from "react";
+import SongDetailsPopup from "./SongDetailsPopup"
+import "../styles/Favorites.css"
 
 const mockFavorites = [
     { id: 1, title: "Song Title 1", artist: "Artist Name 1", album: "Album Name 1" },
@@ -20,15 +22,19 @@ const mockFavorites = [
     { id: 16, title: "Song Title longer with a much longer name", artist: "Artist Name 16", album: "Album Name 16" },
 ]
 
-function Favorites() {
+function Favorites({ initialFavorites = null }) {
     const [showMenu, setShowMenu] = useState(false)
     const [isPrivate, setIsPrivate] = useState(true)
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
-    const [favorites, setFavorites] = useState(mockFavorites)
+    const [favorites, setFavorites] = useState(initialFavorites || mockFavorites)
     const [selectedSong, setSelectedSong] = useState(null)
     const [actionMenuPosition, setActionMenuPosition] = useState({ top: 0, left: 0 })
     const [showActionMenu, setShowActionMenu] = useState(false)
     const [selectedSongIndex, setSelectedSongIndex] = useState(null)
+    const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false)
+    const [songToRemove, setSongToRemove] = useState(null)
+
+    const timerRef = useRef(null)
 
     const toggleMenu = () => {
         setShowMenu(!showMenu)
@@ -64,20 +70,25 @@ function Favorites() {
         setSelectedSong(null)
     }
 
-    const handleActionButtonClick = (e, index) => {
-        e.stopPropagation()
-
-        // Get the position of the clicked button
+    const handleSongHover = (e, index) => {
+        // Get the position of the hovered song title
         const rect = e.currentTarget.getBoundingClientRect()
 
-        // Position the menu to the left of the button
+        // Position the menu to the left of the song title
         setActionMenuPosition({
-            top: rect.top + window.scrollY,
-            left: rect.left + window.scrollX - 200, // Position to the left
+            top: rect.top + window.scrollY + 25,
+            left: rect.left + window.scrollX - 20,
         })
 
         setSelectedSongIndex(index)
         setShowActionMenu(true)
+
+        if (timerRef.current) {
+            clearTimeout(timerRef.current)
+        }
+        timerRef.current = setTimeout(() => {
+            closeActionMenu()
+        }, 5000) // 5 seconds
     }
 
     const closeActionMenu = () => {
@@ -120,7 +131,15 @@ function Favorites() {
     }
 
     const removeSong = () => {
-        const newFavorites = favorites.filter((_, index) => index !== selectedSongIndex)
+        setSongToRemove(favorites[selectedSongIndex])
+        setShowRemoveConfirmation(true)
+        closeActionMenu()
+    }
+
+    const handleConfirmRemoveSong = () => {
+        const newFavorites = favorites.filter(
+            (_, index) => index !== favorites.findIndex((song) => song.id === songToRemove.id),
+        )
 
         // Update the IDs to maintain sequential order
         newFavorites.forEach((song, index) => {
@@ -128,25 +147,31 @@ function Favorites() {
         })
 
         setFavorites(newFavorites)
-        closeActionMenu()
+        setShowRemoveConfirmation(false)
+        setSongToRemove(null)
     }
+
+    const handleCancelRemoveSong = () => {
+        setShowRemoveConfirmation(false)
+        setSongToRemove(null)
+    }
+
 
     // Close menu when clicking outside
     const handleClickOutside = (e) => {
         if (!e.target.closest(".favorites-menu-button") && !e.target.closest(".favorites-popup-menu")) {
             setShowMenu(false)
         }
-
-        if (!e.target.closest(".favorite-action-button") && !e.target.closest(".song-action-menu")) {
-            closeActionMenu()
-        }
     }
 
     // Add event listener when component mounts
-    useState(() => {
+    useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside)
         return () => {
             document.removeEventListener("mousedown", handleClickOutside)
+            if (timerRef.current) {
+                clearTimeout(timerRef.current)
+            }
         }
     }, [])
 
@@ -170,23 +195,25 @@ function Favorites() {
                 </div>
             )}
 
-            {selectedSong && (
-                <div className="modal-overlay" onClick={closeSongDetails}>
-                    <div className="song-details-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-button" data-testid="close-button" onClick={closeSongDetails}>
-                            <X size={24} />
-                        </button>
-                        <div className="song-details-content">
-                            <div className="album-cover">{/* Placeholder for album cover */}</div>
-                            <div className="song-info">
-                                <span className="album-label">Album</span>
-                                <h2 className="song-title" data-testid="pop-up-song-title">{selectedSong.title}</h2>
-                                <span className="artist-name">{selectedSong.artist}</span>
-                            </div>
+            {showRemoveConfirmation && (
+                <div className="delete-modal-overlay">
+                    <div className="confirmation-dialog">
+                        <h2>Remove Song</h2>
+                        <p>Are you sure you want to remove "{songToRemove?.title}" from your favorites?</p>
+                        <div className="confirmation-actions">
+                            <button className="cancel-button" onClick={handleCancelRemoveSong}>
+                                Cancel
+                            </button>
+                            <button className="delete-button" onClick={handleConfirmRemoveSong}>
+                                Remove
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
+
+            {/* Song Details Popup */}
+            {selectedSong && <SongDetailsPopup song={selectedSong} onClose={closeSongDetails} />}
 
             {showActionMenu && (
                 <div
@@ -196,6 +223,14 @@ function Favorites() {
                         top: `${actionMenuPosition.top}px`,
                         left: `${actionMenuPosition.left}px`,
                     }}
+                    onMouseEnter={() => {
+                        // Clear the timer when mouse enters the menu
+                        if (timerRef.current) {
+                            clearTimeout(timerRef.current)
+                            timerRef.current = null
+                        }
+                    }}
+                    onMouseLeave={closeActionMenu}
                 >
                     <div className="action-menu-header">
                         <span>Move song</span>
@@ -264,11 +299,18 @@ function Favorites() {
 
             <div className="favorites-list">
                 {favorites.length > 0 ? (
-                    favorites.map((song, index) => (                        <div key={song.id} className="favorite-item">
+                    favorites.map((song, index) => (
+                        <div key={song.id} className="favorite-item">
                             <div className="favorite-number">{song.id}</div>
-                            <div className="favorite-title" onClick={() => handleSongClick(song)} data-testid="list-song-title">{song.title}</div>
+                            <div
+                                className="favorite-title"
+                                onClick={() => handleSongClick(song)}
+                                onMouseEnter={(e) => handleSongHover(e, index)}
+                                data-testid="list-song-title">
+                                {song.title}
+                            </div>
                             <div className="favorite-actions">
-                                <button className="favorite-action-button" onClick={(e) => handleActionButtonClick(e, index)}>
+                                <button className="favorite-action-button" onClick={() => handleSongHover(song)}>
                                     <MoreHorizontal size={16}/>
                                 </button>
                             </div>
