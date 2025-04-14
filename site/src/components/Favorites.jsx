@@ -1,6 +1,6 @@
 import { Heart, MoreHorizontal, AlignJustify, Lock, Globe, SquareMinus , ChevronUp, ChevronDown } from "lucide-react"
 import {useEffect, useRef, useState} from "react";
-import SongDetailsPopup from "./SongDetailsPopUp"
+import SongDetailsPopUp from "./SongDetailsPopUp"
 import "../styles/Favorites.css"
 
 const mockFavorites = [
@@ -213,7 +213,7 @@ function Favorites({ initialFavorites = null }) {
             )}
 
             {/* Song Details Popup */}
-            {selectedSong && <SongDetailsPopup song={selectedSong} onClose={closeSongDetails} />}
+            {selectedSong && <SongDetailsPopUp song={selectedSong} onClose={closeSongDetails} />}
 
             {showActionMenu && (
                 <div
