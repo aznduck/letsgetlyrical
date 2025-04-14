@@ -1,5 +1,5 @@
 import { X } from "lucide-react"
-import "../styles/SongDetailsPopup.css"
+import "../styles/SongDetailsPopUp.css"
 
 const SongDetailsPopup = ({ song, onClose }) => {
     if (!song) return null
