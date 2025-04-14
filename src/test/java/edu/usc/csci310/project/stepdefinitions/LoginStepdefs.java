@@ -1,4 +1,4 @@
-package edu.usc.csci310.project;
+package edu.usc.csci310.project.stepdefinitions;
 
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
