@@ -15,7 +15,7 @@ jest.mock("lucide-react", () => ({
 }))
 
 // Mock SongDetailsPopup
-jest.mock("./SongDetailsPopup", () => ({
+jest.mock("./SongDetailsPopUp", () => ({
     __esModule: true,
     default: ({ song, onClose }) => (
         <div data-testid="song-details-popup">
