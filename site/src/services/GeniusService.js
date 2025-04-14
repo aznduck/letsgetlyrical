@@ -59,6 +59,50 @@ const GeniusService = {
             // Return an empty array or re-throw the error
             return [];
         }
+    },
+
+    getSong: async (songId) => {
+        try {
+            const response = await fetch(
+                `${BACKEND_URL}/songs/${songId}`
+            );
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                console.error("Backend API error response:", errorBody);
+                throw new Error(`Backend API returned an error: ${response.status} ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                const song = await response.json();
+                return song;
+            } else {
+                const textResponse = await response.text();
+                console.error("Received non-JSON response from getSong:", textResponse);
+                throw new Error("Received non-JSON resposne from backend");
+            }
+        } catch (err) {
+            console.error("Error fetching song:", err.message);
+            return [];
+        }
+    },
+
+    getLyrics: async(pageURL) => {
+        try {
+            const response = await fetch(
+                `${BACKEND_URL}/lyrics/${pageURL}`
+            );
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                console.error("Backend API error response:", errorBody);
+                throw new Error(`Backend API returned an error: ${response.status} ${response.statusText}`);
+            }
+            return response.text();
+        } catch (err) {
+            console.error("Error fetching song:", err.message)
+        }
     }
 };
 

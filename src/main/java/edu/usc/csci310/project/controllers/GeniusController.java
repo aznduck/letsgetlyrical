@@ -45,4 +45,26 @@ public class GeniusController {
             return ResponseEntity.internalServerError().body(List.of(Map.of("error", "Failed to fetch top songs")));
         }
     }
+
+    @GetMapping("/songs/{songId}")
+    public ResponseEntity<Map<String, Object>> getSong(@PathVariable Long songId) {
+        try {
+            Map<String, Object> result = geniusService.getSong(songId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error in getSong controller: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to get song"));
+        }
+    }
+
+    @GetMapping("/lyrics")
+    public ResponseEntity<?> getLyrics(@RequestParam String url) {
+        try {
+            String result = geniusService.getLyrics(url);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error in getLyrics controller: " + e.getMessage());
+            return  ResponseEntity.internalServerError().body(List.of("Failed to get lyrics"));
+        }
+    }
 }

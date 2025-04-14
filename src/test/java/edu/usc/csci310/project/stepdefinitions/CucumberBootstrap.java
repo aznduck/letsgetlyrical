@@ -1,4 +1,4 @@
-package edu.usc.csci310.project;
+package edu.usc.csci310.project.stepdefinitions;
 
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
