@@ -27,6 +27,44 @@ class RegisterControllerTest {
     }
 
     @Test
+    void registerUserNullUsername() {
+        CreateUserRequest request = mock(CreateUserRequest.class);
+
+        when(request.getUsername()).thenReturn(null);
+        RuntimeException rte = assertThrows(RuntimeException.class, () -> registerController.registerUser(request));
+        assertTrue(rte.getMessage().contains("Username cannot be empty"));
+    }
+
+    @Test
+    void registerUserEmptyUsername() {
+        CreateUserRequest request = mock(CreateUserRequest.class);
+
+        when(request.getUsername()).thenReturn("");
+        RuntimeException rte = assertThrows(RuntimeException.class, () -> registerController.registerUser(request));
+        assertTrue(rte.getMessage().contains("Username cannot be empty"));
+    }
+
+    @Test
+    void registerUserNullPassword() {
+        CreateUserRequest request = mock(CreateUserRequest.class);
+
+        when(request.getUsername()).thenReturn("user");
+        when(request.getPassword()).thenReturn(null);
+        RuntimeException rte = assertThrows(RuntimeException.class, () -> registerController.registerUser(request));
+        assertTrue(rte.getMessage().contains("Password cannot be empty"));
+    }
+
+    @Test
+    void registerUserEmptyPassword() {
+        CreateUserRequest request = mock(CreateUserRequest.class);
+
+        when(request.getUsername()).thenReturn("user");
+        when(request.getPassword()).thenReturn("");
+        RuntimeException rte = assertThrows(RuntimeException.class, () -> registerController.registerUser(request));
+        assertTrue(rte.getMessage().contains("Password cannot be empty"));
+    }
+
+    @Test
     void registerUserValid() throws SQLException {
         String username = "test";
         String password = "Real1";
