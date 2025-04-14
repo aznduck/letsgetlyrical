@@ -12,7 +12,7 @@ import "./styles/WordCloud.css"
 import LoginPage from "./pages/LoginPage"
 import SignupPage from "./pages/SignUpPage"
 import LandingPage from "./pages/LandingPage"
-import WordCloudPage from "./pages/WordCloudPage"
+import FavsCloudPage from "./pages/FavsCloudPage"
 import SearchPage from "./pages/SearchPage"
 
 // Create auth context
@@ -165,10 +165,10 @@ function App() {
 
                     {/* Word Cloud Page */}
                     <Route
-                        path="/wordcloud"
+                        path="/favscloud"
                         element={
                             <ProtectedRoute>
-                                <WordCloudPage />
+                                <FavsCloudPage />
                             </ProtectedRoute>
                         }
                     />

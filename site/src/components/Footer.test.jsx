@@ -15,7 +15,7 @@ describe('Footer Component', () => {
         expect(screen.getByText('ABOUT')).toBeInTheDocument();
         expect(screen.getByText('USC Spring 2025')).toBeInTheDocument();
         expect(screen.getByText('For CSCI 310')).toBeInTheDocument();
-        expect(screen.getByText('Professor William Halfond')).toBeInTheDocument();
+        expect(screen.getByText('Prof. William Halfond')).toBeInTheDocument();
     });
 
     test('renders made by section with team members', () => {

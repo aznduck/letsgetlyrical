@@ -5,6 +5,8 @@ import Navbar from "../components/NavBar";
 import Footer from "../components/Footer";
 import WordCloud from "../components/WordCloud";
 import GeniusService from '../services/GeniusService';
+import "../styles/SearchPage.css"
+import SongDetailsPopUp from "../components/SongDetailsPopUp";
 
 const DEFAULT_ALBUM_COVER = "/images/placeholder.svg";
 
@@ -21,6 +23,8 @@ const SearchPage = () => {
     const [songs, setSongs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showArtistPopup, setShowArtistPopup] = useState(false)
+    const [selectedSong, setSelectedSong] = useState(null)
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -44,14 +48,17 @@ const SearchPage = () => {
                     const artists = await GeniusService.searchArtist(query);
                     if (artists && artists.length > 0) {
                         setPotentialArtists(artists);
+                        setShowArtistPopup(true)
                     } else {
                         setError(`No artists found matching "${query}". Please try a different search term.`);
                         setPotentialArtists([]);
+                        setShowArtistPopup(false)
                     }
                 } catch (err) {
                     console.error("Failed to fetch artists:", err);
                     setError(err.message || "Failed to search for artists. Check connection or API status.");
                     setPotentialArtists([]);
+                    setShowArtistPopup(false)
                 } finally {
                     setIsLoading(false);
                 }
@@ -62,6 +69,7 @@ const SearchPage = () => {
             setPotentialArtists([]);
             setSelectedArtist(null);
             setSongs([]);
+            setShowArtistPopup(false)
         }
     }, [location.search]);
 
@@ -108,6 +116,7 @@ const SearchPage = () => {
         if (artist && artist.artist_id) {
             setSelectedArtist(artist);
             setPotentialArtists([]);
+            setShowArtistPopup(false)
             setError(null);
         } else {
             console.error("Invalid artist object passed to handleArtistSelect:", artist);
@@ -115,12 +124,27 @@ const SearchPage = () => {
         }
     }, []);
 
-    const handleAddToFavorites = () => {
-        console.log("Add to favorites clicked. Songs:", songs);
+    const handleAddFavorites = () => {
+        console.log("Added favorites list to word cloud.", songs);
     };
 
+    const handleSongClick = (song) => {
+        setSelectedSong(song)
+    }
+
+    const handleCloseSongDetails = () => {
+        setSelectedSong(null)
+    }
+
+    const LoadingIndicator = () => (
+        <div className="loading-indicator">
+            <div className="loading-spinner"></div>
+            <p>Loading...</p>
+        </div>
+    )
+
     return (
-        <div className="landing-page">
+        <div className="search-page">
             <Navbar
                 onLogout={handleLogout}
                 initialSearchQuery={searchQuery}
@@ -128,76 +152,81 @@ const SearchPage = () => {
             />
 
             <div className="search-page-content">
-                {isLoading && <div className="loading-indicator">Loading...</div>}
 
                 {error && !isLoading && <div className="error-message">Error: {error}</div>}
 
-                {!isLoading && !error && potentialArtists.length > 0 && !selectedArtist && (
-                    <div className="artist-selection-container">
-                        <h2>Select an Artist:</h2>
-                        <ul className="artist-list">
-                            {potentialArtists.map((artist) => (
-                                <li key={artist.artist_id} className="artist-list-item">
-                                    <button onClick={() => handleArtistSelect(artist)}>
-                                        {artist.artist_name}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
+                {/* Artist Selection Popup */}
+                {showArtistPopup && potentialArtists.length > 0 && !selectedArtist && (
+                    <div className="artist-popup-overlay">
+                        <div className="artist-popup">
+                            <h3>Please pick an artist:</h3>
+                            <div className="artist-list-container">
+                                <ul className="artist-list">
+                                    {potentialArtists.map((artist) => (
+                                        <li key={artist.artist_id} className="artist-list-item">
+                                            <button onClick={() => handleArtistSelect(artist)}>
+                                                <div className="artist-avatar"></div>
+                                                <span>{artist.artist_name}</span>
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 )}
 
-                {/* --- Song Results State --- */}
-                {!isLoading && !error && selectedArtist && (
+                {/* Main Content - Only show when an artist is selected or loading */}
+                {(selectedArtist || isLoading) && (
                     <div className="search-results-container">
-                        {/* == Song List Section == */}
+                        {/* Left Column - Song List */}
                         <div className="search-results-list">
-                            <h2 className="search-results-title">
-                                {songs.length > 0
-                                    ? `Top ${songs.length} Songs for ${selectedArtist.artist_name}`
-                                    : `No songs found for ${selectedArtist.artist_name}`
-                                }
-                            </h2>
+                            <h2 className="search-results-title">{isLoading ? "Loading songs..." : `Top ${songs.length} Songs`}</h2>
 
-                            {songs.length > 0 && (
-                                <div className="song-list">
-                                    {songs.map((song, index) => (
-                                        <div key={song.id} className="song-item">
-                                            <div className="song-number">{index + 1}</div>
-                                            <div className="song-cover">
+                            {isLoading ? (
+                                <div className="content-loading-container">
+                                    <LoadingIndicator />
+                                </div>
+                            ) : (
+                                <div className="song-list-container">
+                                    <ul className="song-list">
+                                        {songs.map((song, index) => (
+                                            <li key={song.id} className="song-item"
+                                                onClick={() => handleSongClick(song)}>
+                                                <span className="song-number">{index + 1}</span>
                                                 <img
                                                     src={song.albumCover || DEFAULT_ALBUM_COVER}
                                                     alt={`${song.title} cover`}
-                                                    onError={(e) => { e.target.onerror = null; e.target.src=DEFAULT_ALBUM_COVER; }}
+                                                    className="song-image"
+                                                    onError={(e) => {
+                                                        e.target.onerror = null
+                                                        e.target.src = DEFAULT_ALBUM_COVER
+                                                    }}
                                                 />
-                                            </div>
-                                            <div className="song-info">
-                                                <div className="song-title">{song.title}</div>
-                                                <div className="song-artist">
-                                                    {selectedArtist.artist_name}{song.featuring ? `, feat. ${song.featuring}` : ''}
+                                                <div className="song-info">
+                                                    <div className="song-title">{song.title}</div>
+                                                    <div className="song-artist">
+                                                        {song.artist}
+                                                        {song.featuring ? `, ${song.featuring}` : ""}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             )}
                         </div>
 
-                        {songs.length > 0 && (
-                            <div className="word-cloud-section">
-                                <div className="word-cloud-header">
-                                    <h2>Word Cloud for {selectedArtist.artist_name}</h2>
-                                    <button
-                                        className="action-button add-favorites-button"
-                                        onClick={handleAddToFavorites}
-                                        disabled={songs.length === 0}
-                                    >
-                                        Add this list to favorites
-                                    </button>
+                        {/* Right Column - Word Cloud */}
+                        <div className="word-cloud-wrapper">
+                            {isLoading ? (
+                                <div className="content-loading-container">
+                                    <LoadingIndicator />
                                 </div>
-                                <WordCloud favorites={songs} />
-                            </div>
-                        )}
+                            ) : (
+                                <WordCloud favorites={songs} onAddFavorites={handleAddFavorites}/>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -207,11 +236,13 @@ const SearchPage = () => {
                     </div>
                 )}
 
-            </div> {/* End search-page-content */}
+                {/* Song Details Popup */}
+                {selectedSong && <SongDetailsPopUp song={selectedSong} onClose={handleCloseSongDetails} />}
+            </div>
 
             <Footer />
         </div>
-    );
-};
+    )
+}
 
-export default SearchPage;
+export default SearchPage
