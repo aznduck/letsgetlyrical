@@ -153,7 +153,7 @@ const SearchPage = () => {
 
             <div className="search-page-content">
 
-                {error && !isLoading && <div className="error-message">Error: {error}</div>}
+                {error && !isLoading && <div className="search-error-message">Error: {error}</div>}
 
                 {/* Artist Selection Popup */}
                 {showArtistPopup && potentialArtists.length > 0 && !selectedArtist && (

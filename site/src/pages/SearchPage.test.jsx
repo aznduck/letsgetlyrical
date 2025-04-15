@@ -127,7 +127,7 @@ describe("SearchPage Component", () => {
         expect(screen.getByText("Enter an artist name in the search bar above to begin.")).toBeInTheDocument()
 
         // No error message should be displayed
-        expect(container.querySelector(".error-message")).not.toBeInTheDocument()
+        expect(container.querySelector(".search-error-message")).not.toBeInTheDocument()
     })
 
     test("handles logout button click", () => {
@@ -278,7 +278,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain('No artists found matching "empty"')
         })
@@ -297,7 +297,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain("Error:")
         })
@@ -326,7 +326,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain("No songs found for Test Artist 1")
         })
@@ -352,7 +352,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain("Songs API Error")
         })

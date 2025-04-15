@@ -1,8 +1,10 @@
 import React, {useEffect} from 'react';
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { EyeOff, Eye } from "lucide-react"
 import { useAuth } from "../App"
+import {AuthLayout} from "../components/AuthLayout";
+import {PasswordInput} from "../components/PasswordInput";
+import "../styles/Auth.css"
 
 const HTTP_STATUS_WRONG_PASSWORD = 401;
 const HTTP_STATUS_NOT_FOUND = 404;
@@ -12,7 +14,6 @@ const LOGIN_TOKEN = ""
 const LoginPage = () => {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
-    const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate()
 
     const [error, setError] = useState("")
@@ -95,16 +96,7 @@ const LoginPage = () => {
     }, []);
 
     return (
-        <div className="auth-container">
-            <div className="logo-container">
-                <img
-                    src="/images/logo_xL_64.png"
-                    alt="Let's get lyrical!"
-                    width={300}
-                    height={100}
-                />
-            </div>
-
+        <AuthLayout>
             <div className="log-in-container">
                 <form onSubmit={handleSubmit} className="log-in-form">
                     <h1>Sign in</h1>
@@ -118,22 +110,12 @@ const LoginPage = () => {
                                required/>
                     </div>
 
-                    <div className="form-group">
-                        <div className="password-label">
-                            <label htmlFor="password">Password</label>
-                            <button type="button" className="password-toggle"
-                                    onClick={() => setShowPassword(!showPassword)}>
-                                {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>} Hide
-                            </button>
-                        </div>
-                        <input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
+                    <PasswordInput
+                        id="password"
+                        label="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
 
                     <button type="submit" className="submit-button">
                         Sign in
@@ -144,16 +126,7 @@ const LoginPage = () => {
                     </div>
                 </form>
             </div>
-
-            <div className="team-label-container">
-                <img
-                    src="/images/TeamLabel_L.png"
-                    alt="Team 23"
-                    width={150}
-                    height={60}
-                />
-            </div>
-        </div>
+        </AuthLayout>
     )
 }
 
