@@ -2,56 +2,16 @@ import React from 'react';
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 
-import {AlertCircle, CheckCircle, Eye, EyeOff} from "lucide-react"
-
-
-// Success Modal Component
-const SuccessModal = () => {
-    return (
-        <div className="modal-overlay">
-            <div className="success-modal">
-                <div className="success-icon">
-                    <CheckCircle size={50}/>
-                </div>
-                <h2>Account Created!</h2>
-                <p>Your account has been created successfully.</p>
-                <p className="redirect-text">Redirecting to login...</p>
-            </div>
-        </div>
-    )
-}
-
-// Cancel Modal Component
-const CancelModal = ({ onConfirm, onCancel }) => {
-    return (
-        <div className="modal-overlay">
-            <div className="cancel-modal">
-                <div className="cancel-icon">
-                    <AlertCircle size={50} />
-                </div>
-                <h2>Are you sure?</h2>
-                <p>All info entered will be cleared.</p>
-                <div className="cancel-buttons">
-                    <button className="cancel-button-secondary" onClick={onCancel}>
-                        No, continue
-                    </button>
-                    <button className="cancel-button-primary" onClick={onConfirm}>
-                        Yes, cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    )
-}
-
+import {AuthLayout} from "../components/AuthLayout";
+import {PasswordInput} from "../components/PasswordInput";
+import {SuccessModal, CancelModal} from "../components/AuthModals";
+import "../styles/Auth.css"
 
 const SignUpPage = () => {
 
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
-    const [showPassword, setShowPassword] = useState(false)
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const navigate = useNavigate()
     const [errors, setErrors] = useState({
         username: "",
@@ -61,13 +21,6 @@ const SignUpPage = () => {
     })
     const [success, setSuccess] = useState(false)
     const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
-
-    // If user is already logged in, redirect to landing page
-    // useEffect(() => {
-    //     if (user) {
-    //         navigate("/landing")
-    //     }
-    // }, [user, navigate])
 
     useEffect(() => {
         let redirectTimer
@@ -179,15 +132,9 @@ const SignUpPage = () => {
     }
 
     return (
-        <div className="auth-container">
+        <AuthLayout>
             {success && <SuccessModal />}
             {showCancelConfirmation && <CancelModal onConfirm={handleConfirmCancel} onCancel={handleCancelConfirmation} />}
-            <div className="logo-container">
-                <img
-                    src="/images/logo_40.png"
-                    alt="Let's get lyrical!"
-                />
-            </div>
 
             <div className="sign-up-container">
                 <form onSubmit={handleSubmit} className="sign-up-form">
@@ -216,46 +163,22 @@ const SignUpPage = () => {
                         {errors.username && <div className="error-message">{errors.username}</div>}
                     </div>
 
-                    <div className="form-group">
-                        <div className="password-label">
-                            <label htmlFor="password">Password</label>
-                            <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />} Hide
-                            </button>
-                        </div>
-                        <input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={errors.password ? "input-error" : ""}
-                            required
-                        />
-                        {errors.password && <div className="error-message">{errors.password}</div>}
-                        <div className="password-req">Must use 1 uppercase, 1 lowercase, and 1 number</div>
-                    </div>
+                    <PasswordInput
+                        id="password"
+                        label="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        error={errors.password}
+                    />
+                    {!errors.password && <div className="password-req">Must use 1 uppercase, 1 lowercase, and 1 number</div>}
 
-                    <div className="form-group">
-                        <div className="password-label">
-                            <label htmlFor="confirm-password">Confirm Password</label>
-                            <button
-                                type="button"
-                                className="password-toggle"
-                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            >
-                                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />} Hide
-                            </button>
-                        </div>
-                        <input
-                            id="confirm-password"
-                            type={showConfirmPassword ? "text" : "password"}
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className={errors.confirmPassword ? "input-error" : ""}
-                            required
-                        />
-                        {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
-                    </div>
+                    <PasswordInput
+                        id="confirm-password"
+                        label="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        error={errors.confirmPassword}
+                    />
 
                     <div className="button-group">
                         <button type="button" className="cancel-button" onClick={handleCancelClick} disabled={success}>
@@ -267,16 +190,7 @@ const SignUpPage = () => {
                     </div>
                 </form>
             </div>
-
-            <div className="team-label-container">
-                <img
-                    src="/images/TeamLabel_L.png"
-                    alt="Team 23"
-                    width={150}
-                    height={60}
-                />
-            </div>
-        </div>
+        </AuthLayout>
     )
 }
 
