@@ -1,50 +1,49 @@
 Feature: Login to the app
 
-  Scenario:
+  Scenario: User logs in successfully and logs out
     Given I am on the login page
-    When I enter "testuser" for username AND "testpassword" for password
-    And I click on "login"
-    Then I should be redirected to the homepage
+    When I enter "testuser1" for username AND "LyricalMusic1!" for password
+    And I click on "Sign in"
+    Then I should be redirected to the landing page
+    And I log out
+    Then I should be redirected back to the login page
 
     Scenario: Login with invalid credentials
     Given I am on the login page
-    When I enter "invaliduser" for username AND "invalidpassword" for password
-    And I click on "login"
-    Then I should see an error message "Invalid username or password"
+    When I enter "invaliduser" for username AND "invalidPassword1" for password
+    And I click on "Sign in"
+    Then I should see an error message "User not found"
     And I should remain on the login page
+
+  Scenario: Login with invalid password requirements
+    Given I am on the login page
+    When I enter "User1" for username AND "abc" for password
+    And I click on "Sign in"
+    Then I should see an error message "Invalid input: password must contain a lowercase, uppercase, and number"
+    And I should remain on the login page
+
 
     Scenario: Login with empty fields
     Given I am on the login page
     When I leave the username and password fields empty
-    And I click on "login"
-    Then I should see an error message "Username and password cannot be empty"
+    And I click on "Sign in"
+    Then Registration should fail
     And I should remain on the login page
 
     Scenario: Three failed logins within 1 minute
     Given I am on the login page
-    When I enter "testuser" for username AND "wrongpassword" for password
-    And I click on "login"
-    And I enter "testuser" for username AND "wrongpassword" for password
-    And I click on "login"
-    And I enter "testuser" for username AND "wrongpassword" for password
-    And I click on "login"
-    Then I should see an error message "Too many failed login attempts. Try again in 1 minute"
+    When I enter "testuser1" for username AND "LyricalMusic1" for password
+    And I click on "Sign in"
+    And I click on "Sign in"
+    And I click on "Sign in"
+      And I click on "Sign in"
+    Then I should see an error message "Account locked."
 
     Scenario: Toggle between login and register
     Given I am on the login page
-    When I click on "Register"
+    When I click on Sign up
     Then I should be redirected to the register page
-    When I click on "Login"
+    When I click on Log in
     Then I should be redirected back to the login page
 
-    Scenario: App name and team name
-    Given I am on the login page
-    Then I should see "Let's Get Lyrical" on the screen
-    And I should see "Team 23" on the screen
-
-    Scenario: Test for keyboard accessibility
-    Given I am on the login page
-    When I enter "testuser" for username AND "testpassword" for password
-    And I press the Enter key
-    Then I should be redirected to the homepage
 

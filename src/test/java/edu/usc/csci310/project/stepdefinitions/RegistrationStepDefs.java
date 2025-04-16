@@ -8,6 +8,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -15,19 +16,28 @@ import java.time.Duration;
 public class RegistrationStepDefs {
     private static final String ROOT_URL = "http://localhost:8080";
     private static final WebDriver driver = new ChromeDriver();
+    private final WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));
 
     @Given("I am on the registration page")
     public void iAmOnTheRegistrationPage() {
-        driver.get(ROOT_URL + "/register");
+        driver.get(ROOT_URL + "/signup");
     }
 
     @When("I enter in the {string} field {string}")
     public void iEnterInTheField(String fieldName, String value) {
-        String fieldId = fieldName.toLowerCase().replace(" ", "_");
-        WebElement field = driver.findElement(By.id(fieldId));
+        String finalValue = value;
+
+        if (value.equals("RANDOM_USERNAME")) {
+            finalValue = "testuser_" + System.currentTimeMillis(); // or use UUID
+        }
+
+        WebElement field = new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(d -> d.findElement(By.id(fieldName)));
+
         field.clear();
-        field.sendKeys(value);
+        field.sendKeys(finalValue);
     }
+
 
     @And("I click the {string} button")
     public void iClickTheButton(String buttonText) {
@@ -36,8 +46,8 @@ public class RegistrationStepDefs {
 
     @Then("I should see a confirmation message")
     public void iShouldSeeAConfirmationMessage() {
-        WebElement confirmMessage = driver.findElement(By.className("confirmation-message"));
-        assert confirmMessage.isDisplayed();
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(By.tagName("body"), "Account Created!"));
+        assert driver.getPageSource().contains("Account Created!");
     }
 
     @And("I should be redirected to the login page")
@@ -53,11 +63,17 @@ public class RegistrationStepDefs {
         assert errorMessage.isDisplayed();
     }
 
+    @Then("I should see an registration failure message displayed")
+    public void iShouldSeeAnRegistrationFailureMessageDisplayed() {
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(By.tagName("body"), "Registration failed. Please try again."));
+        assert driver.getPageSource().contains("Registration failed. Please try again.");
+    }
+
     @Then("I should see a blank registration form")
     public void iShouldSeeABlankRegistrationForm() {
         WebElement usernameField = driver.findElement(By.id("username"));
         WebElement passwordField = driver.findElement(By.id("password"));
-        WebElement confirmPasswordField = driver.findElement(By.id("confirm_password"));
+        WebElement confirmPasswordField = driver.findElement(By.id("confirmpassword"));
 
         assert usernameField.getAttribute("value").isEmpty();
         assert passwordField.getAttribute("value").isEmpty();

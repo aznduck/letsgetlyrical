@@ -69,7 +69,7 @@ const LoginPage = () => {
                 if (failedAttempts.length >= 3) {
                     // lock the account for 30 seconds if 3 failed attempts occurred in the last minute
                     localStorage.setItem("lockoutEnd", now + 30000);
-                    setError("Too many failed attempts. Account locked for 30 seconds");
+                    setError("Account locked.");
                 }
                 setError(data.username);
             }
