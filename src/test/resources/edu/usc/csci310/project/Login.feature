@@ -8,7 +8,7 @@ Feature: Login to the app
     And I log out
     Then I should be redirected back to the login page
 
-    Scenario: Login with invalid credentials
+  Scenario: Login with invalid credentials
     Given I am on the login page
     When I enter "invaliduser" for username AND "invalidPassword1" for password
     And I click on "Sign in"
@@ -22,15 +22,14 @@ Feature: Login to the app
     Then I should see an error message "Invalid input: password must contain a lowercase, uppercase, and number"
     And I should remain on the login page
 
-
-    Scenario: Login with empty fields
+  Scenario: Login with empty fields
     Given I am on the login page
     When I leave the username and password fields empty
     And I click on "Sign in"
     Then Registration should fail
     And I should remain on the login page
 
-    Scenario: Three failed logins within 1 minute
+  Scenario: Three failed logins within 1 minute
     Given I am on the login page
     When I enter "testuser1" for username AND "LyricalMusic1" for password
     And I click on "Sign in"
@@ -39,11 +38,9 @@ Feature: Login to the app
       And I click on "Sign in"
     Then I should see an error message "Account locked."
 
-    Scenario: Toggle between login and register
+  Scenario: Toggle between login and register
     Given I am on the login page
     When I click on Sign up
     Then I should be redirected to the register page
     When I click on Log in
     Then I should be redirected back to the login page
-
-

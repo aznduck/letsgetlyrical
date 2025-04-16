@@ -2,6 +2,7 @@ package edu.usc.csci310.project.services;
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Safelist;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -21,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -167,68 +170,47 @@ public class GeniusService {
         return Collections.emptyMap();
     }
 
+
     public String getLyrics(String url) {
-        logger.info("Looking for lyrics using Jsoup (revised) for url: {}", url);
         try {
             Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                    .timeout(15000) // 15 seconds timeout
-                    .get();
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                        .timeout(15000)
+                        .get();
 
-            Element lyricsContainer = doc.selectFirst("div[data-lyrics-container=true]");
-            if (lyricsContainer == null) {
-                logger.error("Error: Could not find the lyrics container div[data-lyrics-container=true]");
-                return "Error: Could not find the lyrics container div[data-lyrics-container=true]";
-            }
-            logger.debug("Successfully found lyrics container.");
-            // logger.info("Container HTML: {}", lyricsContainer.html());
+            Pattern pattern = Pattern.compile("^(Lyrics-\\w{2}.\\w+.[1])|Lyrics__Container");
 
-            Element containerClone = lyricsContainer.clone();
+            Elements divs = new Elements();
 
-            Element header = containerClone.selectFirst("div[data-exclude-from-selection=true]");
-            if (header != null) {
-                header.remove();
-                logger.debug("Removed header element (data-exclude-from-selection=true) from cloned container.");
-            } else {
-                logger.warn("Could not find header element (div[data-exclude-from-selection=true]) to remove within the container clone. Proceeding without removal.");
+            // Find all <div> elements and filter those whose one or more class names match the regex pattern.
+            for (Element div : doc.select("div")) {
+                // Check each class of the div against the pattern.
+                for (String cls : div.classNames()) {
+                    Matcher matcher = pattern.matcher(cls);
+                    if (matcher.find()) {
+                        divs.add(div);
+                        break;
+                    }
+                }
             }
 
-            String lyricsHtml = containerClone.html();
-
-            if (lyricsHtml.trim().isEmpty()) {
-                logger.error("Error: Extracted lyrics HTML (after potential header removal) is empty for URL: {}", url);
-                return "Error: Extracted lyrics HTML is empty after header removal.";
-            }
-            logger.debug("Lyrics HTML (post-header removal): {}", lyricsHtml.substring(0, Math.min(lyricsHtml.length(), 100)) + "...");
-
-
-            Safelist safelist = Safelist.none().addTags("br");
-            String cleanedHTML = Jsoup.clean(lyricsHtml, "", safelist, new Document.OutputSettings().prettyPrint(false));
-            logger.debug("HTML after cleaning (allowing only <br>): {}", cleanedHTML.substring(0, Math.min(cleanedHTML.length(), 100)) + "...");
-
-            String lyricsWithNewlines = cleanedHTML.replaceAll("(?i)<br\\s*/?>", "\n");
-
-            String finalText = Jsoup.parse(lyricsWithNewlines).text();
-
-            if (finalText.trim().isEmpty()){
-                logger.error("Error: Final lyrics text is empty after processing for URL: {}", url);
-                return "Error: Final lyrics text is empty after processing.";
+            if (divs.isEmpty()) {
+                return null;
             }
 
-            logger.info("Successfully extracted lyrics using Jsoup (revised) for URL: {}", url);
-            // logger.debug("Final lyrics: {}", finalText.trim());
+            StringBuilder lyricsBuilder = new StringBuilder();
+            for (Element container : divs) {
+                // Remove nested elements that have a class containing "LyricsHeader"
+                container.select("div[class*='LyricsHeader']").remove();
+                lyricsBuilder.append(container.text()).append("\n");
+                logger.info("Div text: " + container.text() + "\n");
+            }
+            String lyrics = lyricsBuilder.toString();
 
-            return finalText.trim();
-
-        } catch (HttpStatusException e) {
-            logger.error("HTTP Error fetching URL {}: Status={}, Message={}", url, e.getStatusCode(), e.getMessage());
-            return "Error fetching URL: HTTP Status " + e.getStatusCode() + ". Check if the URL is correct and accessible.";
+            return lyrics.trim();
         } catch (IOException e) {
-            logger.error("IOException during Jsoup scraping for URL: {}", url, e);
-            return "Error during scraping (Connection/IO): " + e.getMessage();
-        } catch (Exception e) {
-            logger.error("Unexpected error during Jsoup scraping for URL: {}", url, e);
-            return "Error during scraping: " + e.getMessage();
+            e.printStackTrace();
+            return "";
         }
     }
 }

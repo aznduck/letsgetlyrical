@@ -1,21 +1,23 @@
 package edu.usc.csci310.project.services;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -237,5 +239,140 @@ class GeniusServiceTest {
         assertNotNull(songs);
         assertTrue(songs.isEmpty());
         verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
+    }
+
+    @Test
+    public void testGetLyrics_Success() throws IOException {
+        // Arrange
+        String url = "https://genius.com/song-lyrics";
+        String expectedLyrics = "These are the lyrics";
+
+        try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
+            // Mock connection
+            Connection connection = mock(Connection.class);
+            Document document = mock(Document.class);
+
+            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
+            when(connection.userAgent(anyString())).thenReturn(connection);
+            when(connection.timeout(anyInt())).thenReturn(connection);
+            when(connection.get()).thenReturn(document);
+
+            // Create one matching div and one non-matching div
+            Element matchingDiv = mock(Element.class);
+            Element nonMatchingDiv = mock(Element.class);
+
+            Elements allDivs = new Elements();
+            allDivs.add(matchingDiv);
+            allDivs.add(nonMatchingDiv);
+
+            when(document.select("div")).thenReturn(allDivs);
+
+            // Set up class names
+            Set<String> matchingClassNames = new HashSet<>();
+            matchingClassNames.add("Lyrics-ab.xyz.1");  // Matches pattern
+            when(matchingDiv.classNames()).thenReturn(matchingClassNames);
+
+            Set<String> nonMatchingClassNames = new HashSet<>();
+            nonMatchingClassNames.add("non-matching-class");
+            when(nonMatchingDiv.classNames()).thenReturn(nonMatchingClassNames);
+
+            // Set up lyrics text
+            when(matchingDiv.text()).thenReturn(expectedLyrics);
+
+            // Set up LyricsHeader elements to be removed
+            Element headerDiv = mock(Element.class);
+            Elements headerDivs = new Elements();
+            headerDivs.add(headerDiv);
+            when(matchingDiv.select("div[class*='LyricsHeader']")).thenReturn(headerDivs);
+
+            // Act
+            String result = geniusService.getLyrics(url);
+
+            // Assert
+            assertEquals(expectedLyrics, result);
+        }
+    }
+
+    @Test
+    public void testGetLyrics_NoDivsFound() throws IOException {
+        // Arrange
+        String url = "https://genius.com/song-lyrics";
+
+        try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
+            // Mock connection
+            Connection connection = mock(Connection.class);
+            Document document = mock(Document.class);
+
+            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
+            when(connection.userAgent(anyString())).thenReturn(connection);
+            when(connection.timeout(anyInt())).thenReturn(connection);
+            when(connection.get()).thenReturn(document);
+
+            // Empty divs
+            Elements emptyDivs = new Elements();
+            when(document.select("div")).thenReturn(emptyDivs);
+
+            // Act
+            String result = geniusService.getLyrics(url);
+
+            // Assert
+            assertNull(result);
+        }
+    }
+
+    @Test
+    public void testGetLyrics_NoMatchingDivs() throws IOException {
+        // Arrange
+        String url = "https://genius.com/song-lyrics";
+
+        try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
+            // Mock connection
+            Connection connection = mock(Connection.class);
+            Document document = mock(Document.class);
+
+            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
+            when(connection.userAgent(anyString())).thenReturn(connection);
+            when(connection.timeout(anyInt())).thenReturn(connection);
+            when(connection.get()).thenReturn(document);
+
+            // Div with non-matching class
+            Element div = mock(Element.class);
+            Elements allDivs = new Elements();
+            allDivs.add(div);
+
+            when(document.select("div")).thenReturn(allDivs);
+
+            Set<String> classNames = new HashSet<>();
+            classNames.add("non-matching-class");
+            when(div.classNames()).thenReturn(classNames);
+
+            // Act
+            String result = geniusService.getLyrics(url);
+
+            // Assert
+            assertNull(result);
+        }
+    }
+
+    @Test
+    public void testGetLyrics_IOException() throws IOException {
+        // Arrange
+        String url = "https://genius.com/song-lyrics";
+
+        try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
+            // Mock connection that throws IOException
+            Connection connection = mock(Connection.class);
+
+            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
+            when(connection.userAgent(anyString())).thenReturn(connection);
+            when(connection.timeout(anyInt())).thenReturn(connection);
+            when(connection.get()).thenThrow(new IOException("Connection error"));
+
+            // Act
+            String result = geniusService.getLyrics(url);
+
+            // Assert
+            assertEquals("", result);
+        }
     }
 }
