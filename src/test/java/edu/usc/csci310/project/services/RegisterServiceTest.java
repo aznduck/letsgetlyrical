@@ -45,7 +45,7 @@ class RegisterServiceTest {
 
     @Test
     void testHashPasswordException() throws NoSuchAlgorithmException {
-        try(MockedStatic<SecretKeyFactory> mockedSKF = Mockito.mockStatic(SecretKeyFactory.class);) {
+        try(MockedStatic<SecretKeyFactory> mockedSKF = Mockito.mockStatic(SecretKeyFactory.class)) {
             mockedSKF.when(() -> SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")).thenThrow(new NoSuchAlgorithmException());
 
             assertThrows(RuntimeException.class, () -> Utils.hashPassword("Password1"));
@@ -64,7 +64,7 @@ class RegisterServiceTest {
 
     @Test
     void testHashUsernameException() throws NoSuchAlgorithmException {
-        try(MockedStatic<MessageDigest> mockedMD = Mockito.mockStatic(MessageDigest.class);) {
+        try(MockedStatic<MessageDigest> mockedMD = Mockito.mockStatic(MessageDigest.class)) {
             mockedMD.when(() -> MessageDigest.getInstance("SHA-256")).thenThrow(new NoSuchAlgorithmException("test"));
             assertThrows(RuntimeException.class, () -> registerService.hashUsername("Username"));
         }
@@ -117,7 +117,7 @@ class RegisterServiceTest {
 
     @Test
     void testVerifyPasswordException() throws NoSuchAlgorithmException {
-        try(MockedStatic<SecretKeyFactory> mockedSKF = Mockito.mockStatic(SecretKeyFactory.class);) {
+        try(MockedStatic<SecretKeyFactory> mockedSKF = Mockito.mockStatic(SecretKeyFactory.class)) {
             mockedSKF.when(() -> SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")).thenThrow(new NoSuchAlgorithmException());
 
             assertThrows(RuntimeException.class, () -> Utils.verifyPassword("Password1", "HashedPassword1"));
