@@ -180,12 +180,11 @@ class RegisterServiceTest {
         testCreateUserScenario(true, 200);
     }
 
-    private void setupCreateUserMocks(String username, String password, boolean isUsernameAvailable, int executeUpdateResult) throws SQLException {
+
+    // Refactored method to set up mocks for createUser, let createRegistrationNoRowsAffected and createRegistrationUserNotAvailable use this method
+    private void setupCreateUserMocks(String username, String password, boolean isUsernameAvailable) throws SQLException {
         doReturn(isUsernameAvailable).when(registerService).isUsernameAvailable(username);
         doReturn("hashedUsername").when(registerService).hashUsername(username);
-
-        when(conn.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)")).thenReturn(pst);
-        when(pst.executeUpdate()).thenReturn(executeUpdateResult);
 
         try (MockedStatic<Utils> mockedUtils = mockStatic(Utils.class)) {
             mockedUtils.when(() -> Utils.hashPassword(password)).thenReturn("hashedPassword");
@@ -196,11 +195,16 @@ class RegisterServiceTest {
     void createRegistrationNoRowsAffected() throws SQLException {
         String username = "test";
         String password = "TestPassword1";
-        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
+        String sqlString = "INSERT INTO users (username, password) VALUES (?, ?)";
 
-        setupCreateUserMocks(username, password, true, -1);
+        setupCreateUserMocks(username, password, true);
 
-        SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(createUserRequest));
+        when(conn.createStatement()).thenReturn(st);
+        when(conn.prepareStatement(sqlString)).thenReturn(pst);
+        when(pst.executeUpdate()).thenReturn(-1);
+
+        SQLException sqle = assertThrows(SQLException.class, () -> registerService.createUser(generateValidCreateUserRequest(username, password)));
+      
         assertTrue(sqle.getMessage().contains("No rows affected"));
     }
 
@@ -208,13 +212,11 @@ class RegisterServiceTest {
     void createRegistrationUserNotAvailable() throws SQLException {
         String username = "test";
         String password = "TestPassword1";
-        CreateUserRequest createUserRequest = generateValidCreateUserRequest(username, password);
 
-        setupCreateUserMocks(username, password, false, 0);
+        setupCreateUserMocks(username, password, false);
 
-        UsernameNotAvailableException unae = assertThrows(UsernameNotAvailableException.class, () -> registerService.createUser(createUserRequest));
+        UsernameNotAvailableException unae = assertThrows(UsernameNotAvailableException.class, () -> registerService.createUser(generateValidCreateUserRequest(username, password)));
         assertTrue(unae.getMessage().contains("Username not available"));
     }
-
 
 }
