@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../App"
 import GeniusService from "../services/GeniusService"
 
+import { testLogoutButtonClick } from "../utils/testUtils"
+
 // Mock dependencies
 jest.mock("react-router-dom", () => ({
     useNavigate: jest.fn(),
@@ -131,16 +133,7 @@ describe("SearchPage Component", () => {
     })
 
     test("handles logout button click", () => {
-        render(<SearchPage />)
-
-        // Click logout button
-        fireEvent.click(screen.getByTestId("logout-button"))
-
-        // Check that logout was called
-        expect(mockLogout).toHaveBeenCalled()
-
-        // Check that navigate was called with correct path
-        expect(mockNavigate).toHaveBeenCalledWith("/login")
+        testLogoutButtonClick(() => render(<SearchPage />), mockLogout, mockNavigate)
     })
 
     test("parses URL parameters correctly", () => {

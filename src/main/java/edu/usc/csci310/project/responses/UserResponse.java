@@ -1,9 +1,9 @@
 package edu.usc.csci310.project.responses;
 
 public class UserResponse {
-    private int id;
-    private String username;
-    private String password;
+    private final int id;
+    private final String username;
+    private final String password;
 
     public UserResponse(int id, String username, String password) {
         this.id = id;

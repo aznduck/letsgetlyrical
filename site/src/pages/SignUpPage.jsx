@@ -173,7 +173,7 @@ const SignUpPage = () => {
                     {!errors.password && <div className="password-req">Must use 1 uppercase, 1 lowercase, and 1 number</div>}
 
                     <PasswordInput
-                        id="confirm-password"
+                        id="confirmpassword"
                         label="Confirm Password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}

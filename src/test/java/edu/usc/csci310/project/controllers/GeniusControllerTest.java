@@ -167,4 +167,64 @@ class GeniusControllerTest {
 
         verify(geniusService).getTopSongs(artistId, 10);
     }
+
+    @Test
+    void getSong_withValidSongId_shouldReturnOkWithSong() throws Exception {
+        Long songId = 101L;
+        Map<String, Object> mockSong = Map.of(
+                "id", songId,
+                "title", "Bohemian Rhapsody",
+                "artist_names", "Queen"
+        );
+        when(geniusService.getSong(eq(songId))).thenReturn(mockSong);
+
+        mockMvc.perform(get("/api/genius/songs/{songId}", songId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id", is(songId.intValue())))
+                .andExpect(jsonPath("$.title", is("Bohemian Rhapsody")))
+                .andExpect(jsonPath("$.artist_names", is("Queen")));
+
+        verify(geniusService).getSong(songId);
+    }
+
+    @Test
+    void getSong_whenServiceThrowsException_shouldReturnInternalServerError() throws Exception {
+        Long songId = 999L;
+        when(geniusService.getSong(eq(songId))).thenThrow(new RuntimeException("Service layer error"));
+
+        mockMvc.perform(get("/api/genius/songs/{songId}", songId))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error", is("Failed to get song")));
+
+        verify(geniusService).getSong(songId);
+    }
+
+    @Test
+    void getLyrics_withValidUrl_shouldReturnOkWithLyrics() throws Exception {
+        String url = "https://genius.com/Queen-bohemian-rhapsody-lyrics";
+        String mockLyrics = "Sample lyrics content";
+        when(geniusService.getLyrics(eq(url))).thenReturn(mockLyrics);
+
+        mockMvc.perform(get("/api/genius/lyrics").param("url", url))
+                .andExpect(status().isOk())
+                .andExpect(content().string(mockLyrics));
+
+        verify(geniusService).getLyrics(url);
+    }
+
+    @Test
+    void getLyrics_whenServiceThrowsException_shouldReturnInternalServerError() throws Exception {
+        String url = "https://genius.com/invalid-url";
+        when(geniusService.getLyrics(eq(url))).thenThrow(new RuntimeException("Service layer error"));
+
+        mockMvc.perform(get("/api/genius/lyrics").param("url", url))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0]", is("Failed to get lyrics")));
+
+        verify(geniusService).getLyrics(url);
+    }
 }

@@ -1,4 +1,5 @@
 package edu.usc.csci310.project.services;
+
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Safelist;
@@ -60,29 +61,22 @@ public class GeniusService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
                 Map<String, Object> responseData = (Map<String, Object>) responseBody.get("response");
-                if (responseData != null && responseData.containsKey("hits")) {
-                    List<Map<String, Object>> hits = (List<Map<String, Object>>) responseData.get("hits");
-                    if (hits != null) {
-                        List<Map<String, Object>> artists = new ArrayList<>();
-                        for (Map<String, Object> hit : hits) {
-                            if (hit != null && hit.containsKey("result")) {
-                                Map<String, Object> result = (Map<String, Object>) hit.get("result");
-                                if (result != null && result.containsKey("primary_artist")) {
-                                    Map<String, Object> primaryArtist = (Map<String, Object>) result.get("primary_artist");
-                                    if (primaryArtist != null && primaryArtist.containsKey("id") && primaryArtist.containsKey("name")) {
-                                        Map<String, Object> artistInfo = new HashMap<>();
-                                        artistInfo.put("artist_id", primaryArtist.get("id"));
-                                        artistInfo.put("artist_name", primaryArtist.get("name"));
-                                        artists.add(artistInfo);
-                                    }
-                                }
-                            }
-                        }
-                        logger.info("Found {} potential artists for query '{}'", artists.size(), query);
-                        logger.info(String.valueOf(artists));
-                        return artists;
-                    }
+
+                List<Map<String, Object>> hits = (List<Map<String, Object>>) responseData.get("hits");
+
+                List<Map<String, Object>> artists = new ArrayList<>();
+
+                for (Map<String, Object> hit : hits) {
+                    Map<String, Object> result = (Map<String, Object>) hit.get("result");
+                    Map<String, Object> primaryArtist = (Map<String, Object>) result.get("primary_artist");
+                    Map<String, Object> artistInfo = new HashMap<>();
+                    artistInfo.put("artist_id", primaryArtist.get("id"));
+                    artistInfo.put("artist_name", primaryArtist.get("name"));
+                    artists.add(artistInfo);
                 }
+                logger.info("Found {} potential artists for query '{}'", artists.size(), query);
+                logger.info(String.valueOf(artists));
+                return artists;
             }
             logger.warn("Received non-successful response or empty body from Genius API search: Status {}", response.getStatusCode());
 
@@ -174,9 +168,9 @@ public class GeniusService {
     public String getLyrics(String url) {
         try {
             Document doc = Jsoup.connect(url)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                        .timeout(15000)
-                        .get();
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .timeout(15000)
+                    .get();
 
             Pattern pattern = Pattern.compile("^(Lyrics-\\w{2}.\\w+.[1])|Lyrics__Container");
 
@@ -213,4 +207,6 @@ public class GeniusService {
             return "";
         }
     }
+
+
 }
