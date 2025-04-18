@@ -23,8 +23,8 @@ public class SearchStepdefs {
 
         driver.get(ROOT_URL + "/login");
         // Enter username and password
-        driver.findElement(By.id("username")).sendKeys("2006234814a");
-        driver.findElement(By.id("password")).sendKeys("Aa123");
+        driver.findElement(By.id("username")).sendKeys("testuser1");
+        driver.findElement(By.id("password")).sendKeys("LyricalMusic1!");
         // Click the login button .submit-button
         driver.findElement(By.className("submit-button")).click();
         waitSeconds(1);
@@ -38,8 +38,6 @@ public class SearchStepdefs {
         // Check if the search page is displayed
         //String currentUrl = driver.getCurrentUrl();
     }
-
-
 
 
     @When("I enter {string} as the artist name")
@@ -68,7 +66,6 @@ public class SearchStepdefs {
                 .findFirst()
                 .ifPresent(WebElement::click);
     }
-
 
 
     @Then("I should see {int} songs listed")
@@ -173,8 +170,7 @@ public class SearchStepdefs {
         System.out.println("I have already generated a word cloud");
     }
 
-    public void skipTestForNow()
-    {
+    public void skipTestForNow() {
         assertTrue(driver.getPageSource().contains("html"));
     }
 

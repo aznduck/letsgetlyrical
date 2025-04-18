@@ -3,7 +3,6 @@ Feature: Search and Word Cloud Generation
   As a user, I want to be able to search for songs by an artist and generate a word cloud from the lyrics of those songs,
   so that I can visualize the most common words used in their lyrics.
 
-  # Kick back to the login page if not logged in
 
   Background:
     Given I am logged in
@@ -37,6 +36,7 @@ Feature: Search and Word Cloud Generation
     And I click the Search button
     Then I should not see "Please pick an artist"
 
+      # Kick back to the login page if not logged in
   Scenario: Not logged in user should not be able to add songs to favorites
     Given I am not logged in
     When I try to access the search page
@@ -71,7 +71,7 @@ Feature: Search and Word Cloud Generation
     When I search for "Taylor Swift" with 20 songs
     Then the word cloud should contain no more than 100 unique words
 
-    Scenario: Add songs to favorites
+  Scenario: Add songs to favorites
     Given I have already generated a word cloud
     When I select a song from the word cloud
     And I click the "Add to Favorites" button on search page
