@@ -20,7 +20,6 @@ Feature: Word Cloud Generation
     When I generate the word cloud
     Then the word cloud should appear within 1 second
 
-
   Scenario: Clicking on a word brings up relevant songs
     Given the word cloud is displayed
     When I click on the word "BABY"
@@ -31,11 +30,6 @@ Feature: Word Cloud Generation
     When I click on the word "BABY"
     And I click on the lyrics button
     Then I should see lyrics
-
-  Scenario: Clicking toggle switches between cloud and table
-    Given the word cloud is displayed as a cloud
-    When I click the toggle button
-    Then the word cloud should switch to table view
 
   Scenario: Clicking toggle switches between cloud and table
     Given the word cloud is displayed as a cloud
