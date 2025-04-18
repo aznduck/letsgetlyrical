@@ -12,4 +12,48 @@ class FavoriteRemoveRequestTest {
         fr.setPassword("password");
         assertEquals("password", fr.getPassword());
     }
+
+    @Test
+    void setPassword() {
+        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
+        fr.setPassword("password");
+        assertEquals("password", fr.getPassword());
+
+        fr.setPassword("newPassword");
+        assertEquals("newPassword", fr.getPassword());
+    }
+
+    @Test
+    void getUsername() {
+        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
+        fr.setUsername("testUser");
+        assertEquals("testUser", fr.getUsername());
+    }
+
+    @Test
+    void setUsername() {
+        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
+        fr.setUsername("testUser");
+        assertEquals("testUser", fr.getUsername());
+
+        fr.setUsername("newUser");
+        assertEquals("newUser", fr.getUsername());
+    }
+
+    @Test
+    void getSongId() {
+        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
+        fr.setSongId(123);
+        assertEquals(123, fr.getSongId());
+    }
+
+    @Test
+    void setSongId() {
+        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
+        fr.setSongId(123);
+        assertEquals(123, fr.getSongId());
+
+        fr.setSongId(456);
+        assertEquals(456, fr.getSongId());
+    }
 }

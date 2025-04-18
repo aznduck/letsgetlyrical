@@ -2,10 +2,12 @@ package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
 import edu.usc.csci310.project.requests.CreateUserRequest;
+import edu.usc.csci310.project.requests.FavoriteGetRequest;
 import edu.usc.csci310.project.requests.FavoriteRemoveRequest;
 import edu.usc.csci310.project.requests.FavoriteSongRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.List;
 
 import java.sql.*;
 
@@ -46,6 +48,13 @@ class FavoriteServiceTest {
         request.setUsername("testuser");
         request.setPassword("testpassword");
         request.setSongId(420);
+        return request;
+    }
+
+    FavoriteGetRequest generateValidFavoriteGetRequest() {
+        FavoriteGetRequest request = new FavoriteGetRequest();
+        request.setUsername("testuser");
+        request.setPassword("testpassword");
         return request;
     }
 
@@ -335,5 +344,66 @@ class FavoriteServiceTest {
 
         when(connection.prepareStatement(sql)).thenThrow(new SQLException("Test SQL Exception"));
         assertThrows(RuntimeException.class, () -> favoriteService.getUserId(username));
+    }
+
+    @Test
+    void getFavoriteSongsValid() throws SQLException {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        doReturn(1).when(favoriteService).getUserId(request.getUsername());
+
+        String sql = "SELECT songId FROM favorites WHERE userId = ?";
+        when(connection.prepareStatement(sql)).thenReturn(pst);
+        when(pst.executeQuery()).thenReturn(rs);
+
+        when(rs.next()).thenReturn(true, true, true, false);
+        when(rs.getInt(1)).thenReturn(1, 2, 3);
+
+        List<Integer> result = favoriteService.getFavoriteSongs(request);
+
+        assertEquals(3, result.size());
+        assertTrue(result.contains(1));
+        assertTrue(result.contains(2));
+        assertTrue(result.contains(3));
+
+        verify(pst).setInt(1, 1);
+    }
+
+    @Test
+    void getFavoriteSongsEmpty() throws SQLException {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        doReturn(1).when(favoriteService).getUserId(request.getUsername());
+
+        String sql = "SELECT songId FROM favorites WHERE userId = ?";
+        when(connection.prepareStatement(sql)).thenReturn(pst);
+        when(pst.executeQuery()).thenReturn(rs);
+
+        when(rs.next()).thenReturn(false);
+
+        List<Integer> result = favoriteService.getFavoriteSongs(request);
+
+        assertTrue(result.isEmpty());
+        verify(pst).setInt(1, 1);
+    }
+
+    @Test
+    void getFavoriteSongsInvalidUserId() {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        doReturn(-1).when(favoriteService).getUserId(request.getUsername());
+
+        RuntimeException rte = assertThrows(RuntimeException.class,
+                () -> favoriteService.getFavoriteSongs(request));
+        assertTrue(rte.getMessage().contains("User does not exist."));
+    }
+
+    @Test
+    void getFavoriteSongsSQLException() throws SQLException {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        doReturn(1).when(favoriteService).getUserId(request.getUsername());
+
+        String sql = "SELECT songId FROM favorites WHERE userId = ?";
+        when(connection.prepareStatement(sql)).thenReturn(pst);
+        when(pst.executeQuery()).thenThrow(new SQLException("Test SQL Exception"));
+
+        assertThrows(RuntimeException.class, () -> favoriteService.getFavoriteSongs(request));
     }
 }
