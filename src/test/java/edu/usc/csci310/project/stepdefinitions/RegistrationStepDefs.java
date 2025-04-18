@@ -5,15 +5,14 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.ROOT_URL;
-import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.driver;
+import java.time.Duration;
+
 
 public class RegistrationStepDefs {
 
