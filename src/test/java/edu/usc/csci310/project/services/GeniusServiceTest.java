@@ -367,46 +367,54 @@ class GeniusServiceTest {
     }
 
     @Test
-    public void testGetLyrics_Success() throws IOException {
+    void testGetLyrics_Success_WithLineBreaks() throws IOException {
         String url = "https://genius.com/song-lyrics";
-        String expectedLyrics = "These are the lyrics";
+        String expectedLyrics = "Line one\nLine two\n\nLine four";
+        String NEWLINE_PLACEHOLDER = "%%%BR%%%";
+
+        String textWithPlaceholders = "Line one" + NEWLINE_PLACEHOLDER +
+                "Line two" + NEWLINE_PLACEHOLDER + NEWLINE_PLACEHOLDER + "Line four";
 
         try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
-            Connection connection = mock(Connection.class);
-            Document document = mock(Document.class);
+            Connection connectionMock = mock(Connection.class);
+            Document documentMock = mock(Document.class);
+            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connectionMock);
+            when(connectionMock.userAgent(anyString())).thenReturn(connectionMock);
+            when(connectionMock.timeout(anyInt())).thenReturn(connectionMock);
+            when(connectionMock.get()).thenReturn(documentMock);
 
-            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
-            when(connection.userAgent(anyString())).thenReturn(connection);
-            when(connection.timeout(anyInt())).thenReturn(connection);
-            when(connection.get()).thenReturn(document);
+            Element matchingDivMock = mock(Element.class, "matchingDiv");
+            Element nonMatchingDivMock = mock(Element.class, "nonMatchingDiv");
+            Element headerDivMock = mock(Element.class, "headerDiv");
+            Element brMock1 = mock(Element.class, "br1");
+            Element brMock2 = mock(Element.class, "br2");
+            Element brMock3 = mock(Element.class, "br3");
 
-            Element matchingDiv = mock(Element.class);
-            Element nonMatchingDiv = mock(Element.class);
-
-            Elements allDivs = new Elements();
-            allDivs.add(matchingDiv);
-            allDivs.add(nonMatchingDiv);
-
-            when(document.select("div")).thenReturn(allDivs);
+            Elements allDivs = new Elements(matchingDivMock, nonMatchingDivMock);
+            when(documentMock.select("div")).thenReturn(allDivs);
 
             Set<String> matchingClassNames = new HashSet<>();
-            matchingClassNames.add("Lyrics-ab.xyz.1");
-            when(matchingDiv.classNames()).thenReturn(matchingClassNames);
+            matchingClassNames.add("Lyrics__Container");
+            when(matchingDivMock.classNames()).thenReturn(matchingClassNames);
 
             Set<String> nonMatchingClassNames = new HashSet<>();
-            nonMatchingClassNames.add("non-matching-class");
-            when(nonMatchingDiv.classNames()).thenReturn(nonMatchingClassNames);
+            nonMatchingClassNames.add("some-other-class");
+            when(nonMatchingDivMock.classNames()).thenReturn(nonMatchingClassNames);
 
-            when(matchingDiv.text()).thenReturn(expectedLyrics);
+            when(matchingDivMock.clone()).thenReturn(matchingDivMock);
 
-            Element headerDiv = mock(Element.class);
-            Elements headerDivs = new Elements();
-            headerDivs.add(headerDiv);
-            when(matchingDiv.select("div[class*='LyricsHeader']")).thenReturn(headerDivs);
+            Elements headerDivs = new Elements(headerDivMock);
+            when(matchingDivMock.select("div[class*='LyricsHeader']")).thenReturn(headerDivs);
+
+            Elements brElements = new Elements(brMock1, brMock2, brMock3);
+            when(matchingDivMock.select("br")).thenReturn(brElements);
+
+            when(matchingDivMock.text()).thenReturn(textWithPlaceholders);
 
             String result = geniusService.getLyrics(url);
 
             assertEquals(expectedLyrics, result);
+
         }
     }
 
