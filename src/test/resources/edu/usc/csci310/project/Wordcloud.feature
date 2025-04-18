@@ -27,7 +27,7 @@ Feature: Word Cloud Generation
 
   Scenario: Relevant songs should have lyrics
     Given the word cloud is displayed
-    When I click on the word "BABY"
+    When I click on the first word
     And I click on the lyrics button
     Then I should see lyrics
 
