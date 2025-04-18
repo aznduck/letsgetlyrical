@@ -323,3 +323,27 @@
         min-height: 400px;
     }
 }
+
+.wordcloud-wrapper {
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    position: relative;
+    text-decoration: none;
+}
+
+.wordcloud-wrapper svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    text-decoration: none;
+}
+
+.word-text {
+    text-decoration: none;
+    overflow: visible;
+}
+
+.word-text:hover {
+    text-decoration: none;
+}
