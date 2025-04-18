@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import FavsCloudPage from "./FavsCloudPage"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../App"
+import { testLogoutButtonClick } from "../utils/testUtils"
 
 // Mock dependencies
 jest.mock("react-router-dom")
@@ -79,16 +80,7 @@ describe("FavsCloudPage Component", () => {
     })
 
     test("handles logout button click", () => {
-        render(<FavsCloudPage />)
-
-        // Click logout button
-        fireEvent.click(screen.getByTestId("logout-button"))
-
-        // Check that logout was called
-        expect(mockLogout).toHaveBeenCalled()
-
-        // Check that navigate was called with correct path
-        expect(mockNavigate).toHaveBeenCalledWith("/login")
+        testLogoutButtonClick(() => render(<FavsCloudPage />), mockLogout, mockNavigate)
     })
 
     test("handles generate favorites button click", () => {

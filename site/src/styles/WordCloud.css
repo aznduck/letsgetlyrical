@@ -7,10 +7,12 @@
     padding: 1.5rem 1rem;
     min-height: 500px;
     position: relative;
+    height: calc(100vh - 72px);
 }
 
 .word-cloud-section-table {
     background: transparent;
+    height: calc(100vh - 72px);
 }
 
 .word-cloud-header {
@@ -73,29 +75,48 @@
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
+
 .word-cloud-container {
-    flex: 1;
+    margin-top: 20px;
+    min-height: 300px;
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1rem;
 }
 
-.simple-cloud {
+.cloud {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+    min-height: 300px;
     width: 100%;
-    height: 100%;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.cloud.generated {
+    background-color: #f0f9ff;
 }
 
 .cloud-text {
-    font-family: "Impact", sans-serif;
-    font-size: 120px;
-    color: #f8c8dc; /* Pink color */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    letter-spacing: 2px;
+    font-size: 3em;
+    color: #9ca3af;
 }
+
+.cloud-word {
+    display: inline-block;
+    margin: 5px;
+    color: #4b5563;
+    transition: all 0.2s ease;
+}
+
+.cloud-word:hover {
+    transform: scale(1.1);
+    color: #2563eb;
+}
+
 
 /* Word Table Styles */
 .word-table-container {
@@ -202,7 +223,6 @@
     background-color: rgba(255, 255, 255, 0.3);
     cursor: default;
 }
-
 
 .compare-friends-button {
     background-color: transparent;
