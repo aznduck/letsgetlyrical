@@ -1,7 +1,9 @@
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 import WordCloudHeader from "../components/WordCloudHeader"
 import SongList from "./SongList";
 import "../styles/WordCloud.css"
+import cloud from "d3-cloud";
+import * as d3 from "d3";
 
 const WordCloud = ({
                        words = ["test", "test2"],
@@ -11,11 +13,14 @@ const WordCloud = ({
                        onGenerateFavorites,
                        onCompareWithFriends,
                    }) => {
-    const [selectedType, setSelectedType] = useState("cloud")
+    const [selectedType, setSelectedType] = useState("table")
     const [wordFrequencies, setWordFrequencies] = useState([])
     const [selectedWord, setSelectedWord] = useState(null)
     const [cloudGenerated, setCloudGenerated] = useState(isCloudGenerated)
     const [showSongList, setShowSongList] = useState(false)
+
+
+    const svgRef = useRef();
 
     const sampleSongs = [
         {
@@ -122,42 +127,126 @@ Yours until the poets run out of rhyme
 In other words, until the end of time`,
         },
     ]
+    const STOP_WORDS = new Set([
+        "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this",
+        "that", "with", "as", "was", "were", "by", "are", "at", "from", "but", "be",
+        "has", "have", "had", "he", "she", "they", "them", "his", "her", "their", "you", "i"
+    ]);
+
+    // useEffect(() => {
+    //     const fetchFavorites = async () => {
+    //         try {
+    //             const response = await fetch("api/favorite/get", {
+    //                 method: "POST",
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                 },
+    //                 body: JSON.stringify({
+    //                     username: userId,
+    //                     password: password
+    //                 }),
+    //             });
+    //
+    //             const data = await response.json();
+    //
+    //             if (data.code === 1) {
+    //                 setFavorites(data.data);
+    //                 console.log("Favorites:", data.data);
+    //             } else {
+    //                 console.warn("Message:", data.message);
+    //             }
+    //         } catch (error) {
+    //             console.error("Error fetching favorites:", error);
+    //         }
+    //     };
+    //
+    //     fetchFavorites();
+    // }, []);
+
+    const songs = sampleSongs.map(song => song.lyrics).join(" ");
+
+    function stem(word) {
+        return word
+            .replace(/[^a-z]/g, "")
+            .replace(/(ing|ed|s)$/, "");
+    }
+
+    function getFrequencies(text, maxWords = 20) {
+        const noBrackets = text.replace(/\[.*?\]/g, "");
+        const words = noBrackets.toLowerCase().match(/\b\w+\b/g) || [];
+
+        const freq = {};
+        for (let word of words) {
+            if (!STOP_WORDS.has(word)) {
+                const stemmed = stem(word);
+                if (stemmed.length > 1) {
+                    freq[stemmed] = (freq[stemmed] || 0) + 1;
+                }
+            }
+        }
+
+        return Object.entries(freq)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, maxWords)
+            .map(([word, frequency]) => ({ word, frequency }));
+    }
+
+    const drawD3Cloud = () => {
+        const width = 600;
+        const height = 600;
+        const chosenFontSize = d => (d.size);
+
+        const svg = d3.select(svgRef.current);
+        svg.selectAll("*").remove();
+
+        const layout = cloud()
+            .size([width, height])
+            .words(wordFrequencies.map(d => ({ text: d.word, size: d.frequency })))
+            .padding(1)
+            .rotate(() => (Math.random() < 0.25 ? 90 : 0))
+            .font("Arial")
+            .fontSize(chosenFontSize)
+            .on("end", draw);
+
+        layout.start();
+
+        function draw(words) {
+            svg
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet")
+                .append("g")
+                .attr("transform", `translate(${width / 2}, ${height / 2})`) // to center
+                .selectAll("text")
+                .data(words)
+                .enter()
+                .append("text")
+                .attr("class", "word-text")
+                .attr("data-testid", d => `word-${d.text}`)
+                .style("font-size", d => `${chosenFontSize(d)}px`)
+                .style("font-family", "Impact")
+                .style("fill", () => d3.schemeCategory10[Math.floor(Math.random() * 10)])
+                .style("cursor", "pointer")
+                .attr("text-anchor", "middle")
+                .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
+                .text(d => d.text)
+                .on("click", (event, d) => {
+                    handleWordClick({ word: d.text, frequency: d.size });
+                });
+        }
+    };
+
+    useEffect(() => {
+        if (selectedType === "cloud") drawD3Cloud();
+    }, [wordFrequencies, selectedType]);
 
     useEffect(() => {
         setCloudGenerated(isCloudGenerated)
     }, [isCloudGenerated])
 
     useEffect(() => {
-        if (words.length > 0) {
-            const mockWordFrequencies = [
-                { word: "BABY", frequency: 30 },
-                { word: "BIEBER", frequency: 25 },
-                { word: "JUSTIN", frequency: 25 },
-                { word: "NEVER", frequency: 25 },
-                { word: "PICK", frequency: 24 },
-                { word: "LIKE", frequency: 22 },
-                { word: "SAY", frequency: 20 },
-                { word: "UH-HUH", frequency: 16 },
-                { word: "MINE", frequency: 13 },
-                { word: "THOUGHT", frequency: 10 },
-                { word: "CAUSE", frequency: 9 },
-                { word: "GONE", frequency: 9 },
-                { word: "NE-NEVER", frequency: 9 },
-                { word: "BEAUTY", frequency: 8 },
-                { word: "EVER", frequency: 7 },
-                { word: "FIGHT", frequency: 7 },
-                { word: "MAKE", frequency: 7 },
-                { word: "NOW", frequency: 7 },
-                { word: "ALWAYS", frequency: 6 },
-                { word: "CAN", frequency: 6 },
-                { word: "GIRL", frequency: 6 },
-                { word: "LOVE", frequency: 6 },
-            ]
-            setWordFrequencies(mockWordFrequencies)
-        } else {
-            setWordFrequencies([{ word: "CLOUD", frequency: 1 }])
-        }
-    }, [words])
+        const wordFrequencies = getFrequencies(songs);
+        setWordFrequencies(wordFrequencies);
+    }, [songs]);
 
     const handleTypeChange = (type) => {
         setSelectedType(type)
@@ -214,29 +303,8 @@ In other words, until the end of time`,
         } else {
             return (
                 <div className="word-cloud-container">
-                    <div className={`cloud ${isCloudGenerated ? "generated" : ""}`}>
-                        {wordFrequencies.map((item, index) => (
-                            <span
-                                key={`${item.word}-${index}`}
-                                className="cloud-word"
-                                style={{
-                                    fontSize: `${Math.max(0.8, item.frequency / 10)}em`,
-                                    opacity: Math.max(0.5, item.frequency / 30),
-                                    padding: "0.5em",
-                                    cursor: "pointer",
-                                }}
-                                onClick={() => handleWordClick(item)}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        handleWordClick(item)
-                                    }
-                                }}
-                            >
-                {item.word}
-              </span>
-                        ))}
+                    <div className="wordcloud-wrapper">
+                        <svg ref={svgRef} width="100%" height="100%"></svg>
                     </div>
                 </div>
             )

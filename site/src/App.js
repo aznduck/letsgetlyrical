@@ -14,6 +14,8 @@ import SignupPage from "./pages/SignUpPage"
 import LandingPage from "./pages/LandingPage"
 import FavsCloudPage from "./pages/FavsCloudPage"
 import SearchPage from "./pages/SearchPage"
+import WordcloudDisplay from "./pages/WordcloudDisplay";
+import Wordcloud from "./components/Wordcloud";
 
 // Create auth context
 export const AuthContext = createContext(null)
@@ -125,6 +127,8 @@ function App() {
     }
 
     return (
+
+
         <AuthContext.Provider value={authValue}>
             <div className="app">
                 <Routes>
@@ -179,6 +183,15 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <SearchPage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/wordcloud"
+                        element={
+                            <ProtectedRoute>
+                                <Wordcloud />
                             </ProtectedRoute>
                         }
                     />
