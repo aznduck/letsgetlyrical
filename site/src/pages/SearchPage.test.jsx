@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../App"
 import GeniusService from "../services/GeniusService"
 
+import { testLogoutButtonClick } from "../utils/testUtils"
+
 // Mock dependencies
 jest.mock("react-router-dom", () => ({
     useNavigate: jest.fn(),
@@ -127,20 +129,11 @@ describe("SearchPage Component", () => {
         expect(screen.getByText("Enter an artist name in the search bar above to begin.")).toBeInTheDocument()
 
         // No error message should be displayed
-        expect(container.querySelector(".error-message")).not.toBeInTheDocument()
+        expect(container.querySelector(".search-error-message")).not.toBeInTheDocument()
     })
 
     test("handles logout button click", () => {
-        render(<SearchPage />)
-
-        // Click logout button
-        fireEvent.click(screen.getByTestId("logout-button"))
-
-        // Check that logout was called
-        expect(mockLogout).toHaveBeenCalled()
-
-        // Check that navigate was called with correct path
-        expect(mockNavigate).toHaveBeenCalledWith("/login")
+        testLogoutButtonClick(() => render(<SearchPage />), mockLogout, mockNavigate)
     })
 
     test("parses URL parameters correctly", () => {
@@ -278,7 +271,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain('No artists found matching "empty"')
         })
@@ -297,7 +290,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain("Error:")
         })
@@ -326,7 +319,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain("No songs found for Test Artist 1")
         })
@@ -352,7 +345,7 @@ describe("SearchPage Component", () => {
 
         // Wait for error message
         await waitFor(() => {
-            const errorElement = container.querySelector(".error-message")
+            const errorElement = container.querySelector(".search-error-message")
             expect(errorElement).toBeInTheDocument()
             expect(errorElement.textContent).toContain("Songs API Error")
         })

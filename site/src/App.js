@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import { Routes, Route, Navigate, useLocation } from "react-router-dom"
 import { createContext, useContext, useState } from "react"
-import "./styles/App.css"
+import "./styles/Auth.css"
 import "./styles/LandingPage.css"
 import "./styles/NavBar.css"
 import "./styles/Favorites.css"

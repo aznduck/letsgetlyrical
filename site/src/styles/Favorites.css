@@ -2,8 +2,7 @@
     flex: 1;
     width: auto;
     min-width: 350px;
-    max-height: 550px;
-    height: auto;
+    height: calc(100vh - 72px);
     border-radius: 12px 0 0 0;
     background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
     display: flex;
@@ -30,23 +29,6 @@
     }
 }
 
-@media (min-width: 1200px) {
-    .favorites-section {
-        max-height: 600px;
-    }
-}
-
-@media (min-width: 1400px) {
-    .favorites-section {
-        max-height: 680px;
-    }
-}
-
-@media (min-width: 1510px) {
-    .favorites-section {
-        max-height: 705px;
-    }
-}
 
 .favorites-header {
     display: flex;

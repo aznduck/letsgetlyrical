@@ -1,6 +1,6 @@
 package edu.usc.csci310.project.controllers;
 
-import edu.usc.csci310.project.controllers.LoginController;
+
 import edu.usc.csci310.project.requests.LoginUserRequest;
 import edu.usc.csci310.project.services.LoginService;
 import org.junit.jupiter.api.Test;
