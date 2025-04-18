@@ -1,9 +1,8 @@
-import {useEffect, useRef, useState} from "react"
-import WordCloudHeader from "../components/WordCloudHeader"
+import { useEffect, useRef, useState } from "react";
+import WordCloudHeader from "../components/WordCloudHeader";
 import SongList from "./SongList";
-import "../styles/WordCloud.css"
-import cloud from "d3-cloud";
-import * as d3 from "d3";
+import "../styles/WordCloud.css";
+import ReactWordcloud from "react-d3-cloud";
 
 const WordCloud = ({
                        words = ["test", "test2"],
@@ -13,14 +12,11 @@ const WordCloud = ({
                        onGenerateFavorites,
                        onCompareWithFriends,
                    }) => {
-    const [selectedType, setSelectedType] = useState("table")
-    const [wordFrequencies, setWordFrequencies] = useState([])
-    const [selectedWord, setSelectedWord] = useState(null)
-    const [cloudGenerated, setCloudGenerated] = useState(isCloudGenerated)
-    const [showSongList, setShowSongList] = useState(false)
-
-
-    const svgRef = useRef();
+    const [selectedType, setSelectedType] = useState("table");
+    const [wordFrequencies, setWordFrequencies] = useState([]);
+    const [selectedWord, setSelectedWord] = useState(null);
+    const [cloudGenerated, setCloudGenerated] = useState(isCloudGenerated);
+    const [showSongList, setShowSongList] = useState(false);
 
     const sampleSongs = [
         {
@@ -115,7 +111,7 @@ I'm hooked and I can't stop staring`,
             title: "Baby I'm Yours",
             artist: "Arctic Monkeys",
             year: 2006,
-            frequency: "2",
+            frequency: 2,
             lyrics: `Baby, I'm yours
 And I'll be yours until the stars fall from the sky
 Yours until the rivers all run dry
@@ -126,42 +122,13 @@ And I'll be yours until the sun no longer shines
 Yours until the poets run out of rhyme
 In other words, until the end of time`,
         },
-    ]
+    ];
+
     const STOP_WORDS = new Set([
         "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this",
         "that", "with", "as", "was", "were", "by", "are", "at", "from", "but", "be",
         "has", "have", "had", "he", "she", "they", "them", "his", "her", "their", "you", "i"
     ]);
-
-    // useEffect(() => {
-    //     const fetchFavorites = async () => {
-    //         try {
-    //             const response = await fetch("api/favorite/get", {
-    //                 method: "POST",
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                 },
-    //                 body: JSON.stringify({
-    //                     username: userId,
-    //                     password: password
-    //                 }),
-    //             });
-    //
-    //             const data = await response.json();
-    //
-    //             if (data.code === 1) {
-    //                 setFavorites(data.data);
-    //                 console.log("Favorites:", data.data);
-    //             } else {
-    //                 console.warn("Message:", data.message);
-    //             }
-    //         } catch (error) {
-    //             console.error("Error fetching favorites:", error);
-    //         }
-    //     };
-    //
-    //     fetchFavorites();
-    // }, []);
 
     const songs = sampleSongs.map(song => song.lyrics).join(" ");
 
@@ -191,57 +158,9 @@ In other words, until the end of time`,
             .map(([word, frequency]) => ({ word, frequency }));
     }
 
-    const drawD3Cloud = () => {
-        const width = 600;
-        const height = 600;
-        const chosenFontSize = d => (d.size);
-
-        const svg = d3.select(svgRef.current);
-        svg.selectAll("*").remove();
-
-        const layout = cloud()
-            .size([width, height])
-            .words(wordFrequencies.map(d => ({ text: d.word, size: d.frequency })))
-            .padding(1)
-            .rotate(() => (Math.random() < 0.25 ? 90 : 0))
-            .font("Arial")
-            .fontSize(chosenFontSize)
-            .on("end", draw);
-
-        layout.start();
-
-        function draw(words) {
-            svg
-                .attr("viewBox", `0 0 ${width} ${height}`)
-                .attr("preserveAspectRatio", "xMidYMid meet")
-                .append("g")
-                .attr("transform", `translate(${width / 2}, ${height / 2})`) // to center
-                .selectAll("text")
-                .data(words)
-                .enter()
-                .append("text")
-                .attr("class", "word-text")
-                .attr("data-testid", d => `word-${d.text}`)
-                .style("font-size", d => `${chosenFontSize(d)}px`)
-                .style("font-family", "Impact")
-                .style("fill", () => d3.schemeCategory10[Math.floor(Math.random() * 10)])
-                .style("cursor", "pointer")
-                .attr("text-anchor", "middle")
-                .attr("transform", d => `translate(${d.x},${d.y}) rotate(${d.rotate})`)
-                .text(d => d.text)
-                .on("click", (event, d) => {
-                    handleWordClick({ word: d.text, frequency: d.size });
-                });
-        }
-    };
-
     useEffect(() => {
-        if (selectedType === "cloud") drawD3Cloud();
-    }, [wordFrequencies, selectedType]);
-
-    useEffect(() => {
-        setCloudGenerated(isCloudGenerated)
-    }, [isCloudGenerated])
+        setCloudGenerated(isCloudGenerated);
+    }, [isCloudGenerated]);
 
     useEffect(() => {
         const wordFrequencies = getFrequencies(songs);
@@ -249,26 +168,25 @@ In other words, until the end of time`,
     }, [songs]);
 
     const handleTypeChange = (type) => {
-        setSelectedType(type)
-    }
+        setSelectedType(type);
+    };
 
     const handleWordClick = (word) => {
-        setSelectedWord(word)
-        setShowSongList(true)
-        console.log(`Word clicked: ${word.word} (${word.frequency})`)
-        //additional functionality when a word is clicked
-    }
+        setSelectedWord(word);
+        setShowSongList(true);
+        console.log(`Word clicked: ${word.word} (${word.frequency})`);
+    };
 
     const handleGenerateFavorites = () => {
-        setCloudGenerated(true)
+        setCloudGenerated(true);
         if (onGenerateFavorites) {
-            onGenerateFavorites()
+            onGenerateFavorites();
         }
-    }
+    };
 
     const handleCloseSongList = () => {
-        setShowSongList(false)
-    }
+        setShowSongList(false);
+    };
 
     const renderContent = () => {
         if (selectedType === "table") {
@@ -289,7 +207,7 @@ In other words, until the end of time`,
                                 aria-label={`${item.word}: ${item.frequency} occurrences`}
                                 onKeyDown={(e) => {
                                     if (e.key === "Enter" || e.key === " ") {
-                                        handleWordClick(item)
+                                        handleWordClick(item);
                                     }
                                 }}
                             >
@@ -299,17 +217,32 @@ In other words, until the end of time`,
                         ))}
                     </div>
                 </div>
-            )
+            );
         } else {
             return (
                 <div className="word-cloud-container">
                     <div className="wordcloud-wrapper">
-                        <svg ref={svgRef} width="100%" height="100%"></svg>
+                        <ReactWordcloud
+                            words={wordFrequencies.map(({ word, frequency }) => ({
+                                text: word,
+                                value: frequency,
+                            }))}
+                            callbacks={{
+                                onWordClick: word => handleWordClick({ word: word.text, frequency: word.value }),
+                            }}
+                            options={{
+                                fontSizes: [20, 60],
+                                fontFamily: "Impact",
+                                rotations: 2,
+                                rotationAngles: [0, 90],
+                                padding: 2,
+                            }}
+                        />
                     </div>
                 </div>
-            )
+            );
         }
-    }
+    };
 
     return (
         <div className={`word-cloud-section ${selectedType === "table" ? "word-cloud-section-table" : ""}`}>
@@ -329,7 +262,7 @@ In other words, until the end of time`,
                 <SongList searchTerm={selectedWord.word} songs={sampleSongs} onClose={handleCloseSongList} />
             )}
         </div>
-    )
-}
+    );
+};
 
-export default WordCloud
+export default WordCloud;

@@ -99,7 +99,9 @@ const GeniusService = {
                 console.error("Backend API error response:", errorBody);
                 throw new Error(`Backend API returned an error: ${response.status} ${response.statusText}`);
             }
-            return response.text();
+            const lyrics = await response.text();
+            console.log("Received lyrics for pageURL: " + pageURL + "\n" + lyrics);
+            return lyrics;
         } catch (err) {
             console.error("Error fetching song:", err.message)
         }
