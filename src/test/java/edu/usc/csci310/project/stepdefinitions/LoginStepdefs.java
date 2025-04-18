@@ -1,7 +1,6 @@
 package edu.usc.csci310.project.stepdefinitions;
 
 
-import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -32,6 +31,7 @@ public class LoginStepdefs {
         ((JavascriptExecutor) driver).executeScript("window.localStorage.clear(); window.sessionStorage.clear();");
 
         driver.get("http://localhost:8080/login");
+
     }
 
     @Given("I am on the login page")
@@ -78,7 +78,6 @@ public class LoginStepdefs {
     public void iShouldSeeAnErrorMessage(String errorMsg) {
         WebElement errorElement = wait.until(ExpectedConditions.presenceOfElementLocated(
                 By.cssSelector(".error-message")));
-
         assert errorElement.getText().contains(errorMsg);
     }
 
@@ -142,3 +141,4 @@ public class LoginStepdefs {
         logoutButton.click();
     }
 }
+

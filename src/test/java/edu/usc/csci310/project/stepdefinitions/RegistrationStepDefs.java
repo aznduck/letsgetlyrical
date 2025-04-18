@@ -13,7 +13,9 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
+
 public class RegistrationStepDefs {
+
     private static final String ROOT_URL = "http://localhost:8080";
     private static final WebDriver driver = new ChromeDriver();
     private final WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(2));

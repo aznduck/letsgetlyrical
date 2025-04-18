@@ -2,14 +2,25 @@ package edu.usc.csci310.project.controllers;
 
 import edu.usc.csci310.project.requests.FavoriteRemoveRequest;
 import edu.usc.csci310.project.requests.FavoriteSongRequest;
+import edu.usc.csci310.project.requests.FavoriteGetRequest;
 import edu.usc.csci310.project.services.FavoriteService;
 import edu.usc.csci310.project.services.LoginService;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.springframework.http.HttpStatus;
+
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import edu.usc.csci310.project.responses.UserFavoritesResponse;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Collections;
+
+
 
 class FavoriteControllerTest {
     FavoriteService favoriteService = mock(FavoriteService.class);
@@ -33,6 +44,13 @@ class FavoriteControllerTest {
         request.setUsername("testuser2");
         request.setPassword("testpassword2");
         request.setSongId(42);
+        return request;
+    }
+
+    FavoriteGetRequest generateValidFavoriteGetRequest() {
+        FavoriteGetRequest request = new FavoriteGetRequest();
+        request.setUsername("testuser2");
+        request.setPassword("testpassword2");
         return request;
     }
 
@@ -76,5 +94,44 @@ class FavoriteControllerTest {
         FavoriteRemoveRequest request = generateValidFavoriteRemoveRequest();
         when(favoriteService.removeFavoriteSong(request)).thenThrow(new RuntimeException("Test Exception"));
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), favoriteController.removeFavorite(request).getStatusCode().value());
+    }
+
+    @Test
+    void getFavoriteSongValid() {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        when(favoriteService.getFavoriteSongs(request)).thenReturn(Arrays.asList(1, 2, 3));
+        ResponseEntity<UserFavoritesResponse> response = favoriteController.getFavoriteSong(request);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Favorite songs found.", response.getBody().getMessage());
+    }
+
+    @Test
+    void getFavoriteSongEmpty() {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        when(favoriteService.getFavoriteSongs(request)).thenReturn(Collections.emptyList());
+        ResponseEntity<UserFavoritesResponse> response = favoriteController.getFavoriteSong(request);
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals(-2, response.getBody().getId());
+        assertEquals("No favorite songs found.", response.getBody().getMessage());
+    }
+
+    @Test
+    void getFavoriteSongNull() {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        when(favoriteService.getFavoriteSongs(request)).thenReturn(null);
+        ResponseEntity<UserFavoritesResponse> response = favoriteController.getFavoriteSong(request);
+        assertEquals(404, response.getStatusCode().value());
+        assertEquals(-2, response.getBody().getId());
+        assertEquals("No favorite songs found.", response.getBody().getMessage());
+    }
+
+    @Test
+    void getFavoriteSongException() {
+        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+        when(favoriteService.getFavoriteSongs(request)).thenThrow(new RuntimeException("Test Exception"));
+        ResponseEntity<UserFavoritesResponse> response = favoriteController.getFavoriteSong(request);
+        assertEquals(500, response.getStatusCode().value());
+        assertEquals(-1, response.getBody().getId());
+        assertEquals("Test Exception", response.getBody().getMessage());
     }
 }
