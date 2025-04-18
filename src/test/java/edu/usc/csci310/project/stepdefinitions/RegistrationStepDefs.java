@@ -5,16 +5,14 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.Duration;
+import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.ROOT_URL;
+import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.driver;
 
 public class RegistrationStepDefs {
-    private static final String ROOT_URL = "http://localhost:8080";
-    private static final WebDriver driver = new ChromeDriver();
+
 
     @Given("I am on the registration page")
     public void iAmOnTheRegistrationPage() {

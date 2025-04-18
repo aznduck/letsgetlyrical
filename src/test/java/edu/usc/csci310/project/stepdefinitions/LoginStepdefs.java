@@ -1,17 +1,23 @@
 package edu.usc.csci310.project.stepdefinitions;
 
+import io.cucumber.java.AfterAll;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
+
+import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.ROOT_URL;
+import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.driver;
 
 public class LoginStepdefs {
-    private static final String ROOT_URL = "http://localhost:8080";
-    private static final WebDriver driver = new ChromeDriver();
+
+
+    @AfterAll
+    public static void tearDown() {
+        driver.quit();
+    }
 
     @Given("I am on the login page")
     public void iAmOnTheLoginPage() {
@@ -34,7 +40,7 @@ public class LoginStepdefs {
 
     @Then("I should see an error message {string}")
     public void iShouldSeeAnErrorMessage(String arg0) {
-       assert driver.getPageSource().contains(arg0);
+        assert driver.getPageSource().contains(arg0);
     }
 
     @And("I should remain on the login page")
@@ -78,7 +84,6 @@ public class LoginStepdefs {
     public void iShouldBeRedirectedToTheHomepage() {
         assert driver.getCurrentUrl().equals(ROOT_URL + "/");
     }
-
 
 
 }
