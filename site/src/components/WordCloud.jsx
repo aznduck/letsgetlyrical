@@ -1,174 +1,153 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import WordCloudHeader from "../components/WordCloudHeader";
 import SongList from "./SongList";
+import GeniusService from '../services/GeniusService';
 import "../styles/WordCloud.css";
-import ReactWordcloud from "react-d3-cloud";
+import Cloud from "react-d3-cloud";
 
-const WordCloud = ({
-                       words = ["test", "test2"],
-                       variant = "default",
-                       isCloudGenerated = false,
-                       onAddFavorites,
-                       onGenerateFavorites,
-                       onCompareWithFriends,
-                   }) => {
-    const [selectedType, setSelectedType] = useState("table");
-    const [wordFrequencies, setWordFrequencies] = useState([]);
-    const [selectedWord, setSelectedWord] = useState(null);
-    const [cloudGenerated, setCloudGenerated] = useState(isCloudGenerated);
-    const [showSongList, setShowSongList] = useState(false);
+const STOP_WORDS = new Set([
+    "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this", "i",
+    "that", "with", "as", "was", "were", "by", "are", "at", "from", "but", "be", "my",
+    "has", "have", "had", "he", "she", "they", "them", "his", "her", "their", "you",
+    "me", "im", "its", "its", "oh", "ooh", "yeah", "uh", "dont", "do", "not", "your",
+    "we", "will", "all", "just", "like", "im", "ill", "cant", "can", "get", "go",
+    "got", "know", "no", "up", "out", "if", "so", "what", "when", "why", "how",
+    "lyrics",
+]);
 
-    const sampleSongs = [
-        {
-            id: 1,
-            title: "Baby",
-            artist: "Justin Bieber",
-            year: 2010,
-            frequency: 42,
-            lyrics: `Oh-ooh-whoa-oh-oh-oh-oh
-Oh-ooh-whoa-oh-oh-oh-oh
-Oh-ooh-whoa-oh, oh-oh-oh-oh
+function stem(word) {
+    return word
+        .toLowerCase()
+        .replace(/[^a-z]/g, "")
+        .replace(/(ing|ed|s|es|ly|er|est)$/, "");
+}
 
-You know you love me (yo), I know you care (uh-huh)
-Just shout whenever (yo), and I'll be there (uh-huh)
-You are my love (yo), you are my heart (uh-huh)
-And we will never, ever, ever be apart (yo, uh-huh)
+function getFrequencies(text, maxWords = 100) {
+    if (!text) return [];
+    const noBrackets = text.replace(/\[.*?\]/g, "");
+    const words = noBrackets.toLowerCase().match(/\b[a-z']+\b/g) || [];
 
-Are we an item? (Yo), girl, quit playin' (uh-huh)
-"We're just friends" (yo), what are you sayin'? (Uh-huh)
-Said, "There's another" (yo), and looked right in my eyes (uh-huh)
-My first love broke my heart for the first time, and I was like (yo, uh-huh)
-
-"Baby, baby, baby, oh"
-Like, "Baby, baby, baby, no"
-Like, "Baby, baby, baby, oh"
-I thought you'd always be mine, mine
-
-"Baby, baby, baby, oh"
-Like, "Baby, baby, baby, no"
-Like, "Baby, baby, baby, oh"
-I thought you'd always be mine, mine
-
-Oh, for you, I would've done whatever (uh-huh)
-And I just can't believe (yo) we ain't together (uh-huh)
-And I wanna play it cool (yo), but I'm losin' you (uh-huh)
-I'll buy you anything (yo), I'll buy you any ring (uh-huh)
-
-And I'm in pieces (yo), baby, fix me (uh-huh)
-And just shake me 'til you wake me from this bad dream (yo, uh-huh)
-I'm goin' down (oh), down, down, down (uh-huh)
-And I just can't believe, my first love won't be around, and I'm like
-
-"Baby, baby, baby, oh"
-Like, "Baby, baby, baby, no"
-Like, "Baby, baby, baby, oh"
-I thought you'd always be mine, mine
-
-"Baby, baby, baby, oh"
-Like, "Baby, baby, baby, no"
-Like, "Baby, baby, baby, oh"
-I thought you'd always be mine, mine (Luda!)`,
-        },
-        {
-            id: 2,
-            title: "Baby One More Time",
-            artist: "Britney Spears",
-            year: 1998,
-            frequency: 36,
-            lyrics: `Oh baby, baby
-How was I supposed to know
-That something wasn't right here?
-Oh baby, baby
-I shouldn't have let you go
-And now you're out of sight, yeah
-
-Show me how you want it to be
-Tell me, baby, 'cause I need to know now, oh, because
-
-My loneliness is killing me (and I)
-I must confess I still believe (still believe)
-When I'm not with you, I lose my mind
-Give me a sign
-Hit me, baby, one more time`,
-        },
-        {
-            id: 3,
-            title: "Baby Got Back",
-            artist: "Sir Mix-a-Lot",
-            year: 1992,
-            frequency: 28,
-            lyrics: `I like big butts and I cannot lie
-You other brothers can't deny
-That when a girl walks in with an itty-bitty waist
-And a round thing in your face
-You get sprung, wanna pull up tough
-'Cause you notice that butt was stuffed
-Deep in the jeans she's wearing
-I'm hooked and I can't stop staring`,
-        },
-        {
-            id: 4,
-            title: "Baby I'm Yours",
-            artist: "Arctic Monkeys",
-            year: 2006,
-            frequency: 2,
-            lyrics: `Baby, I'm yours
-And I'll be yours until the stars fall from the sky
-Yours until the rivers all run dry
-In other words, until I die
-
-Baby, I'm yours
-And I'll be yours until the sun no longer shines
-Yours until the poets run out of rhyme
-In other words, until the end of time`,
-        },
-    ];
-
-    const STOP_WORDS = new Set([
-        "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this",
-        "that", "with", "as", "was", "were", "by", "are", "at", "from", "but", "be",
-        "has", "have", "had", "he", "she", "they", "them", "his", "her", "their", "you", "i"
-    ]);
-
-    const songs = sampleSongs.map(song => song.lyrics).join(" ");
-
-    function stem(word) {
-        return word
-            .replace(/[^a-z]/g, "")
-            .replace(/(ing|ed|s)$/, "");
-    }
-
-    function getFrequencies(text, maxWords = 20) {
-        const noBrackets = text.replace(/\[.*?\]/g, "");
-        const words = noBrackets.toLowerCase().match(/\b\w+\b/g) || [];
-
-        const freq = {};
-        for (let word of words) {
-            if (!STOP_WORDS.has(word)) {
-                const stemmed = stem(word);
-                if (stemmed.length > 1) {
-                    freq[stemmed] = (freq[stemmed] || 0) + 1;
-                }
+    const freq = {};
+    for (let word of words) {
+        const cleanedWord = word.replace(/^'|'$/g, '');
+        if (!STOP_WORDS.has(cleanedWord) && cleanedWord.length > 1) {
+            const stemmed = stem(cleanedWord);
+            if (stemmed.length > 1) {
+                freq[stemmed] = (freq[stemmed] || 0) + 1;
             }
         }
-
-        return Object.entries(freq)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, maxWords)
-            .map(([word, frequency]) => ({ word, frequency }));
     }
 
-    useEffect(() => {
-        setCloudGenerated(isCloudGenerated);
-    }, [isCloudGenerated]);
+    return Object.entries(freq)
+        .sort(([, freqA], [, freqB]) => freqB - freqA)
+        .slice(0, maxWords)
+        .map(([word, frequency]) => ({ word, frequency }));
+}
+
+const getGeniusPathFromUrl = (url) => {
+    try {
+        if (!url) return null;
+        const parsedUrl = new URL(url);
+        return parsedUrl.pathname.startsWith('/') ? parsedUrl.pathname.substring(1) : parsedUrl.pathname;
+    } catch (e) {
+        console.error("Error parsing URL:", url, e);
+        return null;
+    }
+};
+
+const WordCloud = ({
+                       songsData = [],
+                       variant = "default",
+                       onAddFavorites,
+                       onCompareWithFriends,
+                   }) => {
+    const [selectedType, setSelectedType] = useState("cloud");
+    const [wordFrequencies, setWordFrequencies] = useState([]);
+    const [selectedWord, setSelectedWord] = useState(null);
+    const [showSongList, setShowSongList] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [allLyricsText, setAllLyricsText] = useState('');
 
     useEffect(() => {
-        const wordFrequencies = getFrequencies(songs);
-        setWordFrequencies(wordFrequencies);
-    }, [songs]);
+        if (!songsData || songsData.length === 0) {
+            setWordFrequencies([]);
+            setAllLyricsText('');
+            setIsLoading(false);
+            setError(null);
+            return;
+        }
+
+        const fetchAllLyrics = async () => {
+            setIsLoading(true);
+            setError(null);
+            setAllLyricsText('');
+            setWordFrequencies([]);
+
+            const lyricPromises = songsData
+                .map(song => {
+                    const geniusPath = getGeniusPathFromUrl(song.url);
+                    if (geniusPath) {
+                        console.log(`Workspaceing lyrics for path: ${geniusPath} (from ${song.url})`);
+                        return GeniusService.getLyrics("https://genius.com/" + geniusPath)
+                            .catch(err => {
+                                console.error(`Failed to fetch lyrics for ${song.title} (${geniusPath}):`, err);
+                                return null;
+                            });
+                    } else {
+                        console.warn(`Could not parse Genius path from URL for song: ${song.title} (${song.url})`);
+                        return Promise.resolve(null);
+                    }
+                })
+                .filter(promise => promise !== null);
+
+            try {
+                const results = await Promise.allSettled(lyricPromises);
+
+                let combinedLyrics = "";
+                let successfulFetches = 0;
+                results.forEach((result, index) => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        combinedLyrics += result.value + "\n\n";
+                        successfulFetches++;
+                    }
+                });
+
+                if (successfulFetches === 0 && songsData.length > 0) {
+                    setError(`Failed to fetch lyrics for all ${songsData.length} songs. Cannot generate word cloud.`);
+                    setAllLyricsText('');
+                } else {
+                    setAllLyricsText(combinedLyrics);
+                    if (successfulFetches < songsData.length) {
+                        console.warn(`Successfully fetched lyrics for ${successfulFetches} out of ${songsData.length} songs.`);
+                    }
+                }
+            } catch (err) {
+                console.error("Unexpected error during lyric fetching process:", err);
+                setError("An unexpected error occurred while fetching lyrics.");
+                setAllLyricsText('');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAllLyrics();
+    }, [songsData]);
+
+    useEffect(() => {
+        if (allLyricsText && !isLoading) {
+            const frequencies = getFrequencies(allLyricsText);
+            console.log("Calculated Frequencies:", frequencies);
+            setWordFrequencies(frequencies);
+        } else {
+            setWordFrequencies([]);
+        }
+    }, [allLyricsText, isLoading]);
 
     const handleTypeChange = (type) => {
         setSelectedType(type);
+        setSelectedWord(null);
+        setShowSongList(false);
     };
 
     const handleWordClick = (word) => {
@@ -177,18 +156,28 @@ In other words, until the end of time`,
         console.log(`Word clicked: ${word.word} (${word.frequency})`);
     };
 
-    const handleGenerateFavorites = () => {
-        setCloudGenerated(true);
-        if (onGenerateFavorites) {
-            onGenerateFavorites();
-        }
-    };
-
     const handleCloseSongList = () => {
         setShowSongList(false);
+        setSelectedWord(null);
     };
 
     const renderContent = () => {
+        if (isLoading) {
+            return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
+        }
+
+        if (error) {
+            return <div className="word-cloud-error">Error: {error}</div>;
+        }
+
+        if (wordFrequencies.length === 0 && !isLoading) {
+            if (songsData && songsData.length > 0) {
+                return <div className="word-cloud-info">No significant words found or lyrics unavailable for the selected songs.</div>;
+            } else {
+                return null;
+            }
+        }
+
         if (selectedType === "table") {
             return (
                 <div className="word-table-container">
@@ -222,21 +211,19 @@ In other words, until the end of time`,
             return (
                 <div className="word-cloud-container">
                     <div className="wordcloud-wrapper">
-                        <ReactWordcloud
-                            words={wordFrequencies.map(({ word, frequency }) => ({
+                        <Cloud
+                            data={wordFrequencies.map(({ word, frequency }) => ({
                                 text: word,
                                 value: frequency,
                             }))}
-                            callbacks={{
-                                onWordClick: word => handleWordClick({ word: word.text, frequency: word.value }),
-                            }}
-                            options={{
-                                fontSizes: [20, 60],
-                                fontFamily: "Impact",
-                                rotations: 2,
-                                rotationAngles: [0, 90],
-                                padding: 2,
-                            }}
+                            fontSizeMapper={word => Math.max(18, Math.min(70, word.value))}
+                            rotate={0} // Fixed rotation to 0
+                            font="Impact"
+                            padding={1}
+                            random={() => 0.5} // Fixed random value to prevent dynamic movement
+                            onWordClick={wordObj => handleWordClick(
+                                wordFrequencies.find(wf => wf.word === wordObj.text) || { word: wordObj.text, frequency: wordObj.value}
+                            )}
                         />
                     </div>
                 </div>
@@ -249,17 +236,19 @@ In other words, until the end of time`,
             <WordCloudHeader
                 variant={variant}
                 selectedType={selectedType}
-                isCloudGenerated={cloudGenerated}
                 onTypeChange={handleTypeChange}
                 onAddFavorites={onAddFavorites}
-                onGenerateFavorites={handleGenerateFavorites}
                 onCompareWithFriends={onCompareWithFriends}
             />
 
             {renderContent()}
 
             {showSongList && selectedWord && (
-                <SongList searchTerm={selectedWord.word} songs={sampleSongs} onClose={handleCloseSongList} />
+                <SongList
+                    searchTerm={selectedWord.word}
+                    songs={songsData}
+                    onClose={handleCloseSongList}
+                />
             )}
         </div>
     );
