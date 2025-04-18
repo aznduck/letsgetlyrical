@@ -18,6 +18,8 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import org.slf4j.Logger;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -34,6 +36,12 @@ class GeniusServiceTest {
 
     private final String testToken = "test-access-token";
     private final String baseUrl = "https://api.genius.com";
+    private final Long songId = 123L;
+    private final Long artistId = 456L;
+    private final String searchQuery = "Test Artist";
+
+    @Captor
+    private ArgumentCaptor<RequestEntity<Void>> requestEntityCaptor;
 
     @BeforeEach
     void setUp() {
@@ -41,18 +49,37 @@ class GeniusServiceTest {
     }
 
     @Test
-    void searchArtist_whenApiReturnsValidArtists_shouldReturnParsedArtists() {
-        String query = "Test Artist";
-        Map<String, Object> primaryArtist1 = Map.of("id", 123L, "name", "Test Artist One");
-        Map<String, Object> result1 = Map.of("primary_artist", primaryArtist1);
-        Map<String, Object> hit1 = Map.of("result", result1);
+    void testSearchArtist_Success() {
+        String query = searchQuery;
 
-        Map<String, Object> primaryArtist2 = Map.of("id", 456L, "name", "Another Test Artist");
-        Map<String, Object> result2 = Map.of("primary_artist", primaryArtist2);
-        Map<String, Object> hit2 = Map.of("result", result2);
+        Map<String, Object> primaryArtist1 = new HashMap<>();
+        primaryArtist1.put("id", 101L);
+        primaryArtist1.put("name", "Artist One");
 
-        Map<String, Object> responseData = Map.of("hits", List.of(hit1, hit2));
-        Map<String, Object> responseBody = Map.of("response", responseData);
+        Map<String, Object> result1 = new HashMap<>();
+        result1.put("primary_artist", primaryArtist1);
+
+        Map<String, Object> hit1 = new HashMap<>();
+        hit1.put("result", result1);
+
+        Map<String, Object> primaryArtist2 = new HashMap<>();
+        primaryArtist2.put("id", 102L);
+        primaryArtist2.put("name", "Artist Two");
+
+        Map<String, Object> result2 = new HashMap<>();
+        result2.put("primary_artist", primaryArtist2);
+
+        Map<String, Object> hit2 = new HashMap<>();
+        hit2.put("result", result2);
+
+        List<Map<String, Object>> hits = Arrays.asList(hit1, hit2);
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("hits", hits);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
         ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
@@ -63,27 +90,33 @@ class GeniusServiceTest {
         assertNotNull(artists);
         assertEquals(2, artists.size());
 
-        assertEquals(123L, artists.get(0).get("artist_id"));
-        assertEquals("Test Artist One", artists.get(0).get("artist_name"));
-        assertEquals(456L, artists.get(1).get("artist_id"));
-        assertEquals("Another Test Artist", artists.get(1).get("artist_name"));
+        assertEquals(101L, artists.get(0).get("artist_id"));
+        assertEquals("Artist One", artists.get(0).get("artist_name"));
+        assertEquals(102L, artists.get(1).get("artist_id"));
+        assertEquals("Artist Two", artists.get(1).get("artist_name"));
 
-        ArgumentCaptor<RequestEntity<Void>> requestEntityCaptor = ArgumentCaptor.forClass(RequestEntity.class);
         verify(restTemplate).exchange(requestEntityCaptor.capture(), eq(Map.class));
-
         RequestEntity<Void> capturedRequest = requestEntityCaptor.getValue();
+        URI expectedUri = UriComponentsBuilder.fromUriString(baseUrl + "/search")
+                .queryParam("q", query)
+                .build()
+                .toUri();
+        assertEquals(expectedUri, capturedRequest.getUrl());
         assertEquals(HttpMethod.GET, capturedRequest.getMethod());
-        assertTrue(capturedRequest.getUrl().toString().startsWith(baseUrl + "/search"));
-        assertTrue(capturedRequest.getUrl().toString().contains("q=Test%20Artist"));
         assertEquals("Bearer " + testToken, capturedRequest.getHeaders().getFirst("Authorization"));
         assertEquals("application/json", capturedRequest.getHeaders().getFirst("Accept"));
     }
 
     @Test
-    void searchArtist_whenApiReturnsEmptyHits_shouldReturnEmptyList() {
-        String query = "Unknown Artist";
-        Map<String, Object> responseData = Map.of("hits", Collections.emptyList());
-        Map<String, Object> responseBody = Map.of("response", responseData);
+    void testSearchArtist_Success_NoHits() {
+        String query = searchQuery;
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("hits", Collections.emptyList());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
         ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
@@ -93,13 +126,41 @@ class GeniusServiceTest {
 
         assertNotNull(artists);
         assertTrue(artists.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
     }
 
     @Test
-    void searchArtist_whenApiReturnsMalformedResponse_shouldReturnEmptyList() {
-        String query = "Test Artist";
-        Map<String, Object> responseBody = Map.of("unexpected_key", "some_value");
+    void testSearchArtist_NonSuccessfulResponse() {
+        String query = searchQuery;
+        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(mockResponseEntity);
+
+        List<Map<String, Object>> artists = geniusService.searchArtist(query);
+
+        assertNotNull(artists);
+        assertTrue(artists.isEmpty());
+    }
+
+    @Test
+    void testSearchArtist_NullResponseBody() {
+        String query = searchQuery;
+        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(mockResponseEntity);
+
+        List<Map<String, Object>> artists = geniusService.searchArtist(query);
+
+        assertNotNull(artists);
+        assertTrue(artists.isEmpty());
+    }
+
+    @Test
+    void testSearchArtist_ParsingError_MissingResponse() {
+        String query = searchQuery;
+        Map<String, Object> responseBody = new HashMap<>();
+
         ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
@@ -109,13 +170,16 @@ class GeniusServiceTest {
 
         assertNotNull(artists);
         assertTrue(artists.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
     }
 
     @Test
-    void searchArtist_whenApiReturnsNon2xxStatus_shouldReturnEmptyList() {
-        String query = "Test Artist";
-        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    void testSearchArtist_ParsingError_MissingHits() {
+        String query = searchQuery;
+        Map<String, Object> responseData = new HashMap<>();
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
+        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
@@ -124,182 +188,241 @@ class GeniusServiceTest {
 
         assertNotNull(artists);
         assertTrue(artists.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
     }
 
     @Test
-    void searchArtist_whenRestTemplateThrowsException_shouldReturnEmptyList() {
-        String query = "Test Artist";
+    void testSearchArtist_RestClientException() {
+        String query = searchQuery;
+        RestClientException exception = new RestClientException("API unavailable");
+
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
-                .thenThrow(new RestClientException("API unreachable"));
+                .thenThrow(exception);
 
         List<Map<String, Object>> artists = geniusService.searchArtist(query);
 
         assertNotNull(artists);
         assertTrue(artists.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
     }
 
     @Test
-    void getTopSongs_whenApiReturnsValidSongs_shouldReturnSongsList() {
-        Long artistId = 789L;
+    void testGetTopSongs_Success() {
         int perPage = 5;
-        Map<String, Object> song1 = Map.of("id", 101L, "title", "Hit Song 1");
-        Map<String, Object> song2 = Map.of("id", 102L, "title", "Hit Song 2");
-        List<Map<String, Object>> songsList = List.of(song1, song2);
 
-        Map<String, Object> responseData = Map.of("songs", songsList);
-        Map<String, Object> responseBody = Map.of("response", responseData);
+        Map<String, Object> song1 = new HashMap<>();
+        song1.put("id", 201L);
+        song1.put("title", "Popular Song 1");
+
+        Map<String, Object> song2 = new HashMap<>();
+        song2.put("id", 202L);
+        song2.put("title", "Popular Song 2");
+
+        List<Map<String, Object>> songs = Arrays.asList(song1, song2);
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("songs", songs);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
         ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
 
-        List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
 
-        assertNotNull(songs);
-        assertEquals(2, songs.size());
-        assertEquals(song1, songs.get(0));
-        assertEquals(song2, songs.get(1));
+        assertNotNull(topSongs);
+        assertEquals(2, topSongs.size());
+        assertEquals(song1, topSongs.get(0));
+        assertEquals(song2, topSongs.get(1));
 
-        ArgumentCaptor<RequestEntity<Void>> requestEntityCaptor = ArgumentCaptor.forClass(RequestEntity.class);
         verify(restTemplate).exchange(requestEntityCaptor.capture(), eq(Map.class));
-
         RequestEntity<Void> capturedRequest = requestEntityCaptor.getValue();
-        URI capturedUri = capturedRequest.getUrl();
+        URI expectedUri = UriComponentsBuilder.fromUriString(baseUrl + "/artists/" + artistId + "/songs")
+                .queryParam("sort", "popularity")
+                .queryParam("per_page", perPage)
+                .build()
+                .toUri();
+        assertEquals(expectedUri, capturedRequest.getUrl());
         assertEquals(HttpMethod.GET, capturedRequest.getMethod());
-        assertTrue(capturedUri.toString().startsWith(baseUrl + "/artists/" + artistId + "/songs"));
-        assertTrue(capturedUri.getQuery().contains("sort=popularity"));
-        assertTrue(capturedUri.getQuery().contains("per_page=" + perPage));
         assertEquals("Bearer " + testToken, capturedRequest.getHeaders().getFirst("Authorization"));
         assertEquals("application/json", capturedRequest.getHeaders().getFirst("Accept"));
     }
 
     @Test
-    void getTopSongs_whenApiReturnsEmptySongs_shouldReturnEmptyList() {
-        Long artistId = 789L;
+    void testGetTopSongs_NonSuccessfulResponse() {
         int perPage = 5;
-        Map<String, Object> responseData = Map.of("songs", Collections.emptyList());
-        Map<String, Object> responseBody = Map.of("response", responseData);
+        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(mockResponseEntity);
+
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
+
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
+    }
+
+    @Test
+    void testGetTopSongs_NullResponseBody() {
+        int perPage = 5;
+        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(mockResponseEntity);
+
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
+
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
+    }
+
+    @Test
+    void testGetTopSongs_ParsingError_MissingResponse() {
+        int perPage = 5;
+        Map<String, Object> responseBody = new HashMap<>();
+
         ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
 
-        List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
 
-        assertNotNull(songs);
-        assertTrue(songs.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
     }
 
     @Test
-    void getTopSongs_whenApiReturnsMalformedResponse_shouldReturnEmptyList() {
-        Long artistId = 789L;
+    void testGetTopSongs_ParsingError_MissingSongsKey() {
         int perPage = 5;
-        Map<String, Object> responseData = Map.of("unexpected_key", "value");
-        Map<String, Object> responseBody = Map.of("response", responseData);
+        Map<String, Object> responseData = new HashMap<>();
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
         ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
 
-        List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
 
-        assertNotNull(songs);
-        assertTrue(songs.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
     }
 
     @Test
-    void getTopSongs_whenApiReturnsNon2xxStatus_shouldReturnEmptyList() {
-        Long artistId = 789L;
+    void testGetTopSongs_ParsingError_SongsNotList() {
         int perPage = 5;
-        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(null, HttpStatus.BAD_GATEWAY);
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("songs", "this is not a list");
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
+        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
 
-        List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
 
-        assertNotNull(songs);
-        assertTrue(songs.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
     }
 
     @Test
-    void getTopSongs_whenRestTemplateThrowsException_shouldReturnEmptyList() {
-        Long artistId = 789L;
+    void testGetTopSongs_RestClientException() {
         int perPage = 5;
+        RestClientException exception = new RestClientException("Network error");
+
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
-                .thenThrow(new RestClientException("Timeout"));
+                .thenThrow(exception);
 
-        List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
 
-        assertNotNull(songs);
-        assertTrue(songs.isEmpty());
-        verify(restTemplate).exchange(any(RequestEntity.class), eq(Map.class));
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
     }
 
     @Test
-    public void testGetLyrics_Success() throws IOException {
-        // Arrange
+    void testGetTopSongs_ClassCastException() {
+        int perPage = 5;
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("songs", Arrays.asList("not a map object"));
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
+        Map<String, Object> responseBodyCCE = new HashMap<>();
+        responseBodyCCE.put("response", "not a map");
+
+        ResponseEntity<Map> mockResponseEntityCCE = new ResponseEntity<>(responseBodyCCE, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(mockResponseEntityCCE);
+
+        List<Map<String, Object>> topSongs = geniusService.getTopSongs(artistId, perPage);
+
+        assertNotNull(topSongs);
+        assertTrue(topSongs.isEmpty());
+    }
+
+    @Test
+    void testGetLyrics_Success_WithLineBreaks() throws IOException {
         String url = "https://genius.com/song-lyrics";
-        String expectedLyrics = "These are the lyrics";
+        String expectedLyrics = "Line one\nLine two\n\nLine four";
+        String NEWLINE_PLACEHOLDER = "%%%BR%%%";
+
+        String textWithPlaceholders = "Line one" + NEWLINE_PLACEHOLDER +
+                "Line two" + NEWLINE_PLACEHOLDER + NEWLINE_PLACEHOLDER + "Line four";
 
         try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
-            // Mock connection
-            Connection connection = mock(Connection.class);
-            Document document = mock(Document.class);
+            Connection connectionMock = mock(Connection.class);
+            Document documentMock = mock(Document.class);
+            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connectionMock);
+            when(connectionMock.userAgent(anyString())).thenReturn(connectionMock);
+            when(connectionMock.timeout(anyInt())).thenReturn(connectionMock);
+            when(connectionMock.get()).thenReturn(documentMock);
 
-            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
-            when(connection.userAgent(anyString())).thenReturn(connection);
-            when(connection.timeout(anyInt())).thenReturn(connection);
-            when(connection.get()).thenReturn(document);
+            Element matchingDivMock = mock(Element.class, "matchingDiv");
+            Element nonMatchingDivMock = mock(Element.class, "nonMatchingDiv");
+            Element headerDivMock = mock(Element.class, "headerDiv");
+            Element brMock1 = mock(Element.class, "br1");
+            Element brMock2 = mock(Element.class, "br2");
+            Element brMock3 = mock(Element.class, "br3");
 
-            // Create one matching div and one non-matching div
-            Element matchingDiv = mock(Element.class);
-            Element nonMatchingDiv = mock(Element.class);
+            Elements allDivs = new Elements(matchingDivMock, nonMatchingDivMock);
+            when(documentMock.select("div")).thenReturn(allDivs);
 
-            Elements allDivs = new Elements();
-            allDivs.add(matchingDiv);
-            allDivs.add(nonMatchingDiv);
-
-            when(document.select("div")).thenReturn(allDivs);
-
-            // Set up class names
             Set<String> matchingClassNames = new HashSet<>();
-            matchingClassNames.add("Lyrics-ab.xyz.1");  // Matches pattern
-            when(matchingDiv.classNames()).thenReturn(matchingClassNames);
+            matchingClassNames.add("Lyrics__Container");
+            when(matchingDivMock.classNames()).thenReturn(matchingClassNames);
 
             Set<String> nonMatchingClassNames = new HashSet<>();
-            nonMatchingClassNames.add("non-matching-class");
-            when(nonMatchingDiv.classNames()).thenReturn(nonMatchingClassNames);
+            nonMatchingClassNames.add("some-other-class");
+            when(nonMatchingDivMock.classNames()).thenReturn(nonMatchingClassNames);
 
-            // Set up lyrics text
-            when(matchingDiv.text()).thenReturn(expectedLyrics);
+            when(matchingDivMock.clone()).thenReturn(matchingDivMock);
 
-            // Set up LyricsHeader elements to be removed
-            Element headerDiv = mock(Element.class);
-            Elements headerDivs = new Elements();
-            headerDivs.add(headerDiv);
-            when(matchingDiv.select("div[class*='LyricsHeader']")).thenReturn(headerDivs);
+            Elements headerDivs = new Elements(headerDivMock);
+            when(matchingDivMock.select("div[class*='LyricsHeader']")).thenReturn(headerDivs);
 
-            // Act
+            Elements brElements = new Elements(brMock1, brMock2, brMock3);
+            when(matchingDivMock.select("br")).thenReturn(brElements);
+
+            when(matchingDivMock.text()).thenReturn(textWithPlaceholders);
+
             String result = geniusService.getLyrics(url);
 
-            // Assert
             assertEquals(expectedLyrics, result);
+
         }
     }
 
     @Test
     public void testGetLyrics_NoDivsFound() throws IOException {
-        // Arrange
         String url = "https://genius.com/song-lyrics";
 
         try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
-            // Mock connection
             Connection connection = mock(Connection.class);
             Document document = mock(Document.class);
 
@@ -308,25 +431,20 @@ class GeniusServiceTest {
             when(connection.timeout(anyInt())).thenReturn(connection);
             when(connection.get()).thenReturn(document);
 
-            // Empty divs
             Elements emptyDivs = new Elements();
             when(document.select("div")).thenReturn(emptyDivs);
 
-            // Act
             String result = geniusService.getLyrics(url);
 
-            // Assert
             assertNull(result);
         }
     }
 
     @Test
     public void testGetLyrics_NoMatchingDivs() throws IOException {
-        // Arrange
         String url = "https://genius.com/song-lyrics";
 
         try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
-            // Mock connection
             Connection connection = mock(Connection.class);
             Document document = mock(Document.class);
 
@@ -335,7 +453,6 @@ class GeniusServiceTest {
             when(connection.timeout(anyInt())).thenReturn(connection);
             when(connection.get()).thenReturn(document);
 
-            // Div with non-matching class
             Element div = mock(Element.class);
             Elements allDivs = new Elements();
             allDivs.add(div);
@@ -346,21 +463,17 @@ class GeniusServiceTest {
             classNames.add("non-matching-class");
             when(div.classNames()).thenReturn(classNames);
 
-            // Act
             String result = geniusService.getLyrics(url);
 
-            // Assert
             assertNull(result);
         }
     }
 
     @Test
     public void testGetLyrics_IOException() throws IOException {
-        // Arrange
         String url = "https://genius.com/song-lyrics";
 
         try (MockedStatic<Jsoup> mockedJsoup = Mockito.mockStatic(Jsoup.class)) {
-            // Mock connection that throws IOException
             Connection connection = mock(Connection.class);
 
             mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(connection);
@@ -368,11 +481,161 @@ class GeniusServiceTest {
             when(connection.timeout(anyInt())).thenReturn(connection);
             when(connection.get()).thenThrow(new IOException("Connection error"));
 
-            // Act
             String result = geniusService.getLyrics(url);
 
-            // Assert
             assertEquals("", result);
         }
+    }
+
+    @Test
+    void getSong_successful() {
+        Map<String, Object> songData = new HashMap<>();
+        songData.put("id", songId);
+        songData.put("title", "Test Song");
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("song", songData);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertEquals(songData, result);
+        assertEquals(songId, result.get("id"));
+        assertEquals("Test Song", result.get("title"));
+    }
+
+    @Test
+    void getSong_nullResponseData() {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", null);
+
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_noSongKey() {
+        Map<String, Object> responseData = new HashMap<>();
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_nonSuccessfulResponse() {
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_nullResponseBody() {
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_restClientException() {
+        RestClientException exception = new RestClientException("Connection refused");
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenThrow(exception);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_classCastException() {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", "This is a string, not a Map");
+
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_nullPointerException() {
+        Map<String, Object> responseMap = mock(Map.class);
+        when(responseMap.get("response")).thenThrow(new NullPointerException("Simulated NPE"));
+
+        ResponseEntity<Map> responseEntity = new ResponseEntity<>(responseMap, HttpStatus.OK);
+
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenReturn(responseEntity);
+
+        Map<String, Object> result = geniusService.getSong(songId);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getSong_verifyRequestStructure() {
+        when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
+                .thenAnswer(invocation -> {
+                    RequestEntity<?> requestEntity = invocation.getArgument(0);
+
+                    URI expectedUri = URI.create(baseUrl + "/songs/" + songId);
+                    assertEquals(expectedUri, requestEntity.getUrl());
+
+                    assertEquals(HttpMethod.GET, requestEntity.getMethod());
+
+                    HttpHeaders headers = requestEntity.getHeaders();
+                    assertEquals("Bearer " + testToken, headers.getFirst("Authorization"));
+                    assertEquals("application/json", headers.getFirst("Accept"));
+
+                    Map<String, Object> songData = new HashMap<>();
+                    songData.put("title", "Test Song");
+
+                    Map<String, Object> responseData = new HashMap<>();
+                    responseData.put("song", songData);
+
+                    Map<String, Object> responseBody = new HashMap<>();
+                    responseBody.put("response", responseData);
+
+                    return new ResponseEntity<>(responseBody, HttpStatus.OK);
+                });
+
+        geniusService.getSong(songId);
     }
 }

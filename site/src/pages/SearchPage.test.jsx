@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../App"
 import GeniusService from "../services/GeniusService"
 
+import { testLogoutButtonClick } from "../utils/testUtils"
+
 // Mock dependencies
 jest.mock("react-router-dom", () => ({
     useNavigate: jest.fn(),
@@ -129,6 +131,7 @@ describe("SearchPage Component", () => {
         // No error message should be displayed
         expect(container.querySelector(".search-error-message")).not.toBeInTheDocument()
     })
+
     //
     // test("handles logout button click", () => {
     //     render(<SearchPage />)
@@ -504,4 +507,5 @@ describe("SearchPage Component", () => {
     //     // Check that API was not called
     //     expect(GeniusService.searchArtist).not.toHaveBeenCalled()
     // })
+
 })

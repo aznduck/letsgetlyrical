@@ -1,4 +1,5 @@
 package edu.usc.csci310.project.services;
+
 import org.jsoup.HttpStatusException;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Safelist;
@@ -60,29 +61,22 @@ public class GeniusService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Map<String, Object> responseBody = response.getBody();
                 Map<String, Object> responseData = (Map<String, Object>) responseBody.get("response");
-                if (responseData != null && responseData.containsKey("hits")) {
-                    List<Map<String, Object>> hits = (List<Map<String, Object>>) responseData.get("hits");
-                    if (hits != null) {
-                        List<Map<String, Object>> artists = new ArrayList<>();
-                        for (Map<String, Object> hit : hits) {
-                            if (hit != null && hit.containsKey("result")) {
-                                Map<String, Object> result = (Map<String, Object>) hit.get("result");
-                                if (result != null && result.containsKey("primary_artist")) {
-                                    Map<String, Object> primaryArtist = (Map<String, Object>) result.get("primary_artist");
-                                    if (primaryArtist != null && primaryArtist.containsKey("id") && primaryArtist.containsKey("name")) {
-                                        Map<String, Object> artistInfo = new HashMap<>();
-                                        artistInfo.put("artist_id", primaryArtist.get("id"));
-                                        artistInfo.put("artist_name", primaryArtist.get("name"));
-                                        artists.add(artistInfo);
-                                    }
-                                }
-                            }
-                        }
-                        logger.info("Found {} potential artists for query '{}'", artists.size(), query);
-                        logger.info(String.valueOf(artists));
-                        return artists;
-                    }
+
+                List<Map<String, Object>> hits = (List<Map<String, Object>>) responseData.get("hits");
+
+                List<Map<String, Object>> artists = new ArrayList<>();
+
+                for (Map<String, Object> hit : hits) {
+                    Map<String, Object> result = (Map<String, Object>) hit.get("result");
+                    Map<String, Object> primaryArtist = (Map<String, Object>) result.get("primary_artist");
+                    Map<String, Object> artistInfo = new HashMap<>();
+                    artistInfo.put("artist_id", primaryArtist.get("id"));
+                    artistInfo.put("artist_name", primaryArtist.get("name"));
+                    artists.add(artistInfo);
                 }
+                logger.info("Found {} potential artists for query '{}'", artists.size(), query);
+                logger.info(String.valueOf(artists));
+                return artists;
             }
             logger.warn("Received non-successful response or empty body from Genius API search: Status {}", response.getStatusCode());
 
@@ -171,45 +165,78 @@ public class GeniusService {
     }
 
 
+    /**
+     * Fetches lyrics from a given URL, attempting to preserve line breaks.
+     *
+     * @param url The URL of the webpage containing the lyrics.
+     * @return A string containing the formatted lyrics, null if the specific
+     * lyrics containers aren't found, or an empty string on error.
+     */
     public String getLyrics(String url) {
+        // Unique placeholder to temporarily replace <br> tags
+        final String NEWLINE_PLACEHOLDER = "%%%BR%%%";
+
         try {
             Document doc = Jsoup.connect(url)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                        .timeout(15000)
-                        .get();
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                    .timeout(15000)
+                    .get();
 
+            // Regex pattern to find the lyrics container divs based on class names
             Pattern pattern = Pattern.compile("^(Lyrics-\\w{2}.\\w+.[1])|Lyrics__Container");
 
-            Elements divs = new Elements();
+            Elements lyricsContainers = new Elements();
 
-            // Find all <div> elements and filter those whose one or more class names match the regex pattern.
             for (Element div : doc.select("div")) {
-                // Check each class of the div against the pattern.
                 for (String cls : div.classNames()) {
                     Matcher matcher = pattern.matcher(cls);
                     if (matcher.find()) {
-                        divs.add(div);
+                        lyricsContainers.add(div);
                         break;
                     }
                 }
             }
 
-            if (divs.isEmpty()) {
+            if (lyricsContainers.isEmpty()) {
+                logger.warn("No lyrics container divs found matching the pattern for URL: " + url);
                 return null;
             }
 
             StringBuilder lyricsBuilder = new StringBuilder();
-            for (Element container : divs) {
-                // Remove nested elements that have a class containing "LyricsHeader"
-                container.select("div[class*='LyricsHeader']").remove();
-                lyricsBuilder.append(container.text()).append("\n");
-                logger.info("Div text: " + container.text() + "\n");
-            }
-            String lyrics = lyricsBuilder.toString();
 
-            return lyrics.trim();
+            for (Element container : lyricsContainers) {
+                Element workingContainer = container.clone();
+
+                workingContainer.select("div[class*='LyricsHeader']").remove();
+
+                for (Element br : workingContainer.select("br")) {
+                    br.after(NEWLINE_PLACEHOLDER);
+                    br.remove();
+                }
+
+                String textWithPlaceholders = workingContainer.text();
+                logger.info("Div text with placeholders: " + textWithPlaceholders);
+
+                String formattedLyrics = textWithPlaceholders.replace(NEWLINE_PLACEHOLDER, "\n").trim();
+
+                lyricsBuilder.append(formattedLyrics);
+
+                if (lyricsContainers.size() > 1 && lyricsContainers.indexOf(container) < lyricsContainers.size() - 1) {
+                    lyricsBuilder.append("\n\n");
+                }
+            }
+
+            String finalLyrics = lyricsBuilder.toString()
+                    .replaceAll("\n{3,}", "\n\n") // Replace 3 or more newlines with 2
+                    .trim();
+
+            return finalLyrics;
+
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("IOException fetching or parsing URL: " + url + " - " + e.getMessage());
+            return "";
+        } catch (Exception e) {
+            logger.warn("Unexpected error processing lyrics for URL: " + url + " - " + e.getMessage());
             return "";
         }
     }
