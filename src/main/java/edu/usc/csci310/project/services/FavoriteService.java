@@ -1,12 +1,15 @@
 package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
+import edu.usc.csci310.project.requests.FavoriteGetRequest;
 import edu.usc.csci310.project.requests.FavoriteRemoveRequest;
 import edu.usc.csci310.project.requests.FavoriteSongRequest;
 import edu.usc.csci310.project.requests.LoginUserRequest;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static edu.usc.csci310.project.Utils.hashUsername;
 
@@ -120,6 +123,30 @@ public class FavoriteService {
                 throw new SQLException("Failed to delete the entry from Favorites.");
             }
             else result = rowsAffected;
+        }
+        catch(SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
+    }
+
+//  Get all favorite songs of a user
+    public List<Integer> getFavoriteSongs(FavoriteGetRequest request) throws RuntimeException {
+        List<Integer> result = new ArrayList<>();
+        int userId = getUserId(request.getUsername());
+        if(userId == -1) {
+            throw new RuntimeException("User does not exist.");
+        }
+
+        String sql = "SELECT songId FROM favorites WHERE userId = ?";
+
+        try(PreparedStatement pst = connection.prepareStatement(sql)) {
+            pst.setInt(1, userId);
+            ResultSet rs = pst.executeQuery();
+            while(rs.next()) {
+                result.add(rs.getInt(1));
+            }
         }
         catch(SQLException e) {
             throw new RuntimeException(e);
