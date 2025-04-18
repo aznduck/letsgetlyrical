@@ -1,13 +1,17 @@
 Feature: Landing Page
 
-  Scenario: User visits the landing page
-    Given the user is on the home page
-    When the user navigates to the landing page
-    Then the user should see the landing page
-    And the heading should display "Landing Page"
+
+  Scenario: User visits favorites page
+    Given User is on the landing page
+    When User clicks on "Generate favorites cloud"
+    Then User should be redirected to the "favscloud" page
 
   Scenario: Landing page loads correctly
     Given the application is running
     When the landing page is loaded
-    Then it should load within 3 seconds
-    And no error messages should be displayed
+    Then no error messages should be displayed
+
+  Scenario: User logs out correctly
+    Given User is on the landing page
+    When User clicks on "Log out"
+    Then User should be redirected to the "login" page

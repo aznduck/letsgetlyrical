@@ -1,0 +1,369 @@
+.song-list-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+}
+
+.song-list-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.song-list-popup-container {
+    background-color: #2d3a54;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 800px;
+    max-height: 80vh;
+    position: relative;
+    z-index: 901;
+    overflow: hidden;
+}
+
+.song-list-close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #d1d5db;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.song-list-close-button:hover {
+    color: white;
+}
+
+.song-list-content {
+    padding: 45px 48px; /* Increased horizontal padding from 32px to 40px */
+}
+
+.song-list-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 32px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-list-table-container {
+    overflow-y: auto;
+    max-height: calc(80vh - 100px);
+}
+
+.song-list-table {
+    width: 100%;
+    text-align: left;
+}
+
+
+.song-list-table th {
+    color: #9ca3af;
+    font-weight: normal;
+    padding: 8px 36px 8px 0;
+    border-bottom: 1px solid #4b5563;
+}
+
+.song-list-table td {
+    padding: 16px 35px 16px 1px; /* Increased right padding from 24px to 36px */
+    color: white;
+    max-width: 200px; /* Increased from 200px to 250px to allow more text */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add left padding to first column */
+.song-list-table th:first-child,
+.song-list-table td:first-child {
+    padding-left: 12px;
+}
+
+.song-list-table th:nth-child(5),
+.song-list-table td:nth-child(5) {
+    text-align: center;
+}
+
+.song-list-table th:nth-child(6),
+.song-list-table td:nth-child(6) {
+    padding-right: 0;
+}
+
+.song-list-table tbody > tr{
+    border-radius: 12px;
+}
+
+.song-list-table tbody > tr:hover {
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.song-list-song-title {
+    position: relative;
+}
+
+.song-list-add-favorite {
+    position: absolute;
+    left: 2px;
+    top: 15px;
+    background-color: #9eacc9;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.song-list-add-favorite:hover {
+    background-color: #8a99b8;
+}
+
+.song-list-lyrics-button {
+    background-color: #9eacc9;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 8px 24px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.song-list-lyrics-button:hover {
+    background-color: #8a99b8;
+}
+
+
+/* ===== LYRICS POPUP STYLES ===== */
+.lyrics-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.lyrics-popup-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.lyrics-popup-container {
+    background-color: #9eacc9;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 800px; /* Increased from 800px to 1000px to match song list */
+    max-height: 90vh;
+    position: relative;
+    z-index: 1001;
+    overflow: hidden;
+    padding: 45px 48px;
+}
+
+.lyrics-popup-close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lyrics-popup-content {
+    max-height: 90vh;
+}
+
+.lyrics-popup-header {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.lyrics-popup-album-art {
+    width: 140px;
+    height: 140px;
+    background-color: #e2e2e2;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.lyrics-popup-song-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden; /* Enable text overflow handling */
+}
+
+.lyrics-popup-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: white;
+    margin: 0 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyrics-popup-artist {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lyrics-popup-lyrics {
+    overflow-y: auto;
+    max-height: calc(90vh - 300px);
+    padding-right: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    font-style: italic;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0);
+
+}
+
+.lyrics-popup-line {
+    margin: 0 0 4px 0;
+}
+
+/* Toast styles - centered on screen */
+.toast-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 2000;
+    animation: toast-fade-in 0.3s ease-in-out;
+}
+
+.toast-success {
+    background-color: white;
+    border: 2px solid #166534;
+}
+
+.toast-error {
+    background-color: #ef4444;
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+}
+
+.toast-success .toast-icon {
+    color: #22c55e;
+}
+
+.toast-error .toast-icon {
+    color: #ffffff;
+}
+
+.toast-message {
+    font-size: 16px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+}
+
+.toast-success .toast-message {
+    color: #166534;
+
+}
+
+.toast-error .toast-message {
+    color: #ffffff;
+}
+
+@keyframes toast-fade-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .lyrics-popup-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .song-list-content,
+    .lyrics-popup-content {
+        padding: 16px;
+    }
+
+    .lyrics-popup-title {
+        font-size: 24px;
+    }
+
+    .lyrics-popup-artist {
+        font-size: 16px;
+    }
+
+    .song-list-table td {
+        padding: 16px 16px 16px 0; /* Adjusted padding for mobile */
+        max-width: 120px; /* Smaller max-width on mobile */
+    }
+
+    .toast-message {
+        max-width: 200px; /* Smaller max-width on mobile */
+    }
+}

@@ -1,38 +1,189 @@
-.search-page-content {
-    padding: 20px;
+.search-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #051025;
     color: white;
 }
 
-.search-results-container {
-    display: flex;
-    gap: 20px;
-    margin-top: 20px;
+.search-page-content {
+    flex: 1;
+    position: relative;
 }
 
-.search-results-list {
+/* Loading and Error States */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+}
+
+.loading-indicator p {
+    margin-top: 1rem;
+    font-size: 1rem;
+}
+
+.content-loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    min-height: 200px;
     flex: 1;
-    background-color: #0a1929;
-    border-radius: 10px;
-    padding: 20px;
+}
+
+.search-error-message {
+    background-color: rgba(239, 228, 228, 0.8);
+    border-left: 4px solid #ff3333;
+    padding: 1rem;
+    margin: 2rem;
+    border-radius: 4px;
+}
+
+.initial-prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+/* Artist Selection Popup */
+.artist-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.artist-popup {
+    background-color: #2c3e50;
+    border-radius: 12px;
+    width: 300px;
+    max-width: 90%;
+    max-height: 400px; /* Smaller height */
+    padding: 2rem 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.artist-popup h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: white;
+}
+
+.artist-list-container {
+    overflow-y: auto; /* Make scrollable */
+    flex: 1;
+    max-height: 300px; /* Control the height of the scrollable area */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0);
+}
+
+.artist-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.artist-list-item {
+    margin-bottom: 0.75rem;
+}
+
+.artist-list-item button {
+    display: flex;
+    align-items: center;
+    width: 90%;
+    background: none;
+    border: none;
+    color: white;
+    padding: 0.5rem 0;
+    text-align: left;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.artist-list-item button:hover {
+    opacity: 0.8;
+}
+
+.artist-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+/* Search Results Container */
+.search-results-container {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
+    max-height: calc(100vh - 72px);
+}
+
+/* Left Column - Song List */
+.search-results-list {
+    flex: 0 0 390px;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    border-radius: 0 12px 0 0;
+    min-height: 500px;
+    max-height: calc(100vh - 72px);
+    width: 390px; /* Fixed width to prevent horizontal scrolling */
+    min-width: 0;
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
 }
 
 .search-results-title {
     font-size: 1.5rem;
-    margin-bottom: 20px;
+    font-weight: 600;
     color: white;
+    margin-bottom: 1.5rem;
+}
+
+.song-list-container {
+    flex: 1;
+    overflow-y: auto; /* Make scrollable */
+    padding-right: 4px; /* Add some padding for the scrollbar */
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0);
 }
 
 .song-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .song-item {
     display: flex;
     align-items: center;
-    padding: 10px;
-    border-radius: 5px;
+    padding: 0.72rem 1rem;
+    cursor: pointer;
     transition: background-color 0.2s;
 }
 
@@ -42,62 +193,107 @@
 
 .song-number {
     width: 30px;
-    text-align: center;
-    font-weight: bold;
-    color: white;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
 }
 
-.song-cover {
-    width: 50px;
-    height: 50px;
-    margin-right: 15px;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.song-cover img {
-    width: 100%;
-    height: 100%;
+.song-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    margin-right: 1rem;
+    background-color: #f8f9fa;
     object-fit: cover;
 }
 
 .song-info {
+    display: flex;
+    flex-direction: column;
+    max-width: 250px;
+    min-width: 0; /* Allow text to be truncated */
     flex: 1;
+    margin-right: 1rem;
 }
 
 .song-title {
-    font-weight: bold;
-    margin-bottom: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .song-artist {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.word-cloud-section {
-    flex: 1.5;
-    background-color: #0a1929;
-    border-radius: 10px;
-    padding: 20px;
+/* Song list loading */
+.song-list-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
 }
 
-.add-favorites-button {
-    background-color: transparent;
-    border: 1px solid white;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
+.loading-spinner {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #f8c8dc;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
 }
 
-.add-favorites-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+/* Word Cloud Wrapper */
+.word-cloud-wrapper {
+    flex: 1;
+    display: flex;
+    border-radius: 12px 0 0 0;
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
+    overflow: hidden;
 }
 
+/* Ensure the word cloud section fills the wrapper */
+.word-cloud-wrapper .word-cloud-section {
+    border-radius: 0;
+    width: 100%;
+}
+
+/* Loading indicator for word cloud */
+.word-cloud-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding: 2rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Styles */
 @media (max-width: 768px) {
     .search-results-container {
         flex-direction: column;
     }
+
+    .search-results-list {
+        flex: 1 1 auto;
+        width: 100%;
+    }
 }
+

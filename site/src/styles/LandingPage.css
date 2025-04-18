@@ -17,10 +17,11 @@
 .main-content {
     flex: 3.5;
     display: flex;
+    padding: 0;
     height: auto;
     flex-direction: column;
     position: relative;
-    border-radius: 0px 12px 0px 0px;
+    border-radius: 0 12px 0 0;
     overflow: hidden;
     background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(3, 26, 76, 0.40) 76%, rgba(5, 16, 37, 0.40) 100%);
 }
@@ -120,7 +121,7 @@
 @media (min-width: 680px) {
     .main-content {
         min-height: 480px;
-        border-radius: 0px 12px 0px 0px;
+        border-radius: 0 12px 0 0;
     }
     .cloud-graphic-container {
         min-height: 400px;
@@ -137,7 +138,7 @@
 @media (min-width: 820px) {
     .main-content {
         min-height: 550px;
-        border-radius: 0px 12px 0px 0px;
+        border-radius: 0 12px 0 0;
     }
     .cloud-graphic-container {
         min-height: 550px;
@@ -154,7 +155,7 @@
 @media (min-width: 1000px) {
     .main-content {
         min-height: 550px;
-        border-radius: 0px 12px 0px 0px;
+        border-radius: 0 12px 0 0;
     }
     .cloud-graphic-container {
         min-height: 550px;
@@ -175,7 +176,7 @@
 @media (min-width: 1200px) {
     .main-content {
         min-height: 600px;
-        border-radius: 0px 12px 0px 0px;
+        border-radius: 0 12px 0 0;
     }
     .cloud-graphic-container {
         min-height: 600px;
@@ -191,7 +192,7 @@
 @media (min-width: 1400px) {
     .main-content {
         min-height: 680px;
-        border-radius: 0px 12px 0px 0px;
+        border-radius: 0 12px 0 0;
     }
     .cloud-graphic-container {
         min-height: 680px;
@@ -215,6 +216,6 @@
     }
     .main-content {
         min-height: 705px;
-        border-radius: 0px 12px 0px 0px;
+        border-radius: 0 12px 0 0;
     }
 }

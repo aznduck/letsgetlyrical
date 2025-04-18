@@ -1,40 +1,41 @@
-import {useEffect, useState} from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { Search, Home, X, LogOut } from "lucide-react"
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Home, X, LogOut } from "lucide-react";
 
 function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
-    const [searchQuery, setSearchQuery] = useState(initialSearchQuery)
-    const [numSongs, setNumSongs] = useState(initialNumSongs)
-    const [isSearchFocused, setIsSearchFocused] = useState(false)
-    const [isNumSongsFocused, setIsNumSongsFocused] = useState(false)
-    const navigate = useNavigate()
+    const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+    const [numSongs, setNumSongs] = useState(initialNumSongs === "" ? "" : String(initialNumSongs));
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [isNumSongsFocused, setIsNumSongsFocused] = useState(false);
+    const navigate = useNavigate();
 
-    // Update state when props change
     useEffect(() => {
         setSearchQuery(initialSearchQuery);
-        setNumSongs(initialNumSongs);
+        setNumSongs(initialNumSongs === "" ? "" : String(initialNumSongs));
     }, [initialSearchQuery, initialNumSongs]);
 
     const handleSearchClear = () => {
-        setSearchQuery("")
-    }
+        setSearchQuery("");
+    };
 
     const handleNumSongsChange = (e) => {
-        // Only allow numeric input
-        const value = e.target.value.replace(/\D/g, "")
-        setNumSongs(value === "" ? "" : Number.parseInt(value, 10))
-    }
+        const value = e.target.value.replace(/\D/g, "");
+        setNumSongs(value);
+    };
 
     const handleHomeClick = () => {
-        navigate("/landing")
-    }
+        navigate("/landing");
+    };
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchQuery)}&num=${numSongs || 10}`);
+            const num = Number.parseInt(numSongs, 10) > 0 ? numSongs : '10';
+            navigate(`/search?q=${encodeURIComponent(searchQuery)}&num=${num}`);
+        } else {
+            console.log("Search query is empty");
         }
-    }
+    };
 
     return (
         <nav className="navbar">
@@ -80,6 +81,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                                     onFocus={() => setIsSearchFocused(true)}
                                     onBlur={() => setIsSearchFocused(false)}
                                     className="search-input"
+                                    aria-label="Search by artist"
                                 />
                                 {searchQuery && (
                                     <button
@@ -87,6 +89,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                                         className="clear-search"
                                         onClick={handleSearchClear}
                                         data-testid="clear-search-button"
+                                        aria-label="Clear search"
                                     >
                                         <X size={16}/>
                                     </button>
@@ -104,10 +107,13 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                                     className="num-songs-input"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
+                                    aria-label="Number of songs"
                                 />
                             </div>
 
-                            <button type="submit" style={{ display: 'none' }}>Search</button>
+                            <button type="submit" className="search-submit-button" aria-label="Submit search">
+                                <Search size={20} />
+                            </button>
                         </form>
                     </div>
                     <div className="navbar-right">
@@ -119,7 +125,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                 </div>
             </div>
         </nav>
-    )
+    );
 }
 
-export default Navbar
+export default Navbar;

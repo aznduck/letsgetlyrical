@@ -14,11 +14,10 @@ function Footer() {
                     <div className="footer-section">
                         <h3 className="footer-heading">ABOUT</h3>
                         <ul className="footer-list">
+                            <li>Let's Get Lyrical!</li>
                             <li>USC Spring 2025</li>
                             <li>For CSCI 310</li>
-                            <li>Professor William Halfond</li>
-                            <li>?</li>
-                            <li>?</li>
+                            <li>Prof. William Halfond</li>
                         </ul>
                     </div>
 
@@ -40,7 +39,6 @@ function Footer() {
                             <li>React JS</li>
                             <li>Java</li>
                             <li>Genius API</li>
-                            <li>??</li>
                         </ul>
                     </div>
                 </div>
