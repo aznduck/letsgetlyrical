@@ -5,6 +5,7 @@ import edu.usc.csci310.project.requests.CreateUserRequest;
 import edu.usc.csci310.project.requests.FavoriteGetRequest;
 import edu.usc.csci310.project.requests.FavoriteRemoveRequest;
 import edu.usc.csci310.project.requests.FavoriteSongRequest;
+import org.hamcrest.core.Every;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.util.List;
@@ -20,6 +21,55 @@ class FavoriteServiceTest {
     private Statement st;
     private PreparedStatement pst;
     private ResultSet rs;
+
+    private class EveryMockFavorites {
+        Statement songSt;
+        Statement favoritesSt;
+        PreparedStatement songInsertPst;
+        PreparedStatement favoritesInsertPst;
+        ResultSet songInsertRs;
+        ResultSet favoritesInsertRs;
+        FavoriteSongRequest request;
+
+        EveryMockFavorites() {
+            songSt = mock(Statement.class);
+            favoritesSt = mock(Statement.class);
+            songInsertPst = mock(PreparedStatement.class);
+            favoritesInsertPst = mock(PreparedStatement.class);
+            songInsertRs = mock(ResultSet.class);
+            favoritesInsertRs = mock(ResultSet.class);
+        }
+    }
+
+    // adds all the stubbing required
+    private EveryMockFavorites prepareEveryMock(boolean songAdded) throws SQLException {
+        EveryMockFavorites result = new EveryMockFavorites();
+
+        String getUserIdSQL = "SELECT id FROM users WHERE username = ?";
+        when(connection.prepareStatement(getUserIdSQL)).thenReturn(pst);
+        when(pst.executeQuery()).thenReturn(rs);
+        when(rs.next()).thenReturn(true);
+        when(rs.getInt("id")).thenReturn(1);
+
+        result.request = generateValidFavoriteSongRequest();
+        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, lyrics) VALUES (?, ?, ?, ?, ?, ?)";
+        when(connection.prepareStatement((insertSongsSQL))).thenReturn(result.songInsertPst);
+        doReturn(songAdded).when(favoriteService).isSongAdded(result.request.getSongId());
+
+        when(result.songInsertPst.executeUpdate()).thenReturn(1);
+
+        when(connection.createStatement()).thenReturn(result.songSt, result.favoritesSt);
+        when(result.songSt.executeQuery("SELECT last_insert_rowid()")).thenReturn(result.songInsertRs);
+        when(result.songInsertRs.next()).thenReturn(true);
+        when(result.songInsertRs.getInt(1)).thenReturn(result.request.getSongId());
+
+        String insertFavoritesSQL = "INSERT INTO favorites (userId, songId) VALUES (?, ?)";
+
+        when(connection.prepareStatement(insertFavoritesSQL)).thenReturn(result.favoritesInsertPst);
+        when(result.favoritesInsertPst.executeUpdate()).thenReturn(1);
+
+        return result;
+    }
 
     @BeforeEach
     void setUpBeforeClass() throws Exception {
@@ -60,41 +110,17 @@ class FavoriteServiceTest {
 
     @Test
     void addFavoriteSongValidNewSong() throws SQLException {
-        Statement songSt = mock(Statement.class);
-        Statement favoritesSt = mock(Statement.class);
-        PreparedStatement songInsertPst = mock(PreparedStatement.class);
-        PreparedStatement favoritesInsertPst = mock(PreparedStatement.class);
-        ResultSet songInsertRs = mock(ResultSet.class);
-        ResultSet favoritesInsertRs = mock(ResultSet.class);
+        EveryMockFavorites result = prepareEveryMock(false);
+        when(result.favoritesSt.executeQuery("SELECT last_insert_rowid()")).thenReturn(result.favoritesInsertRs);
+        when(result.favoritesInsertRs.next()).thenReturn(true);
 
-        FavoriteSongRequest request = generateValidFavoriteSongRequest();
-        doReturn(1).when(favoriteService).getUserId(request.getUsername());
-
-        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, lyrics) VALUES (?, ?, ?, ?, ?, ?)";
-        when(connection.prepareStatement((insertSongsSQL))).thenReturn(songInsertPst);
-        doReturn(false).when(favoriteService).isSongAdded(request.getSongId());
-
-        when(songInsertPst.executeUpdate()).thenReturn(1);
-
-        when(connection.createStatement()).thenReturn(songSt, favoritesSt);
-        when(songSt.executeQuery("SELECT last_insert_rowid()")).thenReturn(songInsertRs);
-        when(songInsertRs.next()).thenReturn(true);
-        when(songInsertRs.getInt(1)).thenReturn(request.getSongId());
-
-        String insertFavoritesSQL = "INSERT INTO favorites (userId, songId) VALUES (?, ?)";
-
-        when(connection.prepareStatement(insertFavoritesSQL)).thenReturn(favoritesInsertPst);
-        when(favoritesInsertPst.executeUpdate()).thenReturn(1);
-        when(favoritesSt.executeQuery("SELECT last_insert_rowid()")).thenReturn(favoritesInsertRs);
-        when(favoritesInsertRs.next()).thenReturn(true);
-
-        assertEquals(request.getSongId(), favoriteService.addFavoriteSong(request));
-        verify(songInsertPst).setInt(1, request.getSongId());
-        verify(songInsertPst).setString(2, request.getSongName());
-        verify(songInsertPst).setString(3, request.getSongArtist());
-        verify(songInsertPst).setString(4, request.getFullTitle());
-        verify(songInsertPst).setString(5, request.getDateReleased());
-        verify(songInsertPst).setString(6, request.getLyrics());
+        assertEquals(result.request.getSongId(), favoriteService.addFavoriteSong(result.request));
+        verify(result.songInsertPst).setInt(1, result.request.getSongId());
+        verify(result.songInsertPst).setString(2, result.request.getSongName());
+        verify(result.songInsertPst).setString(3, result.request.getSongArtist());
+        verify(result.songInsertPst).setString(4, result.request.getFullTitle());
+        verify(result.songInsertPst).setString(5, result.request.getDateReleased());
+        verify(result.songInsertPst).setString(6, result.request.getLyrics());
     }
 
     @Test
@@ -118,22 +144,12 @@ class FavoriteServiceTest {
 
     @Test
     void addFavoriteSongFailedToRetrieveSongs() throws SQLException {
-        ResultSet songInsertRs = mock(ResultSet.class);
+        EveryMockFavorites result = prepareEveryMock(false);
 
-        FavoriteSongRequest request = generateValidFavoriteSongRequest();
-        doReturn(1).when(favoriteService).getUserId(request.getUsername());
+        when(result.songSt.executeQuery("SELECT last_insert_rowid()")).thenReturn(result.songInsertRs);
+        when(result.songInsertRs.next()).thenReturn(false);
 
-        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, lyrics) VALUES (?, ?, ?, ?, ?, ?)";
-        when(connection.prepareStatement((insertSongsSQL))).thenReturn(pst);
-        doReturn(false).when(favoriteService).isSongAdded(request.getSongId());
-
-        when(pst.executeUpdate()).thenReturn(1);
-
-        when(connection.createStatement()).thenReturn(st);
-        when(st.executeQuery("SELECT last_insert_rowid()")).thenReturn(songInsertRs);
-        when(songInsertRs.next()).thenReturn(false);
-
-        RuntimeException rte = assertThrows(RuntimeException.class, () -> favoriteService.addFavoriteSong(request));
+        RuntimeException rte = assertThrows(RuntimeException.class, () -> favoriteService.addFavoriteSong(result.request));
         assert(rte.getMessage().contains("Failed to retrieve the generated ID in songs."));
     }
 
