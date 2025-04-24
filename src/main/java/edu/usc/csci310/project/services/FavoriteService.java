@@ -162,7 +162,7 @@ public class FavoriteService {
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
             pst.setInt(1, songId);
             ResultSet rs = pst.executeQuery();
-            return !rs.next();
+            return rs.next();
         }
         catch (SQLException e) {
             throw new RuntimeException(e);
