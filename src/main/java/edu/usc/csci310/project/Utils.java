@@ -59,14 +59,19 @@ public class Utils {
 
     public static String hashUsername(String username) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(username.getBytes());
-            StringBuilder hexString = new StringBuilder(2 * hash.length);
-            for (byte b : hash) {
-                hexString.append(String.format("%02x", b));
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
+            byte[] bytes = username.getBytes("UTF-8");
+            return Base64.getEncoder().encodeToString(bytes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static String unhashUsername(String hashedUsername) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(hashedUsername);
+            return new String(bytes, "UTF-8");
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
