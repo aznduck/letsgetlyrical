@@ -32,6 +32,7 @@ function SongList({ searchTerm, songs, onClose }) {
             songArtist: "Test Artist",
             fullTitle: "Test Title",
             dateReleased: "December 25, 1999",
+            album: "Test Album",
             lyrics: "Baby baby baby ohh"
         }
 

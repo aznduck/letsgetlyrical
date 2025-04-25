@@ -1,6 +1,7 @@
 package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
+import edu.usc.csci310.project.models.FavoriteSong;
 import edu.usc.csci310.project.requests.FavoriteGetRequest;
 import edu.usc.csci310.project.requests.FavoriteRemoveRequest;
 import edu.usc.csci310.project.requests.FavoriteSongRequest;
@@ -39,17 +40,25 @@ public class FavoriteService {
 //  Adds a song to the Songs table, with an entry in the Favorites table
 //  Songs: id, songId, songName, songArtist, fullTitle, dateReleased,
 //  Favorites: id, userId, songId
-    public int addFavoriteSong(FavoriteSongRequest request) throws RuntimeException {
+    public int addFavoriteSong(FavoriteSongRequest request) {
         int result = -1;
 
         int userId = getUserId(request.getUsername());
+        int songId = request.getSongId();
         if(userId == -1) {
             return result;
         }
+        try {
+            if(isSongFavorited(songId, userId)) {
+                return -2; // represents song is already favorited
+            }
+        }
+        catch(SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, lyrics) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, album, lyrics) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(insertSongsSQL)) {
-            int songId = request.getSongId();
             if(isSongAdded(songId)) {
                 result = 0; // represents song is already in DB
             }
@@ -59,7 +68,8 @@ public class FavoriteService {
                 pst.setString(3, request.getSongArtist());
                 pst.setString(4, request.getFullTitle());
                 pst.setString(5, request.getDateReleased());
-                pst.setString(6, request.getLyrics());
+                pst.setString(6, request.getAlbum());
+                pst.setString(7, request.getLyrics());
 
                 int rowsAffected = pst.executeUpdate();
 
@@ -98,6 +108,7 @@ public class FavoriteService {
             else {
                 throw new SQLException("No rows in Favorites affected during the insert.");
             }
+
         }
         catch(SQLException e) {
             throw new RuntimeException(e);
@@ -132,28 +143,38 @@ public class FavoriteService {
     }
 
 //  Get all favorite songs of a user
-    public List<Integer> getFavoriteSongs(FavoriteGetRequest request) throws RuntimeException {
-        List<Integer> result = new ArrayList<>();
-        int userId = getUserId(request.getUsername());
-        if(userId == -1) {
-            throw new RuntimeException("User does not exist.");
-        }
-
-        String sql = "SELECT songId FROM favorites WHERE userId = ?";
-
-        try(PreparedStatement pst = connection.prepareStatement(sql)) {
-            pst.setInt(1, userId);
-            ResultSet rs = pst.executeQuery();
-            while(rs.next()) {
-                result.add(rs.getInt(1));
-            }
-        }
-        catch(SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return result;
+public List<FavoriteSong> getFavoriteSongs(FavoriteGetRequest request) {
+    List<FavoriteSong> result = new ArrayList<>();
+    int userId = getUserId(request.getUsername());
+    if (userId == -1) {
+        throw new RuntimeException("User does not exist.");
     }
+
+    String sql = """
+        SELECT f.id, s.songName, s.songArtist, s.album
+        FROM favorites f
+        JOIN songs s ON f.songId = s.songId
+        WHERE f.userId = ?
+        ORDER BY f.id ASC
+    """;
+
+    try (PreparedStatement pst = connection.prepareStatement(sql)) {
+        pst.setInt(1, userId);
+        ResultSet rs = pst.executeQuery();
+        while (rs.next()) {
+            int id = rs.getInt("id"); // order of favorite
+            String title = rs.getString("songName");
+            String artist = rs.getString("songArtist");
+            String album = rs.getString("album");
+
+            result.add(new FavoriteSong(id, title, artist, album));
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException(e);
+    }
+
+    return result;
+}
 
 //  Helper function for seeing if a song already exists in the SQL database
     public boolean isSongAdded(int songId) throws SQLException {
@@ -161,6 +182,19 @@ public class FavoriteService {
 
         try(PreparedStatement pst = connection.prepareStatement(sql)) {
             pst.setInt(1, songId);
+            ResultSet rs = pst.executeQuery();
+            return rs.next();
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+//   Helper function for seeing if a song is already favorited by a certain user
+    public boolean isSongFavorited(int songId, int userId) throws SQLException {
+        String sql = "SELECT * FROM favorites WHERE songId = ? AND userId = ?";
+        try(PreparedStatement pst = connection.prepareStatement(sql)) {
+            pst.setInt(1, songId);
+            pst.setInt(2, userId);
             ResultSet rs = pst.executeQuery();
             return rs.next();
         }

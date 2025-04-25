@@ -9,6 +9,7 @@ public class FavoriteSongRequest {
     private String fullTitle;
     private String dateReleased;
     private String lyrics;
+    private String album;
 
     public String getPassword() {
         return password;
@@ -72,5 +73,13 @@ public class FavoriteSongRequest {
 
     public void setLyrics(String lyrics) {
         this.lyrics = lyrics;
+    }
+
+    public String getAlbum() {
+        return album;
+    }
+
+    public void setAlbum(String album) {
+        this.album = album;
     }
 }
