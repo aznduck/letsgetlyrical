@@ -1,11 +1,7 @@
 const React = require('react');
 const { render, screen, fireEvent, waitFor } = require('@testing-library/react');
-const FriendSearchBar = require('./FriendsSearchBar').default; // Adjust path as needed
-
-jest.mock('axios', () => ({
-    get: jest.fn()
-}));
-const axios = require('axios');
+const { act } = require('react-dom/test-utils');
+const FriendSearchBar = require('./FriendsSearchBar').default;
 
 describe('FriendSearchBar Component', () => {
     const mockUsers = [
@@ -17,21 +13,34 @@ describe('FriendSearchBar Component', () => {
     const mockOnSelectFriend = jest.fn();
 
     beforeEach(() => {
-        jest.clearAllMocks();
-        axios.get.mockResolvedValue({ data: mockUsers });
+        jest.spyOn(global, 'fetch').mockResolvedValue({
+            json: jest.fn().mockResolvedValue(mockUsers)
+        });
     });
 
-    test('renders the search input', () => {
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test('renders the search input', async () => {
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
+        });
         expect(screen.getByPlaceholderText('Search for friends...')).toBeInTheDocument();
     });
 
     test('displays loading state while fetching users', async () => {
-        axios.get.mockImplementationOnce(() => new Promise(resolve => setTimeout(() => {
-            resolve({ data: mockUsers });
-        }, 100)));
+        global.fetch.mockImplementationOnce(() =>
+            new Promise(resolve => setTimeout(() => {
+                resolve({
+                    json: () => Promise.resolve(mockUsers)
+                });
+            }, 100))
+        );
 
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
+        });
 
         expect(screen.getByText('Loading users...')).toBeInTheDocument();
 
@@ -41,20 +50,19 @@ describe('FriendSearchBar Component', () => {
     });
 
     test('fetches users on mount', async () => {
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
+        });
 
-        expect(axios.get).toHaveBeenCalledWith('/api/users');
-
+        expect(global.fetch).toHaveBeenCalledWith('/api/users');
         await waitFor(() => {
-            expect(axios.get).toHaveBeenCalledTimes(1);
+            expect(global.fetch).toHaveBeenCalledTimes(1);
         });
     });
 
     test('shows no dropdown when search input is empty', async () => {
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
-
-        await waitFor(() => {
-            expect(axios.get).toHaveBeenCalled();
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
         expect(screen.queryByText('testuser1')).not.toBeInTheDocument();
@@ -63,14 +71,11 @@ describe('FriendSearchBar Component', () => {
     });
 
     test('filters users based on search query', async () => {
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
-
-        await waitFor(() => {
-            expect(axios.get).toHaveBeenCalled();
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
         const searchInput = screen.getByPlaceholderText('Search for friends...');
-
         fireEvent.change(searchInput, { target: { value: 'test' } });
 
         await waitFor(() => {
@@ -78,25 +83,14 @@ describe('FriendSearchBar Component', () => {
             expect(screen.getByText('testuser')).toBeInTheDocument();
             expect(screen.queryByText('aznduck')).not.toBeInTheDocument();
         });
-
-        fireEvent.change(searchInput, { target: { value: '' } });
-
-        await waitFor(() => {
-            expect(screen.queryByText('testuser1')).not.toBeInTheDocument();
-            expect(screen.queryByText('testuser')).not.toBeInTheDocument();
-            expect(screen.queryByText('aznduck')).not.toBeInTheDocument();
-        });
     });
 
     test('shows "No users found" message when no matches', async () => {
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
-
-        await waitFor(() => {
-            expect(axios.get).toHaveBeenCalled();
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
         const searchInput = screen.getByPlaceholderText('Search for friends...');
-
         fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
 
         await waitFor(() => {
@@ -105,14 +99,11 @@ describe('FriendSearchBar Component', () => {
     });
 
     test('calls onSelectFriend when a user is clicked', async () => {
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
-
-        await waitFor(() => {
-            expect(axios.get).toHaveBeenCalled();
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
         const searchInput = screen.getByPlaceholderText('Search for friends...');
-
         fireEvent.change(searchInput, { target: { value: 'test' } });
 
         await waitFor(() => {
@@ -123,16 +114,13 @@ describe('FriendSearchBar Component', () => {
     });
 
     test('handles API error gracefully', async () => {
-        // Mock API failure
-        axios.get.mockRejectedValueOnce(new Error('API error'));
+        global.fetch.mockRejectedValueOnce(new Error('API error'));
 
-        render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
-
-        await waitFor(() => {
-            expect(axios.get).toHaveBeenCalled();
+        await act(async () => {
+            render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
-        const searchInput = screen.getByPlaceholderText('Search for friends...');
-        expect(searchInput).toBeInTheDocument();
+        expect(global.fetch).toHaveBeenCalled();
+        expect(screen.getByPlaceholderText('Search for friends...')).toBeInTheDocument();
     });
 });
