@@ -57,6 +57,10 @@ public class RegisterService {
         return Utils.hashUsername(username);
     }
 
+    public String unhashUsername(String username) {
+        return Utils.unhashUsername(username);
+    }
+
     public boolean isUsernameAvailable(String username) {
         String hashedUsername = hashUsername(username);
         String sql = "SELECT * FROM users WHERE username = ?";

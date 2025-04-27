@@ -55,7 +55,7 @@ const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloudContent = ({
+const WordCloud = ({
                        songsData = [],
                        variant = "default",
                        onAddFavorites,
@@ -161,19 +161,6 @@ const WordCloudContent = ({
         setSelectedWord(null);
     };
 
-    // Seeded random number generator
-    function createSeededRandom(seed) {
-        return () => {
-            // Simple seeded random function based on a mulberry32 variant
-            seed = (seed * 9301 + 49297) % 233280
-            return seed / 233280
-        }
-    }
-
-// Use a simple fixed seed value
-    const FIXED_SEED = 42 // A classic seed value
-    const seededRandom = createSeededRandom(FIXED_SEED)
-
     const renderContent = () => {
         if (isLoading) {
             return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
@@ -224,23 +211,16 @@ const WordCloudContent = ({
             return (
                 <div className="word-cloud-container">
                     <div className="wordcloud-wrapper">
-                        <WordCloud
+                        <Cloud
                             data={wordFrequencies.map(({ word, frequency }) => ({
                                 text: word,
                                 value: frequency,
                             }))}
-                            fontSizeMapper={(word) => word.value / 20}
+                            fontSizeMapper={word => Math.max(18, Math.min(70, word.value))}
                             rotate={0} // Fixed rotation to 0
-                            font="Inter"
+                            font="Impact"
                             padding={1}
-                            random={seededRandom} // Fixed random value to prevent dynamic movement
-                            fill={(d, i) => {
-                                // Cycle through pink, light blue, and white
-                                const colorIndex = i % 3
-                                if (colorIndex === 0) return "#f8c8dc" // Pink
-                                if (colorIndex === 1) return "#6ecad6" // Light blue
-                                return "#ffffff" // White
-                            }}
+                            random={() => 0.5} // Fixed random value to prevent dynamic movement
                             onWordClick={wordObj => handleWordClick(
                                 wordFrequencies.find(wf => wf.word === wordObj.text) || { word: wordObj.text, frequency: wordObj.value}
                             )}
@@ -250,7 +230,6 @@ const WordCloudContent = ({
             );
         }
     };
-
 
     return (
         <div className={`word-cloud-section ${selectedType === "table" ? "word-cloud-section-table" : ""}`}>
@@ -275,4 +254,4 @@ const WordCloudContent = ({
     );
 };
 
-export default WordCloudContent;
+export default WordCloud;

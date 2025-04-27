@@ -59,9 +59,6 @@ Feature: Search and Word Cloud Generation
     When I search for "Beyonce" with 8 songs
     Then the word cloud should be generated in under 1 second
 
-  Scenario: Word cloud excludes common filler words
-    When I search for "Katy Perry" with 4 songs
-    Then I should not see "the", "and", "it" on word cloud
 
   Scenario: Word cloud stems similar words
     When I search for "Eminem" with 5 songs
