@@ -60,12 +60,25 @@ class RegisterServiceTest {
         String hashedUsername1 = registerService.hashUsername("Username");
         String hashedUsername2 = registerService.hashUsername("Username");
         assertEquals(hashedUsername1, hashedUsername2);
+
+        String decodedUsername = registerService.unhashUsername(hashedUsername1);
+        assertEquals("Username", decodedUsername);
     }
 
     @Test
-    void testHashUsernameException() throws NoSuchAlgorithmException {
-        try(MockedStatic<MessageDigest> mockedMD = Mockito.mockStatic(MessageDigest.class)) {
-            mockedMD.when(() -> MessageDigest.getInstance("SHA-256")).thenThrow(new NoSuchAlgorithmException("test"));
+    void testDecodeUsername() {
+        String originalUsername = "testuser";
+        String encodedUsername = registerService.hashUsername(originalUsername);
+        String decodedUsername = registerService.unhashUsername(encodedUsername);
+
+        assertEquals(originalUsername, decodedUsername);
+    }
+
+    @Test
+    void testHashUsernameException() {
+        try (MockedStatic<Utils> mockedUtils = Mockito.mockStatic(Utils.class)) {
+            mockedUtils.when(() -> Utils.hashUsername("Username"))
+                    .thenThrow(new RuntimeException("Encoding error"));
             assertThrows(RuntimeException.class, () -> registerService.hashUsername("Username"));
         }
     }
