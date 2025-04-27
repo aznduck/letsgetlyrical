@@ -105,15 +105,130 @@ describe("SignUpPage Component", () => {
         expect(screen.getByLabelText(/confirm password/i).value).toBe("");
     });
 
-    test("registering with valid username and valid password yields success and redirects", () => {
-        // This test can be similar to "handleSubmit() and redirects to login"
+    test("registering with valid username and valid password yields success and redirects", async () => {
+        jest.useFakeTimers();
+        global.fetch.mockResolvedValueOnce({ ok: true });
+
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "ValidUser" } });
+        fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "Password1" } });
+        fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "Password1" } });
+
+        fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
+
+        await waitFor(() => {
+            expect(screen.getByText(/success/i)).toBeInTheDocument();
+        });
+
+        act(() => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        expect(useNavigate()).toHaveBeenCalledWith("/login");
+
+        jest.useRealTimers();
     });
 
-    test("registering with invalid username and valid password yields failure and displays error", () => {
-        // Implement this test by submitting with a username that fails validation
+
+    test("registering with invalid username and valid password yields failure and displays error", async () => {
+        global.fetch.mockResolvedValueOnce({
+            ok: false,
+            json: async () => ({ message: "Username already exists" }),
+        });
+
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "testuser1" } });
+        fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "Password1" } });
+        fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "Password1" } });
+
+        fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
+
+        expect(await screen.findByText(/username already exists/i)).toBeInTheDocument();
     });
 
-    test("registering with valid username and invalid password yields failure and displays error", () => {
-        // Implement this test by submitting with a password that fails validation
+
+    test("registering with valid username and invalid password yields failure and displays error", async () => {
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "ValidUser" } });
+        fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "password" } });
+        fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "password" } });
+
+        fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
+
+        expect(screen.getByText(/must contain at least 1 uppercase/i)).toBeInTheDocument();
     });
+
+    test("dismisses cancel confirmation modal when Cancel is clicked", () => {
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
+        expect(screen.getByText(/are you sure/i)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: /No, continue/i }));
+
+        expect(screen.queryByText(/are you sure/i)).not.toBeInTheDocument();
+    });
+
+    test("shows error when passwords do not match", () => {
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByLabelText(/username/i), { target: { value: "TestUser" } });
+        fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "Password1" } });
+        fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "DifferentPass1" } });
+
+        fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
+
+        expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
+    });
+
+    test("displays fallback error when fetch fails", async () => {
+        global.fetch.mockRejectedValueOnce(new Error("Network error"));
+
+        render(
+            <MemoryRouter>
+                <SignUpPage />
+            </MemoryRouter>
+        );
+
+        fireEvent.change(screen.getByLabelText(/username/i), {
+            target: { value: "TestUser" },
+        });
+        fireEvent.change(screen.getByLabelText(/^password$/i), {
+            target: { value: "Password1" },
+        });
+        fireEvent.change(screen.getByLabelText(/confirm password/i), {
+            target: { value: "Password1" },
+        });
+
+        fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
+
+        expect(
+            await screen.findByText("Registration failed. Please try again.")
+        ).toBeInTheDocument();
+    });
+
+
 });

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import {render, screen, fireEvent, waitFor, act} from "@testing-library/react"
 import "@testing-library/jest-dom"
 import Favorites from "./Favorites"
 
@@ -258,4 +258,66 @@ describe("Favorites Component", () => {
         expect(favoriteItems[0]).toHaveTextContent("Test Song 2")
         expect(favoriteItems[1]).toHaveTextContent("Test Song 1")
     })
+
+    test("calls setPrivateMode and sets isPrivate to true", () => {
+        render(<Favorites initialFavorites={[]} />);
+
+        // Click the menu
+        fireEvent.click(screen.getByLabelText("Favorites menu"));
+
+        // Click Public first to change state
+        fireEvent.click(screen.getByText("Public"));
+
+        // Now click Private to test setPrivateMode
+        fireEvent.click(screen.getByText("Private"));
+
+        // Confirm Private is selected again
+        const privateButton = screen.getByText("Private").closest("button");
+        expect(privateButton.className).toContain("selected");
+    });
+
+    test("clears timer before setting new one in handleSongHover", () => {
+        jest.useFakeTimers();
+        render(<Favorites initialFavorites={testFavorites} />);
+
+        const firstSong = screen.getAllByTestId("list-song-title")[0];
+
+        // Hover first time: sets a timer
+        fireEvent.mouseEnter(firstSong);
+
+        // Hover again: should clear old timer and set new one
+        fireEvent.mouseEnter(firstSong);
+
+        // Advance timers to trigger closeActionMenu
+        act(() => {
+            jest.advanceTimersByTime(5000);
+        });
+
+        expect(screen.queryByText("Move song")).not.toBeInTheDocument();
+
+        jest.useRealTimers();
+    });
+
+    test("clears timer and sets timerRef to null when mouse enters action menu", async () => {
+        jest.useFakeTimers();
+        render(<Favorites initialFavorites={testFavorites} />);
+
+        // Hover over a song to show the action menu
+        fireEvent.mouseEnter(screen.getAllByTestId("list-song-title")[0]);
+
+        const menu = await screen.findByText("Move song");
+
+        // Mouse enter the menu itself (clears timer + sets to null)
+        fireEvent.mouseEnter(menu);
+
+        act(() => {
+            jest.advanceTimersByTime(6000); // past 5s
+        });
+
+        // Menu should still be open
+        expect(screen.getByText("Move song")).toBeInTheDocument();
+
+        jest.useRealTimers();
+    });
+
 })

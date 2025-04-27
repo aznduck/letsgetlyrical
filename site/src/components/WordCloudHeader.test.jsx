@@ -145,5 +145,33 @@ describe("WordCloudHeader Component", () => {
 
         // Check for favorites table title
         expect(screen.getByText("Your Favorites Word Table")).toBeInTheDocument()
+
+        rerender(<WordCloudHeader variant="default" selectedType="table" />)
+
+        expect(screen.getByText("Your Word Table")).toBeInTheDocument()
     })
+
+
+    describe("WordCloudHeader", () => {
+        test("calls onTypeChange with 'cloud' when Cloud option is clicked", () => {
+            const onTypeChangeMock = jest.fn();
+
+            render(
+                <WordCloudHeader
+                    variant="favorites"
+                    selectedType="table"
+                    onTypeChange={onTypeChangeMock}
+                />
+            );
+
+            const editButton = screen.getByLabelText("Edit word cloud type");
+            fireEvent.click(editButton);
+
+            const cloudButton = screen.getByText(/Cloud/);
+            fireEvent.click(cloudButton);
+
+            expect(onTypeChangeMock).toHaveBeenCalledWith("cloud");
+        });
+    });
+
 })

@@ -255,3 +255,4 @@ const WordCloud = ({
 };
 
 export default WordCloud;
+export { getFrequencies, getGeniusPathFromUrl };
