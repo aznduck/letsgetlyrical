@@ -58,5 +58,3 @@ Feature: Registering a new user
     And I enter in the "confirmpassword" field " "
     And I click the "Create an account" button
     Then I should see an error message displayed
-
-
