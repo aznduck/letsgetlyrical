@@ -1,46 +1,63 @@
-import { useRef, useEffect } from "react";
-import "../styles/SongList.css";
+import { render, screen, fireEvent } from "@testing-library/react"
+import LyricsPopUp from "./LyricsPopUp.jsx"
 
-const LyricsPopUp = ({ song, onClose, visible }) => {
-    if (!visible || !song) return null;
+describe("LyricsPopUp Component", () => {
+    const mockSong = {
+        id: "1",
+        title: "Test Song",
+        artist: "Test Artist",
+        lyrics: "Line 1\nLine 2\nLine 3",
+    }
 
-    const lyricsLines = typeof song.lyrics === 'string'
-        ? song.lyrics.split("\n")
-        : [song.lyrics || ""];
+    const defaultProps = {
+        song: mockSong,
+        visible: true,
+        onClose: jest.fn(),
+    }
 
-    return (
-        <div className="lyrics-popup-overlay">
-            <div className="lyrics-popup-backdrop" onClick={onClose}></div>
-            <div className="lyrics-popup-container">
-                <button className="lyrics-popup-close-button" onClick={onClose}>
-                    ✕
-                </button>
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
 
-                <div className="lyrics-popup-content">
-                    <div className="lyrics-popup-header">
-                        <div className="lyrics-popup-album-art">
-                        </div>
-                        <div className="lyrics-popup-song-info">
-                            <h2 className="lyrics-popup-title">{song.title || "Unknown Title"}</h2>
-                            <p className="lyrics-popup-artist">{song.artist || "Unknown Artist"}</p>
-                        </div>
-                    </div>
+    test("renders correctly when visible with song data", () => {
+        render(<LyricsPopUp {...defaultProps} />)
 
-                    <div className="lyrics-popup-lyrics">
-                        {lyricsLines.length > 0 && lyricsLines[0] !== "" ? (
-                            lyricsLines.map((line, index) => (
-                                <p key={index} className="lyrics-popup-line">
-                                    {line || <br />}
-                                </p>
-                            ))
-                        ) : (
-                            <p className="lyrics-popup-line">Lyrics not available or empty.</p>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
+        expect(screen.getByText("Test Song")).toBeInTheDocument()
+        expect(screen.getByText("Test Artist")).toBeInTheDocument()
+        expect(screen.getByText("Line 1")).toBeInTheDocument()
+        expect(screen.getByText("Line 2")).toBeInTheDocument()
+        expect(screen.getByText("Line 3")).toBeInTheDocument()
+    })
 
-export default LyricsPopUp;
+    test("does not render when not visible", () => {
+        render(<LyricsPopUp {...defaultProps} visible={false} />)
+
+        expect(screen.queryByText("Test Song")).not.toBeInTheDocument()
+    })
+
+    test("does not render when no song is provided", () => {
+        render(<LyricsPopUp {...defaultProps} song={null} />)
+
+        expect(screen.queryByText("Test Song")).not.toBeInTheDocument()
+    })
+
+    test("calls onClose when backdrop is clicked", () => {
+        const { container } = render(<LyricsPopUp {...defaultProps} />)
+
+        // Using querySelector instead of getByClassName
+        const backdrop = container.querySelector(".lyrics-popup-backdrop")
+        fireEvent.click(backdrop)
+
+        expect(defaultProps.onClose).toHaveBeenCalledTimes(1)
+    })
+
+    test("calls onClose when close button is clicked", () => {
+        const { container } = render(<LyricsPopUp {...defaultProps} />)
+
+        // Using querySelector instead of getByClassName
+        const closeButton = container.querySelector(".lyrics-popup-close-button")
+        fireEvent.click(closeButton)
+
+        expect(defaultProps.onClose).toHaveBeenCalledTimes(1)
+    })
+})
