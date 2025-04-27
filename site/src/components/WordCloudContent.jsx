@@ -3,7 +3,7 @@ import WordCloudHeader from "../components/WordCloudHeader";
 import SongList from "./SongList";
 import GeniusService from '../services/GeniusService';
 import "../styles/WordCloud.css";
-import Cloud from "react-d3-cloud";
+import WordCloud from "react-d3-cloud";
 
 const STOP_WORDS = new Set([
     "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this", "i",
@@ -55,7 +55,7 @@ const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloud = ({
+const WordCloudContent = ({
                        songsData = [],
                        variant = "default",
                        onAddFavorites,
@@ -161,6 +161,19 @@ const WordCloud = ({
         setSelectedWord(null);
     };
 
+    // Seeded random number generator
+    function createSeededRandom(seed) {
+        return () => {
+            // Simple seeded random function based on a mulberry32 variant
+            seed = (seed * 9301 + 49297) % 233280
+            return seed / 233280
+        }
+    }
+
+// Use a simple fixed seed value
+    const FIXED_SEED = 42 // A classic seed value
+    const seededRandom = createSeededRandom(FIXED_SEED)
+
     const renderContent = () => {
         if (isLoading) {
             return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
@@ -211,16 +224,23 @@ const WordCloud = ({
             return (
                 <div className="word-cloud-container">
                     <div className="wordcloud-wrapper">
-                        <Cloud
+                        <WordCloud
                             data={wordFrequencies.map(({ word, frequency }) => ({
                                 text: word,
                                 value: frequency,
                             }))}
-                            fontSizeMapper={word => Math.max(18, Math.min(70, word.value))}
+                            fontSizeMapper={(word) => word.value / 20}
                             rotate={0} // Fixed rotation to 0
-                            font="Impact"
+                            font="Inter"
                             padding={1}
-                            random={() => 0.5} // Fixed random value to prevent dynamic movement
+                            random={seededRandom} // Fixed random value to prevent dynamic movement
+                            fill={(d, i) => {
+                                // Cycle through pink, light blue, and white
+                                const colorIndex = i % 3
+                                if (colorIndex === 0) return "#f8c8dc" // Pink
+                                if (colorIndex === 1) return "#6ecad6" // Light blue
+                                return "#ffffff" // White
+                            }}
                             onWordClick={wordObj => handleWordClick(
                                 wordFrequencies.find(wf => wf.word === wordObj.text) || { word: wordObj.text, frequency: wordObj.value}
                             )}
@@ -230,6 +250,7 @@ const WordCloud = ({
             );
         }
     };
+
 
     return (
         <div className={`word-cloud-section ${selectedType === "table" ? "word-cloud-section-table" : ""}`}>
@@ -254,4 +275,4 @@ const WordCloud = ({
     );
 };
 
-export default WordCloud;
+export default WordCloudContent;

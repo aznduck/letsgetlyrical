@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../App";
 import Navbar from "../components/NavBar";
 import Footer from "../components/Footer";
-import WordCloud from "../components/WordCloud";
+import WordCloudContent from "../components/WordCloudContent";
 import GeniusService from '../services/GeniusService';
 import "../styles/SearchPage.css"
 import SongDetailsPopUp from "../components/SongDetailsPopUp";
@@ -227,7 +227,7 @@ const SearchPage = () => {
                             ) : selectedArtist && songs.length === 0 && !isLoading && !error ? (
                                 <div className="initial-prompt"><p>Fetching songs or no songs found for this artist.</p></div>
                             ) : selectedArtist || (potentialArtists.length === 0 && searchQuery) ? (
-                                <WordCloud
+                                <WordCloudContent
                                     songsData={songs}
                                     onAddFavorites={handleAddFavorites}
                                 />

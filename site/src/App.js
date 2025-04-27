@@ -14,7 +14,7 @@ import SignupPage from "./pages/SignUpPage"
 import LandingPage from "./pages/LandingPage"
 import FavsCloudPage from "./pages/FavsCloudPage"
 import SearchPage from "./pages/SearchPage"
-import Wordcloud from "./components/WordCloud";
+import Wordcloud from "./components/WordCloudContent";
 
 // Create auth context
 export const AuthContext = createContext(null)
@@ -90,7 +90,7 @@ function App() {
                     localStorage.removeItem('user')
                     setUser(null)
                 }
-            }, 10000) // Check every 10 seconds
+            }, 100000) // Check every 10 seconds //this is annoying im making it 100 for now
 
             return () => {
                 // Clean up event listeners and interval
@@ -153,6 +153,13 @@ function App() {
                             user
                                 ? <Navigate to="/landing" replace />
                                 : <SignupPage />
+                        }
+                    />
+
+                    <Route
+                        path="/compare"
+                        element={
+                            <LandingPage />
                         }
                     />
 

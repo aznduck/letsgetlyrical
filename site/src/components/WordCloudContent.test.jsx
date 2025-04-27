@@ -3,7 +3,7 @@ import "@testing-library/jest-dom"
 import { expect } from "@jest/globals"
 
 // Instead of importing the actual component, we'll mock it
-jest.mock("../components/WordCloud", () => {
+jest.mock("./WordCloudContent", () => {
     return {
         __esModule: true,
         default: () => <div data-testid="mock-word-cloud">Mock Word Cloud</div>,
@@ -11,7 +11,7 @@ jest.mock("../components/WordCloud", () => {
 })
 
 // Now import the mocked component
-import WordCloud from "../components/WordCloud"
+import WordCloudContent from "./WordCloudContent"
 
 // Mock the WordCloudHeader component as well
 jest.mock("../components/WordCloudHeader", () => ({
@@ -19,7 +19,7 @@ jest.mock("../components/WordCloudHeader", () => ({
     default: () => null,
 }))
 
-describe("WordCloud Component", () => {
+describe("WordCloudContent Component", () => {
     beforeEach(() => {
         jest.clearAllMocks()
     })
@@ -29,7 +29,7 @@ describe("WordCloud Component", () => {
     })
 
     test("renders without crashing", () => {
-        const { getByTestId } = render(<WordCloud />)
+        const { getByTestId } = render(<WordCloudContent />)
         // Check that our mocked component renders
         expect(getByTestId("mock-word-cloud")).toBeInTheDocument()
     })
