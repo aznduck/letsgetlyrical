@@ -29,7 +29,6 @@ class FavoriteControllerTest {
     FavoriteSongRequest generateValidFavoriteSongRequest() {
         FavoriteSongRequest request = new FavoriteSongRequest();
         request.setUsername("testuser2");
-        request.setPassword("testpassword2");
         request.setSongId(42);
         request.setSongName("Test Song 2");
         request.setSongArtist("Test Artist 2");
@@ -42,7 +41,6 @@ class FavoriteControllerTest {
     FavoriteRemoveRequest generateValidFavoriteRemoveRequest() {
         FavoriteRemoveRequest request = new FavoriteRemoveRequest();
         request.setUsername("testuser2");
-        request.setPassword("testpassword2");
         request.setSongId(42);
         return request;
     }
@@ -50,7 +48,6 @@ class FavoriteControllerTest {
     FavoriteGetRequest generateValidFavoriteGetRequest() {
         FavoriteGetRequest request = new FavoriteGetRequest();
         request.setUsername("testuser2");
-        request.setPassword("testpassword2");
         return request;
     }
 
