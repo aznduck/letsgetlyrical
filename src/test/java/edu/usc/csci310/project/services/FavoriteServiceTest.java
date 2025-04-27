@@ -83,7 +83,6 @@ class FavoriteServiceTest {
     FavoriteSongRequest generateValidFavoriteSongRequest() {
         FavoriteSongRequest request = new FavoriteSongRequest();
         request.setUsername("testuser");
-        request.setPassword("testpassword");
         request.setSongId(420);
         request.setSongName("Test Song");
         request.setSongArtist("Test Artist");
@@ -96,7 +95,6 @@ class FavoriteServiceTest {
     FavoriteRemoveRequest generateValidFavoriteRemoveRequest() {
         FavoriteRemoveRequest request = new FavoriteRemoveRequest();
         request.setUsername("testuser");
-        request.setPassword("testpassword");
         request.setSongId(420);
         return request;
     }
@@ -104,7 +102,6 @@ class FavoriteServiceTest {
     FavoriteGetRequest generateValidFavoriteGetRequest() {
         FavoriteGetRequest request = new FavoriteGetRequest();
         request.setUsername("testuser");
-        request.setPassword("testpassword");
         return request;
     }
 
