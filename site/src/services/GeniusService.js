@@ -88,22 +88,22 @@ const GeniusService = {
         }
     },
 
-    getLyrics: async(pageURL) => {
+    getLyrics: async (url) => {
         try {
             const response = await fetch(
-                `${BACKEND_URL}/lyrics/${pageURL}`
+                `${BACKEND_URL}/lyrics?url=${url}`
             );
 
             if (!response.ok) {
-                const errorBody = await response.text();
-                console.error("Backend API error response:", errorBody);
-                throw new Error(`Backend API returned an error: ${response.status} ${response.statusText}`);
+                const errText = await response.text();
+                throw new Error(`Backend API error response: ${response.status}: ${errText}`);
             }
-            return response.text();
+
+            return await response.text();
         } catch (err) {
-            console.error("Error fetching song:", err.message)
+            console.error("Error fetching lyrics:", err.message);
         }
-    }
+    },
 };
 
 export default GeniusService;

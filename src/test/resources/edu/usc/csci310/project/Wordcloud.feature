@@ -15,6 +15,7 @@ Feature: Word Cloud Generation
     When the word cloud is generated
     Then the word cloud should not contain common filler words
 
+
   #Scenario: Word cloud should be generated in less than a second
    # Given I have searched for a song
     #When I generate the word cloud

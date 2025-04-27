@@ -88,7 +88,8 @@ const SearchPage = () => {
                             title: song.title || 'Unknown Title',
                             artist: song.primary_artist?.name || selectedArtist.artist_name || 'Unknown Artist',
                             featuring: song.featured_artists?.map(a => a.name).join(', ') || '',
-                            albumCover: song.song_art_image_thumbnail_url || song.header_image_thumbnail_url || DEFAULT_ALBUM_COVER
+                            albumCover: song.song_art_image_thumbnail_url || song.header_image_thumbnail_url || DEFAULT_ALBUM_COVER,
+                            url: song.url || ''
                         }));
                         setSongs(formattedSongs);
                     } else {
@@ -219,13 +220,18 @@ const SearchPage = () => {
 
                         {/* Right Column - Word Cloud */}
                         <div className="word-cloud-wrapper">
-                            {isLoading ? (
+                            {isLoading && !selectedArtist ? (
                                 <div className="content-loading-container">
                                     <LoadingIndicator />
                                 </div>
-                            ) : (
-                                <WordCloud favorites={songs} onAddFavorites={handleAddFavorites}/>
-                            )}
+                            ) : selectedArtist && songs.length === 0 && !isLoading && !error ? (
+                                <div className="initial-prompt"><p>Fetching songs or no songs found for this artist.</p></div>
+                            ) : selectedArtist || (potentialArtists.length === 0 && searchQuery) ? (
+                                <WordCloud
+                                    songsData={songs}
+                                    onAddFavorites={handleAddFavorites}
+                                />
+                            ) : null /* Or show initial prompt */}
                         </div>
                     </div>
                 )}

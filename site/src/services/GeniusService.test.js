@@ -5,7 +5,7 @@ let consoleErrorSpy;
 
 beforeEach(() => {
     fetch.mockClear();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
 });
 
 afterEach(() => {
@@ -249,8 +249,8 @@ describe('GeniusService', () => {
     });
 
     describe('getLyrics', () => {
-        const pageURL = "test-artist-song-lyrics";
-        const expectedUrl = `${BACKEND_URL}/lyrics/${pageURL}`;
+        const pageURL = "https://genius.com/test-artist-song-lyrics";
+        const expectedUrl = `${BACKEND_URL}/lyrics?url=${pageURL}`;
         const mockLyrics = "[Verse 1]\nLa la la...";
 
         it('should fetch lyrics successfully as text', async () => {
@@ -283,8 +283,7 @@ describe('GeniusService', () => {
             expect(fetch).toHaveBeenCalledTimes(1);
             expect(fetch).toHaveBeenCalledWith(expectedUrl);
             expect(lyrics).toBeUndefined();
-            expect(consoleErrorSpy).toHaveBeenCalledWith("Backend API error response:", errorText);
-            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching song:", "Backend API returned an error: 404 Not Found");
+            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching lyrics:", "Backend API error response: 404: Lyrics page not found");
         });
 
         it('should return undefined on fetch network error', async () => {
@@ -296,7 +295,7 @@ describe('GeniusService', () => {
             expect(fetch).toHaveBeenCalledTimes(1);
             expect(fetch).toHaveBeenCalledWith(expectedUrl);
             expect(lyrics).toBeUndefined();
-            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching song:", networkError.message);
+            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching lyrics:", networkError.message);
         });
     });
 });
