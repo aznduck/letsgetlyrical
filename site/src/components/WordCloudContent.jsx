@@ -1,50 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { stemmer } from 'porter-stemmer';
 import WordCloudHeader from "../components/WordCloudHeader";
 import SongList from "./SongList";
 import GeniusService from '../services/GeniusService';
 import "../styles/WordCloud.css";
-import WordCloud from "react-d3-cloud";
+import Cloud from "react-d3-cloud";
 
-const STOP_WORDS = new Set([
-    "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this", "i",
-    "that", "with", "as", "was", "were", "by", "are", "at", "from", "but", "be", "my",
-    "has", "have", "had", "he", "she", "they", "them", "his", "her", "their", "you",
-    "me", "im", "its", "its", "oh", "ooh", "yeah", "uh", "dont", "do", "not", "your",
-    "we", "will", "all", "just", "like", "im", "ill", "cant", "can", "get", "go",
-    "got", "know", "no", "up", "out", "if", "so", "what", "when", "why", "how",
-    "lyrics",
-]);
+const STOP_WORDS = new Set(["i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you",
+    "your", "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she", "her", "hers",
+    "herself", "it", "its", "itself", "they", "them", "their", "theirs", "themselves", "what", "which",
+    "who", "whom", "this", "that", "these", "those", "am", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an", "the", "and", "but", "if", "or",
+    "because", "as", "until", "while", "of", "at", "by", "for", "with", "about", "against", "between", "into",
+    "through", "during", "before", "after", "above", "below", "to", "from", "up", "down", "in", "out", "on", "off",
+    "over", "under", "again", "further", "then", "once", "here", "there", "when", "where", "why", "how", "all", "any",
+    "both", "each", "few", "more", "most", "other", "some", "such", "no", "nor", "not", "only", "own", "same", "so", "than",
+    "too", "very", "s", "t", "can", "will", "just", "don", "should", "now"]);
 
-function stem(word) {
-    return word
-        .toLowerCase()
-        .replace(/[^a-z]/g, "")
-        .replace(/(ing|ed|s|es|ly|er|est)$/, "");
-}
 
-export function getFrequencies(text, maxWords = 100) {
+function getFrequencies(text, maxWords = 100) {
     if (!text) return [];
     const noBrackets = text.replace(/\[.*?\]/g, "");
     const words = noBrackets.toLowerCase().match(/\b[a-z']+\b/g) || [];
-
     const freq = {};
     for (let word of words) {
         const cleanedWord = word.replace(/^'|'$/g, '');
         if (!STOP_WORDS.has(cleanedWord) && cleanedWord.length > 1) {
-            const stemmed = stem(cleanedWord);
-            if (stemmed.length > 1) {
+            const stemmed = stemmer(cleanedWord);
+            if (stemmed && stemmed.length > 1) {
                 freq[stemmed] = (freq[stemmed] || 0) + 1;
             }
         }
     }
-
     return Object.entries(freq)
         .sort(([, freqA], [, freqB]) => freqB - freqA)
         .slice(0, maxWords)
         .map(([word, frequency]) => ({ word, frequency }));
 }
 
-export const getGeniusPathFromUrl = (url) => {
+const getGeniusPathFromUrl = (url) => {
     try {
         if (!url) return null;
         const parsedUrl = new URL(url);
@@ -55,7 +49,7 @@ export const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloudContent = ({
+const WordCloud = ({
                        songsData = [],
                        variant = "default",
                        onAddFavorites,
@@ -68,11 +62,13 @@ const WordCloudContent = ({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [allLyricsText, setAllLyricsText] = useState('');
+    const [lyricsMap, setLyricsMap] = useState(new Map());
 
     useEffect(() => {
         if (!songsData || songsData.length === 0) {
             setWordFrequencies([]);
             setAllLyricsText('');
+            setLyricsMap(new Map());
             setIsLoading(false);
             setError(null);
             return;
@@ -83,147 +79,132 @@ const WordCloudContent = ({
             setError(null);
             setAllLyricsText('');
             setWordFrequencies([]);
+            const newLyricsMap = new Map();
 
-            const lyricPromises = songsData
-                .map(song => {
-                    const geniusPath = getGeniusPathFromUrl(song.url);
-                    if (geniusPath) {
-                        console.log(`Workspaceing lyrics for path: ${geniusPath} (from ${song.url})`);
-                        return GeniusService.getLyrics("https://genius.com/" + geniusPath)
-                            .catch(err => {
-                                console.error(`Failed to fetch lyrics for ${song.title} (${geniusPath}):`, err);
-                                return null;
-                            });
-                    } else {
-                        console.warn(`Could not parse Genius path from URL for song: ${song.title} (${song.url})`);
-                        return Promise.resolve(null);
+            const lyricPromises = songsData.map(async (song) => {
+                const songId = song.id || song.url;
+                if (!song.id) {
+                    console.warn(`Song missing 'id' property, using URL as key: ${song.title || song.url}`);
+                }
+                const geniusPath = getGeniusPathFromUrl(song.url);
+                if (geniusPath) {
+                    try {
+                        const lyrics = await GeniusService.getLyrics("https://genius.com/" + geniusPath);
+                        return { songId, lyrics, error: null };
+                    } catch (err) {
+                        console.error(`Failed to fetch lyrics for ${song.title || 'Unknown Title'} (ID: ${songId}):`, err);
+                        return { songId, lyrics: null, error: err };
                     }
-                })
-                .filter(promise => promise !== null);
+                } else {
+                    return { songId, lyrics: null, error: new Error('Invalid Genius URL') };
+                }
+            });
 
             try {
-                const results = await Promise.allSettled(lyricPromises);
-
+                const results = await Promise.all(lyricPromises);
                 let combinedLyrics = "";
                 let successfulFetches = 0;
-                results.forEach((result, index) => {
-                    if (result.status === 'fulfilled' && result.value) {
-                        combinedLyrics += result.value + "\n\n";
+                results.forEach(result => {
+                    if (result.lyrics) {
+                        combinedLyrics += result.lyrics + "\n\n";
+                        newLyricsMap.set(result.songId, result.lyrics);
                         successfulFetches++;
+                    } else {
+                        newLyricsMap.set(result.songId, null);
                     }
                 });
-
+                setLyricsMap(newLyricsMap);
+                setAllLyricsText(combinedLyrics);
                 if (successfulFetches === 0 && songsData.length > 0) {
-                    setError(`Failed to fetch lyrics for all ${songsData.length} songs. Cannot generate word cloud.`);
-                    setAllLyricsText('');
-                } else {
-                    setAllLyricsText(combinedLyrics);
-                    if (successfulFetches < songsData.length) {
-                        console.warn(`Successfully fetched lyrics for ${successfulFetches} out of ${songsData.length} songs.`);
-                    }
-                }
+                    setError(`Failed to fetch lyrics for all ${songsData.length} songs.`);
+                } else if (successfulFetches < songsData.length) {
+                    setError(`Warning: Fetched lyrics for ${successfulFetches} out of ${songsData.length} songs.`);
+                } else { setError(null); }
             } catch (err) {
-                console.error("Unexpected error during lyric fetching process:", err);
+                console.error("Unexpected error during lyric fetching:", err);
                 setError("An unexpected error occurred while fetching lyrics.");
-                setAllLyricsText('');
-            } finally {
-                setIsLoading(false);
-            }
+                setLyricsMap(new Map()); setAllLyricsText('');
+            } finally { setIsLoading(false); }
         };
-
         fetchAllLyrics();
     }, [songsData]);
 
     useEffect(() => {
         if (allLyricsText && !isLoading) {
             const frequencies = getFrequencies(allLyricsText);
-            console.log("Calculated Frequencies:", frequencies);
             setWordFrequencies(frequencies);
-        } else {
+        } else if (!isLoading) {
             setWordFrequencies([]);
         }
     }, [allLyricsText, isLoading]);
 
-    const handleTypeChange = (type) => {
+    const handleTypeChange = useCallback((type) => {
         setSelectedType(type);
         setSelectedWord(null);
         setShowSongList(false);
-    };
+    }, []);
 
-    const handleWordClick = (word) => {
-        setSelectedWord(word);
+    const handleWordClick = useCallback((wordData) => {
+        if (!wordData) return;
+        setSelectedWord(wordData);
         setShowSongList(true);
-        console.log(`Word clicked: ${word.word} (${word.frequency})`);
-    };
+    }, []);
 
-    const handleCloseSongList = () => {
+    const handleCloseSongList = useCallback(() => {
         setShowSongList(false);
         setSelectedWord(null);
-    };
+    }, []);
+
+    const fontSizeMapper = useCallback(word => Math.max(18, Math.min(70, Math.log2(word.value + 1) * 8)), []);
+
 
     const renderContent = () => {
-        if (isLoading) {
-            return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
-        }
-
-        if (error) {
-            return <div className="word-cloud-error">Error: {error}</div>;
-        }
-
+        if (isLoading) return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
+        if (error && wordFrequencies.length === 0) return <div className="word-cloud-error">Error: {error}</div>;
         if (wordFrequencies.length === 0 && !isLoading) {
             if (songsData && songsData.length > 0) {
-                return <div className="word-cloud-info">No significant words found or lyrics unavailable for the selected songs.</div>;
-            } else {
-                return null;
-            }
+                if (!error) return <div className="word-cloud-info">No significant words found or lyrics unavailable.</div>;
+                else return null;
+            } else return <div className="word-cloud-info">Select songs to generate a word cloud.</div>;
         }
 
         if (selectedType === "table") {
             return (
                 <div className="word-table-container">
-                    <div className="word-table-header">
-                        <div className="frequency-column">Frequency</div>
-                        <div className="word-column">Word</div>
-                    </div>
+                    {error && <div className="word-cloud-warning">Warning: {error}</div>}
+                    <div className="word-table-header">/* ... */</div>
                     <div className="word-table-body">
                         {wordFrequencies.map((item, index) => (
-                            <div
-                                key={`${item.word}-${index}`}
-                                className={`word-table-row ${selectedWord?.word === item.word ? "selected" : ""}`}
-                                onClick={() => handleWordClick(item)}
-                                role="button"
-                                tabIndex={0}
-                                aria-label={`${item.word}: ${item.frequency} occurrences`}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        handleWordClick(item);
-                                    }
-                                }}
-                            >
-                                <div className="frequency-column">{item.frequency}</div>
-                                <div className="word-column">{item.word}</div>
+                            <div key={`${item.word}-${index}`} /* ... */ onClick={() => handleWordClick(item)}>
                             </div>
                         ))}
                     </div>
                 </div>
             );
-        } else {
+        }
+        else {
+            const cloudData = wordFrequencies.map(({ word, frequency }) => ({
+                text: word, value: frequency,
+            }));
+            const rotate = 0;
+            const random = () => 0.5;
+
             return (
                 <div className="word-cloud-container">
-                    <div className="wordcloud-wrapper">
-                        <WordCloud
-                            data={wordFrequencies.map(({ word, frequency }) => ({
-                                text: word,
-                                value: frequency,
-                            }))}
-                            fontSizeMapper={word => Math.max(18, Math.min(70, word.value))}
-                            rotate={0} // Fixed rotation to 0
+                    {error && <div className="word-cloud-warning">Warning: {error}</div>}
+                    <div className="wordcloud-wrapper" style={{ height: '400px', width: '100%' }}>
+                        <Cloud
+                            data={cloudData}
+                            fontSizeMapper={fontSizeMapper}
+                            rotate={rotate}
                             font="Impact"
-                            padding={1}
-                            random={() => 0.5} // Fixed random value to prevent dynamic movement
-                            onWordClick={wordObj => handleWordClick(
-                                wordFrequencies.find(wf => wf.word === wordObj.text) || { word: wordObj.text, frequency: wordObj.value}
-                            )}
+                            padding={2}
+                            random={random}
+                            onWordClick={(wordObj) => {
+                                const originalWordData = wordFrequencies.find(wf => wf.word === wordObj.text);
+                                handleWordClick(originalWordData || { word: wordObj.text, frequency: wordObj.value });
+                            }}
+                            width={500} height={400}
                         />
                     </div>
                 </div>
@@ -247,6 +228,7 @@ const WordCloudContent = ({
                 <SongList
                     searchTerm={selectedWord.word}
                     songs={songsData}
+                    lyricsMap={lyricsMap}
                     onClose={handleCloseSongList}
                 />
             )}
@@ -254,4 +236,4 @@ const WordCloudContent = ({
     );
 };
 
-export default WordCloudContent;
+export default WordCloud;
