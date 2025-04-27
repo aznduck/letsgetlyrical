@@ -4,7 +4,7 @@ import { useAuth } from "../App";
 import Navbar from "../components/NavBar";
 import Footer from "../components/Footer";
 import Favorites from "../components/Favorites";
-import WordCloud from "../components/WordCloud";
+import WordCloudContent from "../components/WordCloudContent";
 import "../styles/LandingPage.css"
 
 
@@ -45,7 +45,7 @@ const FavsCloudPage = () => {
 
             <div className="landing-content">
                 <div className="main-content">
-                        <WordCloud variant="favorites"
+                        <WordCloudContent variant="favorites"
                                    isCloudGenerated={isCloudGenerated}
                                    onGenerateFavorites={handleGenerateFavorites}
                                    onCompareWithFriends={handleCompareWithFriends} />

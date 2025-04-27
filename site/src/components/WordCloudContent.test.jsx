@@ -41,9 +41,9 @@ jest.mock("../services/GeniusService", () => ({
     }
 }));
 
-jest.mock("./WordCloud", () => {
+jest.mock("./WordCloudContent", () => {
     // First, mock the module exports
-    const originalModule = jest.requireActual("./WordCloud");
+    const originalModule = jest.requireActual("./WordCloudContent");
 
     const MockedWordCloud = (props) => {
         if (!props.songsData || props.songsData.length === 0) {
@@ -72,7 +72,7 @@ jest.mock("./WordCloud", () => {
     };
 });
 
-import WordCloud, { getFrequencies, getGeniusPathFromUrl } from "./WordCloud";
+import WordCloudContent, { getFrequencies, getGeniusPathFromUrl } from "./WordCloudContent";
 import GeniusService from "../services/GeniusService";
 
 // Set a shorter timeout for waitFor
@@ -91,7 +91,7 @@ describe("WordCloud Component", () => {
     });
 
     test("renders nothing if songsData is empty", () => {
-        const { container } = render(<WordCloud songsData={[]} />);
+        const { container } = render(<WordCloudContent songsData={[]} />);
         expect(container).toBeEmptyDOMElement();
     });
 
@@ -103,7 +103,7 @@ describe("WordCloud Component", () => {
 
         GeniusService.getLyrics.mockReturnValue(promise);
 
-        render(<WordCloud songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
+        render(<WordCloudContent songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
 
         expect(screen.getByText(/Fetching lyrics/i)).toBeInTheDocument();
 
@@ -116,7 +116,7 @@ describe("WordCloud Component", () => {
         GeniusService.getLyrics.mockRejectedValue(new Error("Failed"));
 
         await act(async () => {
-            render(<WordCloud songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
+            render(<WordCloudContent songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
         });
 
         expect(await screen.findByText(/Failed to fetch lyrics/i, {}, waitForOptions)).toBeInTheDocument();
@@ -126,7 +126,7 @@ describe("WordCloud Component", () => {
         GeniusService.getLyrics.mockResolvedValue("test test word");
 
         await act(async () => {
-            render(<WordCloud songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
+            render(<WordCloudContent songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
         });
 
         await waitFor(() => {
@@ -145,7 +145,7 @@ describe("WordCloud Component", () => {
         GeniusService.getLyrics.mockResolvedValue("test test word");
 
         await act(async () => {
-            render(<WordCloud songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
+            render(<WordCloudContent songsData={[{ title: "Test", url: "https://genius.com/test" }]} />);
         });
 
         await waitFor(() => {

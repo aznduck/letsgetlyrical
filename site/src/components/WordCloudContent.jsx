@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import WordCloudHeader from "../components/WordCloudHeader";
 import SongList from "./SongList";
 import GeniusService from '../services/GeniusService';
 import "../styles/WordCloud.css";
-import Cloud from "react-d3-cloud";
+import WordCloud from "react-d3-cloud";
 
 const STOP_WORDS = new Set([
     "the", "and", "it", "is", "in", "of", "on", "to", "for", "a", "an", "this", "i",
@@ -22,7 +22,7 @@ function stem(word) {
         .replace(/(ing|ed|s|es|ly|er|est)$/, "");
 }
 
-function getFrequencies(text, maxWords = 100) {
+export function getFrequencies(text, maxWords = 100) {
     if (!text) return [];
     const noBrackets = text.replace(/\[.*?\]/g, "");
     const words = noBrackets.toLowerCase().match(/\b[a-z']+\b/g) || [];
@@ -44,7 +44,7 @@ function getFrequencies(text, maxWords = 100) {
         .map(([word, frequency]) => ({ word, frequency }));
 }
 
-const getGeniusPathFromUrl = (url) => {
+export const getGeniusPathFromUrl = (url) => {
     try {
         if (!url) return null;
         const parsedUrl = new URL(url);
@@ -55,7 +55,7 @@ const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloud = ({
+const WordCloudContent = ({
                        songsData = [],
                        variant = "default",
                        onAddFavorites,
@@ -211,7 +211,7 @@ const WordCloud = ({
             return (
                 <div className="word-cloud-container">
                     <div className="wordcloud-wrapper">
-                        <Cloud
+                        <WordCloud
                             data={wordFrequencies.map(({ word, frequency }) => ({
                                 text: word,
                                 value: frequency,
@@ -254,5 +254,4 @@ const WordCloud = ({
     );
 };
 
-export default WordCloud;
-export { getFrequencies, getGeniusPathFromUrl };
+export default WordCloudContent;
