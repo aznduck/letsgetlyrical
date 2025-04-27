@@ -37,3 +37,5 @@ src/main/resources/application.properties
 dataUsers.db
 
 .DS_Store
+
+node_modules
