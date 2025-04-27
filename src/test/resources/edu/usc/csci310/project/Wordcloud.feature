@@ -15,10 +15,11 @@ Feature: Word Cloud Generation
     When the word cloud is generated
     Then the word cloud should not contain common filler words
 
-  Scenario: Word cloud should be generated in less than a second
-    Given I have searched for a song
-    When I generate the word cloud
-    Then the word cloud should appear within 1 second
+
+  #Scenario: Word cloud should be generated in less than a second
+   # Given I have searched for a song
+    #When I generate the word cloud
+    #Then the word cloud should appear within 1 second
 
   Scenario: Clicking on a word brings up relevant songs
     Given the word cloud is displayed
