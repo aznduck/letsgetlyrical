@@ -90,7 +90,7 @@ function App() {
                     localStorage.removeItem('user')
                     setUser(null)
                 }
-            }, 100000) // Check every 10 seconds //this is annoying im making it 100 for now
+            }, 10000) // Check every 10 seconds
 
             return () => {
                 // Clean up event listeners and interval
