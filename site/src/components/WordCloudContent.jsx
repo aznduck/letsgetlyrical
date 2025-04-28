@@ -49,7 +49,7 @@ const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloud = ({
+const WordCloudContent = ({
                        songsData = [],
                        variant = "default",
                        onAddFavorites,
@@ -192,14 +192,21 @@ const WordCloud = ({
             return (
                 <div className="word-cloud-container">
                     {error && <div className="word-cloud-warning">Warning: {error}</div>}
-                    <div className="wordcloud-wrapper" style={{ height: '400px', width: '100%' }}>
+                    <div className="wordcloud-wrapper" style={{ height: '100%', width: '100%' }}>
                         <Cloud
                             data={cloudData}
                             fontSizeMapper={fontSizeMapper}
                             rotate={rotate}
-                            font="Impact"
+                            font="Inter"
                             padding={2}
                             random={random}
+                            fill={(d, i) => {
+                                // Cycle through pink, light blue, and white
+                                const colorIndex = i % 3
+                                if (colorIndex === 0) return "#f8c8dc" // Pink
+                                if (colorIndex === 1) return "#6ecad6" // Light blue
+                                return "#ffffff" // White
+                            }}
                             onWordClick={(wordObj) => {
                                 const originalWordData = wordFrequencies.find(wf => wf.word === wordObj.text);
                                 handleWordClick(originalWordData || { word: wordObj.text, frequency: wordObj.value });
@@ -228,7 +235,6 @@ const WordCloud = ({
                 <SongList
                     searchTerm={selectedWord.word}
                     songs={songsData}
-                    lyricsMap={lyricsMap}
                     onClose={handleCloseSongList}
                 />
             )}
@@ -236,4 +242,4 @@ const WordCloud = ({
     );
 };
 
-export default WordCloud;
+export default WordCloudContent;
