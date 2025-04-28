@@ -161,6 +161,19 @@ const WordCloudContent = ({
         setSelectedWord(null);
     };
 
+    // Seeded random number generator
+    function createSeededRandom(seed) {
+        return () => {
+            // Simple seeded random function based on a mulberry32 variant
+            seed = (seed * 9301 + 49297) % 233280
+            return seed / 233280
+        }
+    }
+
+// Use a simple fixed seed value
+    const FIXED_SEED = 42 // A classic seed value
+    const seededRandom = createSeededRandom(FIXED_SEED)
+
     const renderContent = () => {
         if (isLoading) {
             return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
@@ -216,11 +229,20 @@ const WordCloudContent = ({
                                 text: word,
                                 value: frequency,
                             }))}
-                            fontSizeMapper={word => Math.max(18, Math.min(70, word.value))}
+                            fontSizeMapper={word => Math.max(40, Math.min(200, word.value * 2))}
                             rotate={0} // Fixed rotation to 0
-                            font="Impact"
+                            font="Inter"
                             padding={1}
-                            random={() => 0.5} // Fixed random value to prevent dynamic movement
+                            width={1200}
+                            height={900}
+                            random={seededRandom} // Fixed random value to prevent dynamic movement
+                            fill={(d, i) => {
+                                // Cycle through pink, light blue, and white
+                                const colorIndex = i % 3
+                                if (colorIndex === 0) return "#f8c8dc" // Pink
+                                if (colorIndex === 1) return "#6ecad6" // Light blue
+                                return "#ffffff" // White
+                            }}
                             onWordClick={wordObj => handleWordClick(
                                 wordFrequencies.find(wf => wf.word === wordObj.text) || { word: wordObj.text, frequency: wordObj.value}
                             )}

@@ -139,8 +139,7 @@
     display: flex;
     gap: 1rem;
     flex: 1;
-    overflow: hidden;
-    max-height: calc(100vh - 72px);
+    overflow: visible;
 }
 
 /* Left Column - Song List */
@@ -255,14 +254,11 @@
     display: flex;
     border-radius: 12px 0 0 0;
     background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
-    overflow: hidden;
-}
-
-/* Ensure the word cloud section fills the wrapper */
-.word-cloud-wrapper .word-cloud-section {
-    border-radius: 0;
+    overflow: visible;
+    min-height: 700px;
     width: 100%;
 }
+
 
 /* Loading indicator for word cloud */
 .word-cloud-loading {
