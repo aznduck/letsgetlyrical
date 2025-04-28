@@ -1,6 +1,4 @@
 Feature: Landing Page
-
-
   Scenario: User visits favorites page
     Given User is on the landing page
     When User clicks on "Generate favorites cloud"

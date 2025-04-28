@@ -1,31 +1,13 @@
 package edu.usc.csci310.project.requests;
 
-public class FavoriteSongRequest {
+public class FavoriteSongRequest extends FavoriteGetRequest {
     private int songId;
-    private String username;
-    private String password;
     private String songName;
     private String songArtist;
     private String fullTitle;
     private String dateReleased;
     private String lyrics;
     private String album;
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String name) {
-        this.username = name;
-    }
 
     public String getSongName() {
         return songName;

@@ -175,11 +175,7 @@ class GeniusServiceTest {
     @Test
     void testSearchArtist_ParsingError_MissingHits() {
         String query = searchQuery;
-        Map<String, Object> responseData = new HashMap<>();
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("response", responseData);
-
-        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+        ResponseEntity<Map> mockResponseEntity = createMockResponseWithMissingData();
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
@@ -296,11 +292,7 @@ class GeniusServiceTest {
     @Test
     void testGetTopSongs_ParsingError_MissingSongsKey() {
         int perPage = 5;
-        Map<String, Object> responseData = new HashMap<>();
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("response", responseData);
-
-        ResponseEntity<Map> mockResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+        ResponseEntity<Map> mockResponseEntity = createMockResponseWithMissingData();
 
         when(restTemplate.exchange(any(RequestEntity.class), eq(Map.class)))
                 .thenReturn(mockResponseEntity);
@@ -309,6 +301,18 @@ class GeniusServiceTest {
 
         assertNotNull(topSongs);
         assertTrue(topSongs.isEmpty());
+    }
+
+    /**
+     * Creates a mock response entity with missing data for testing.
+     * Refactored to avoid code duplication. Issue #105
+     * @return A ResponseEntity with a Map containing a "response" key with an empty Map as its value.
+     */
+    private ResponseEntity<Map> createMockResponseWithMissingData() {
+        Map<String, Object> responseData = new HashMap<>();
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("response", responseData);
+        return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
     @Test

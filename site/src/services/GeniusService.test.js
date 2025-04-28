@@ -5,7 +5,7 @@ let consoleErrorSpy;
 
 beforeEach(() => {
     fetch.mockClear();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
 });
 
 afterEach(() => {

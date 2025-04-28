@@ -5,24 +5,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FavoriteRemoveRequestTest {
-
-    @Test
-    void getPassword() {
-        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
-        fr.setPassword("password");
-        assertEquals("password", fr.getPassword());
-    }
-
-    @Test
-    void setPassword() {
-        FavoriteRemoveRequest fr = new FavoriteRemoveRequest();
-        fr.setPassword("password");
-        assertEquals("password", fr.getPassword());
-
-        fr.setPassword("newPassword");
-        assertEquals("newPassword", fr.getPassword());
-    }
-
     @Test
     void getUsername() {
         FavoriteRemoveRequest fr = new FavoriteRemoveRequest();

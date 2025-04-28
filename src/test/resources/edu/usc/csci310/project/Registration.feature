@@ -10,7 +10,6 @@ Feature: Registering a new user
     Then I should see a confirmation message
     And I should be redirected to the login page
 
-
   Scenario: Error for registration with invalid password
     Given I am on the registration page
     When I enter in the "username" field "johndoe2"
@@ -51,3 +50,11 @@ Feature: Registering a new user
     And I click the "Cancel" button
     And I click the "Yes, cancel" button
     Then I should see a blank registration form
+
+  Scenario: Error for registration with blank confirm password
+    Given I am on the registration page
+    When I enter in the "username" field "RANDOM_USERNAME"
+    And I enter in the "password" field "LyricalMusic1!"
+    And I enter in the "confirmpassword" field " "
+    And I click the "Create an account" button
+    Then I should see an error message displayed

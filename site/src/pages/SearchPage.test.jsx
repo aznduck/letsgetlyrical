@@ -43,7 +43,7 @@ jest.mock("../components/Footer", () => {
     }
 })
 
-jest.mock("../components/WordCloud", () => {
+jest.mock("../components/WordCloudContent", () => {
     return function MockWordCloud({ favorites, onAddFavorites }) {
         return (
             <div data-testid="word-cloud">

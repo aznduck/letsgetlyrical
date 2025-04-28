@@ -28,7 +28,7 @@ jest.mock("../components/Favorites", () => {
         return <div data-testid="favorites"></div>
     }
 })
-jest.mock("../components/WordCloud", () => {
+jest.mock("../components/WordCloudContent", () => {
     return function MockWordCloud({ variant, isCloudGenerated, onGenerateFavorites, onCompareWithFriends }) {
         return (
             <div data-testid="word-cloud">
