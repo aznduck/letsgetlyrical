@@ -30,7 +30,19 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
         }));
     }, []);
 
-    const handleAddToFavorites = (song) => {
+    const handleAddToFavorites = async (song) => {
+        const MOCK_DATA = {
+            songId: 1000,
+            username: "johndoe",
+            password: "",
+            songName: "Test Song",
+            songArtist: "Test Artist",
+            fullTitle: "Test Title",
+            dateReleased: "December 25, 1999",
+            album: "Test Album",
+            lyrics: "Baby baby baby ohh"
+        }
+
         if (favorites.some((fav) => fav.id === song.id)) {
             setToast({
                 visible: true,
@@ -38,7 +50,19 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
                 type: "error",
             });
         } else {
-            setFavorites((prev) => [...prev, song]);
+            const response = await fetch("api/favorite/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(MOCK_DATA)
+            });
+
+            const data = await response.json();
+            console.log(`POGGERS`);
+            console.log(data);
+
+            setFavorites((prev) => [...prev, song])
             setToast({
                 visible: true,
                 message: "Song successfully added to favorites list.",
