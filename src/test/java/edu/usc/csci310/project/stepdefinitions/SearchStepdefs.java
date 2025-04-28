@@ -179,10 +179,6 @@ public class SearchStepdefs {
 
     }
 
-    @Then("the word cloud should include words from both the search result and favorites list")
-    public void theWordCloudContains() {
-        skipTestForNow();
-    }
 
     @When("I search for {string} with {int} songs")
     public void iSearchForWithSongs(String arg0, int arg1) {
