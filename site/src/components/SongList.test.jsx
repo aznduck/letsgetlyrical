@@ -7,8 +7,22 @@ import Toast from "./Toast"
 // Mock the child components
 jest.mock("./LyricsPopUp", () => jest.fn(() => <div data-testid="lyrics-popup" />))
 jest.mock("./Toast", () => {
-    return jest.fn(() => <div>Mocked Toast</div>)
-})
+    return jest.fn((props) => {
+        return <div data-testid="toast">{props.message}</div>;
+    });
+});
+
+
+beforeEach(() => {
+    jest.spyOn(global, 'fetch').mockResolvedValue({
+        json: jest.fn().mockResolvedValue({ success: true })
+    });
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
 
 describe("SongList Component", () => {
     const mockSongs = [
