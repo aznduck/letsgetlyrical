@@ -3,7 +3,6 @@ Feature: Search and Word Cloud Generation
   As a user, I want to be able to search for songs by an artist and generate a word cloud from the lyrics of those songs,
   so that I can visualize the most common words used in their lyrics.
 
-
   Background:
     Given I am logged in
     And I am on the Search Page
@@ -28,7 +27,7 @@ Feature: Search and Word Cloud Generation
     And I wait 3 seconds
     Then I should see a list of matching artist names to choose from
     And I should be able to select "Justin Bieber" or "Justin Timberlake"
-    Then I will select "Justin Bieber"
+    And I will select "Justin Bieber"
 
   Scenario: Empty artist name input
     When I leave the artist name field empty
@@ -52,7 +51,7 @@ Feature: Search and Word Cloud Generation
   Scenario: Adding favorites list to word cloud
     Given I have already generated a word cloud
     When I add my favorites list to the word cloud
-    Then the word cloud should include words from both the search result and favorites list
+    Then the word cloud should include words from both lists
 
     # Consider feasibility report
   Scenario: Word cloud generation time limit
@@ -65,7 +64,7 @@ Feature: Search and Word Cloud Generation
 
   Scenario: Word cloud stems similar words
     When I search for "Eminem" with 5 songs
-    Then the word cloud should show stemmed words (e.g., "running" and "run" counted together)
+    Then the word cloud should show stemmed words counted together
 
   Scenario: Word cloud word limit
     When I search for "Taylor Swift" with 20 songs
@@ -77,7 +76,3 @@ Feature: Search and Word Cloud Generation
     And I click the "Add to Favorites" button on search page
     Then the song should be added to my favorites list
     And I should see a confirmation message here
-
-
-
-

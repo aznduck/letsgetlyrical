@@ -204,10 +204,6 @@ public class SearchStepdefs {
         assertFalse(pageSource.contains(arg2), "Expected not to find " + arg2 + " in the list, but found it.");
     }
 
-    @Then("the word cloud should show stemmed words \\(e.g., {string} and {string} counted together)")
-    public void theWordCloudShouldShowStemmedWordsEGAndCountedTogether(String arg0, String arg1) {
-        skipTestForNow();
-    }
 
     @Then("the word cloud should contain no more than {int} unique words")
     public void theWordCloudShouldContainNoMoreThanUniqueWords(int arg0) {
@@ -237,5 +233,15 @@ public class SearchStepdefs {
     @Then("I should not see {string}, {string}, {string} on word cloud")
     public void iShouldNotSeeOnWordCloud(String arg0, String arg1, String arg2) {
         System.out.println("I should not see " + arg0 + ", " + arg1 + ", " + arg2 + " on word cloud");
+    }
+
+    @Then("the word cloud should show stemmed words counted together")
+    public void theWordCloudShouldShowStemmedWordsCountedTogether() {
+        skipTestForNow();
+    }
+
+    @Then("the word cloud should include words from both lists")
+    public void theWordCloudShouldIncludeWordsFromBothLists() {
+        skipTestForNow();
     }
 }
