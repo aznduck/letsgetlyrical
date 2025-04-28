@@ -192,7 +192,7 @@ const WordCloudContent = ({
             return (
                 <div className="word-cloud-container">
                     {error && <div className="word-cloud-warning">Warning: {error}</div>}
-                    <div className="wordcloud-wrapper" style={{ height: '400px', width: '100%' }}>
+                    <div className="wordcloud-wrapper" style={{ height: '100%', width: '100%' }}>
                         <Cloud
                             data={cloudData}
                             fontSizeMapper={fontSizeMapper}

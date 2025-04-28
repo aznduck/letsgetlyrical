@@ -101,9 +101,6 @@
 
 .rv-d3-cloud {
     width: 100% !important;
-    height: 100% !important;
-    min-width: 600px !important;
-    min-height: 400px !important;
 }
 
 .rv-d3-cloud text {
@@ -114,6 +111,10 @@
 .rv-d3-cloud text:hover {
     cursor: pointer;
     filter: brightness(1.2);
+}
+
+.wordcloud-wrapper svg {
+    width: 100% !important;
 }
 
 /* Word Table Styles */
