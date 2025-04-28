@@ -116,14 +116,6 @@
     filter: brightness(1.2);
 }
 
-.wordcloud-wrapper svg {
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 600px !important;
-    min-height: 400px !important;
-}
-
-
 /* Word Table Styles */
 .word-table-container {
     flex: 1;
