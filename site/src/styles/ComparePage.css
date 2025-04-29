@@ -1,0 +1,496 @@
+.compare-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #051025;
+    color: white;
+}
+
+.compare-container {
+    display: flex;
+    flex: 1;
+    padding: 0;
+    margin-top: 0;
+}
+
+/* Friends search section */
+.friends-search-section {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 350px;
+    padding: 28px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(3, 26, 76, 0.40) 76%, rgba(5, 16, 37, 0.40) 100%);
+}
+
+.friends-search-form {
+    margin-bottom: 20px;
+}
+
+.friends-search-input-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+    padding: 8px 12px;
+    position: relative;
+}
+
+.friends-search-icon {
+    color: rgba(255, 255, 255, 0.5);
+    margin-right: 8px;
+}
+
+.friends-search-input {
+    background: transparent;
+    border: none;
+    color: white;
+    flex: 1;
+    outline: none;
+    font-size: 14px;
+    padding: 2px;
+}
+
+.friends-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.friends-clear-search {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0;
+}
+
+.selected-friends-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 100px;
+    max-height: calc(100vh - 250px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0);
+}
+
+.selected-friend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 12px;
+}
+
+.remove-friend-button {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    padding: 0;
+}
+
+.no-friends-message {
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    padding: 21px;
+}
+
+.friends-search-actions {
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.friends-search-actions .compare-button {
+    width: 100%;
+}
+
+/* Comparison section */
+.comparison-section {
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 12px 0 0;
+    border: none;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(3, 26, 76, 0.40) 76%, rgba(5, 16, 37, 0.40) 100%);
+}
+
+.comparison-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 6px 0 8px 0;
+}
+
+.comparison-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.comparison-icon {
+    position: relative;
+    width: 40px;
+    height: 24px;
+}
+
+.circle {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid white;
+    border-radius: 50%;
+}
+
+.overlap {
+    left: 16px;
+}
+
+.comparison-empty-state {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+}
+
+.comparison-table-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    height: 40px;
+}
+
+.frequency-header-button {
+    width: 100px;
+    text-align: center;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px;
+}
+
+.frequency-header-button:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+}
+
+.common-songs-header {
+    flex: 1;
+    padding-bottom: 0;
+}
+
+.comparison-results {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.comparison-results-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+    overflow-y: auto;
+    max-height: calc(100vh - 300px);
+    padding-right: 1px;
+    padding-left: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0);
+}
+
+.comparison-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 2px 10px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-radius: 8px;
+}
+
+.comparison-result-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.compare-song-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.song-thumbnail {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.song-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.song-title {
+    font-weight: 500;
+}
+
+.song-artist {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.song-frequency {
+    width: 100px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.users-with-song-popup {
+    position: fixed;
+    background-color: #323F57;
+    border-radius: 12px;
+    padding: 45px 48px;
+    min-width: 250px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.users-popup-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-number {
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.username {
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.favorites-container {
+    width: 350px;
+}
+
+.comparison-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px 0;
+    margin-top: auto;
+}
+
+.compare-button,
+.find-soulmate-button,
+.find-enemy-button {
+    padding: 8px 12px;
+    border-radius: 25px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.compare-button {
+    background-color: white;
+    color: #0a1429;
+    border: none;
+    height: 44px;
+}
+
+.compare-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.find-soulmate-button,
+.find-enemy-button {
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
+    flex: 1;
+}
+
+.compare-button:hover:not(:disabled),
+.find-soulmate-button:hover,
+.find-enemy-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.lyrical-match-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.lyrical-match-popup {
+    background-color: white;
+    color: #2c3e50;
+    border-radius: 16px;
+    padding: 40px;
+    width: 400px;
+    max-width: 90vw;
+    text-align: left;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.lyrical-match-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.loading-spinner {
+    animation: spin 1.5s linear infinite;
+    color: #0a1429;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.lyrical-match-result {
+    position: relative;
+}
+
+.close-match-button {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    background: none;
+    border: none;
+    color: #2c3e50;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.match-username {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0 0 30px;
+}
+
+.match-icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+}
+
+.match-icon {
+    color: #2c3e50;
+}
+
+.soulmate-icon {
+    color: #ff6b9d;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.enemy-icon {
+    color: #e74c3c;
+    animation: shake 0.5s ease-in-out infinite;
+    animation-iteration-count: 3;
+}
+
+@keyframes shake {
+    0% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-5deg);
+    }
+    50% {
+        transform: rotate(0deg);
+    }
+    75% {
+        transform: rotate(5deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}

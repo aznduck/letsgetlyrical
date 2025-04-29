@@ -86,7 +86,7 @@ describe("WordCloud Component", () => {
 
     test("renders info message if songsData is empty", () => {
         render(<WordCloud songsData={[]} />);
-        expect(screen.getByText(/Select songs to generate a word cloud/i)).toBeInTheDocument();
+        expect(screen.getByText(/No songs to generate a word cloud/i)).toBeInTheDocument();
     });
 
     test("displays loading message when fetching lyrics", async () => {

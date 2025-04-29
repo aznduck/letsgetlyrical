@@ -184,6 +184,7 @@
     padding: 0.72rem 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    border-radius: 8px;
 }
 
 .song-item:hover {
