@@ -35,12 +35,20 @@ const FriendSearchBar = ({ onSelectFriend }) => {
     }, [query, users]);
 
     return (
-        <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto' }}>
+        <div style={{position: 'relative', maxWidth: '400px', margin: '0 auto'}}>
             <input
                 type="text"
-                placeholder="Search for friends..."
+                placeholder="Enter a username"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                style={{
+                    color: '#000', // black text
+                    backgroundColor: '#fff', // optional: white background
+                    padding: '8px',
+                    width: '100%',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                }}
             />
             {isLoading ? (
                 <p>Loading users...</p>

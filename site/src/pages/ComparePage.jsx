@@ -9,6 +9,7 @@ import SongDetailsPopup from "../components/SongDetailsPopUp"
 import Favorites from "../components/Favorites"
 import "../styles/ComparePage.css"
 import "../styles/SongDetailsPopUp.css"
+import FriendSearchBar from "../components/FriendsSearchBar";
 
 
 function ComparePage() {
@@ -258,29 +259,13 @@ function ComparePage() {
 
             <div className="compare-container">
                 <div className="friends-search-section">
-                    <form onSubmit={handleSearchSubmit} className="friends-search-form">
-                        <div className="friends-search-input-container">
-                            <Search size={18} className="friends-search-icon"/>
-                            <input
-                                type="text"
-                                placeholder="Enter a username"
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="friends-search-input"
-                            />
-                            {searchQuery && (
-                                <button
-                                    type="button"
-                                    className="friends-clear-search"
-                                    onClick={handleSearchClear}
-                                    aria-label="Clear search"
-                                >
-                                    <X size={16}/>
-                                </button>
-                            )}
-                        </div>
-                    </form>
-
+                    <FriendSearchBar
+                        onSelectFriend={(friend) => {
+                            if (!selectedFriends.includes(friend.username)) {
+                                setSelectedFriends([...selectedFriends, friend.username]);
+                            }
+                        }}
+                    />
                     <div className="selected-friends-list">
                         {selectedFriends.map((friend, index) => (
                             <div key={index} className="selected-friend">
