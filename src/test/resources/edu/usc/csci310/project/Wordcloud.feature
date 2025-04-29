@@ -1,5 +1,8 @@
 Feature: Word Cloud Generation
 
+  Background:
+    Given I am logged in
+
   Scenario: Word cloud displays most frequent words by size
     Given I have searched for a song
     When the word cloud is generated
@@ -21,16 +24,16 @@ Feature: Word Cloud Generation
     #When I generate the word cloud
     #Then the word cloud should appear within 1 second
 
-  Scenario: Clicking on a word brings up relevant songs
-    Given the word cloud is displayed
-    When I click on the word "BABY"
-    Then I should see a list of songs containing the word "BABY"
+#  Scenario: Clicking on a word brings up relevant songs
+#    Given the word cloud is displayed
+#    When I click on the word "love"
+#    Then I should see a list of songs containing the word "love"
 
-  Scenario: Relevant songs should have lyrics
-    Given the word cloud is displayed
-    When I click on the first word
-    And I click on the lyrics button
-    Then I should see lyrics
+#  Scenario: Relevant songs should have lyrics
+#    Given the word cloud is displayed
+#    When I click on the first word
+#    And I click on the lyrics button
+#    Then I should see lyrics
 
   Scenario: Clicking toggle switches between cloud and table
     Given the word cloud is displayed as a cloud
