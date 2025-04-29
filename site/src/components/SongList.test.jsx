@@ -1,256 +1,298 @@
-import React from "react"
-import {render, screen, fireEvent, waitFor, act} from "@testing-library/react"
-import SongList from "./SongList"
-import LyricsPopup from "./LyricsPopUp"
-import Toast from "./Toast"
+import React from 'react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import SongList from './SongList';
 
-// Mock the child components
-jest.mock("./LyricsPopUp", () => jest.fn(() => <div data-testid="lyrics-popup" />))
-jest.mock("./Toast", () => {
-    return jest.fn((props) => {
-        return <div data-testid="toast">{props.message}</div>;
-    });
+// Mock child components
+jest.mock('./LyricsPopUp', () => {
+    return function MockLyricsPopup({ visible, onClose, song }) {
+        return visible ? (
+            <div data-testid="lyrics-popup">
+                {song && <div data-testid="lyrics-content">{song.lyrics}</div>}
+                <button onClick={onClose} data-testid="close-lyrics">Close</button>
+            </div>
+        ) : null;
+    };
 });
 
-
-beforeEach(() => {
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-        json: jest.fn().mockResolvedValue({ success: true })
-    });
+jest.mock('./Toast', () => {
+    return function MockToast({ visible, onClose, message, type }) {
+        return visible ? (
+            <div data-testid="toast" className={type}>
+                {message}
+                <button onClick={onClose} data-testid="close-toast">Close</button>
+            </div>
+        ) : null;
+    };
 });
 
-afterEach(() => {
-    jest.restoreAllMocks();
-});
+// Mock CSS import
+jest.mock('../styles/SongList.css', () => ({}));
 
+// Mock data
+const mockSongs = [
+    { id: '1', title: 'Song 1', artist: 'Artist 1', year: 2020 },
+    { id: '2', title: 'Song 2', artist: 'Artist 2', year: 2021 },
+    { url: '3', title: 'Song 3', artist: 'Artist 3', year: 2022 }, // Using url instead of id
+];
 
-describe("SongList Component", () => {
-    const mockSongs = [
-        { id: 1, title: "Song 1", artist: "Artist 1", year: 2020 },
-        { id: 2, title: "Song 2", artist: "Artist 2", year: 2021 },
-        { url: "song3-url", title: "Song 3", artist: "Artist 3", year: 2022 } // Added song with url instead of id
-    ]
+// Mock lyrics map
+const mockLyricsMap = new Map([
+    ['1', 'These are the lyrics for Song 1 with test word in it'],
+    ['2', 'These are the lyrics for Song 2 without match'],
+    ['3', 'These are the lyrics for Song 3 with test word also'],
+]);
 
-    // Mock lyrics map
-    const mockLyricsMap = new Map([
-        [1, "Lyrics for Song 1"],
-        [2, "Lyrics for Song 2"],
-        ["song3-url", "Lyrics for Song 3"]
-    ]);
+// Default props
+const defaultProps = {
+    searchTerm: 'test word',
+    songs: mockSongs,
+    onClose: jest.fn(),
+    lyricsMap: mockLyricsMap,
+};
 
-    const defaultProps = {
-        searchTerm: "test",
-        songs: mockSongs,
-        onClose: jest.fn(),
-        lyricsMap: mockLyricsMap
-    }
-
+describe('SongList Component', () => {
     beforeEach(() => {
-        jest.clearAllMocks()
-        jest.spyOn(console, "log").mockImplementation(() => {})
-    })
+        jest.clearAllMocks();
+    });
 
-    test("renders with correct title and search term", () => {
-        render(<SongList {...defaultProps} />)
-        expect(screen.getByText("Songs potentially containing 'test'")).toBeInTheDocument()
-    })
+    test('renders component with matching songs', () => {
+        render(<SongList {...defaultProps} />);
 
-    test("renders only songs with available lyrics", () => {
-        // Create a map with empty string and null lyrics
-        const partialLyricsMap = new Map([
-            [1, "Lyrics for Song 1"],
-            [2, ""], // Empty lyrics
-            ["song3-url", null] // Null lyrics
+        // Check the title is rendered
+        expect(screen.getByText(/Songs containing the word 'test word'/i)).toBeInTheDocument();
+
+        // Check that only songs with matching lyrics are displayed
+        expect(screen.getByText('Song 1')).toBeInTheDocument();
+        expect(screen.queryByText('Song 2')).not.toBeInTheDocument();
+        expect(screen.getByText('Song 3')).toBeInTheDocument();
+
+        // Check table headers
+        expect(screen.getByText('#')).toBeInTheDocument();
+        expect(screen.getByText('Song')).toBeInTheDocument();
+        expect(screen.getByText('Artist')).toBeInTheDocument();
+        expect(screen.getByText('Year')).toBeInTheDocument();
+    });
+
+    test('renders "no songs found" message when no matches', () => {
+        render(<SongList {...defaultProps} searchTerm="nonexistent" />);
+
+        expect(screen.getByText(/No songs with available lyrics were found containing 'nonexistent'/i)).toBeInTheDocument();
+    });
+
+    test('renders empty state when search term is empty', () => {
+        render(<SongList {...defaultProps} searchTerm="" />);
+        expect(screen.getByText(/No songs with available lyrics were found containing ''/i)).toBeInTheDocument();
+    });
+
+    test('renders empty state when songs array is empty', () => {
+        render(<SongList {...defaultProps} songs={[]} />);
+        expect(screen.getByText(/No songs with available lyrics were found containing 'test word'/i)).toBeInTheDocument();
+    });
+
+    test('renders empty state when lyrics map is null', () => {
+        render(<SongList {...defaultProps} lyricsMap={null} />);
+        expect(screen.getByText(/No songs with available lyrics were found containing 'test word'/i)).toBeInTheDocument();
+    });
+
+    test('calls onClose when backdrop or close button is clicked', () => {
+        const { container } = render(<SongList {...defaultProps} />);
+
+        // Click the close button
+        fireEvent.click(screen.getByRole('button', { name: '✕' }));
+        expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
+
+        // Click the backdrop - using querySelector instead of getByClassName
+        const backdrop = container.querySelector('.song-list-backdrop');
+        fireEvent.click(backdrop);
+        expect(defaultProps.onClose).toHaveBeenCalledTimes(2);
+    });
+
+    test('shows and hides lyrics popup', () => {
+        render(<SongList {...defaultProps} />);
+
+        // Lyrics popup should not be visible initially
+        expect(screen.queryByTestId('lyrics-popup')).not.toBeInTheDocument();
+
+        // Click lyrics button for first song
+        const lyricsButtons = screen.getAllByRole('button', { name: /lyrics/i });
+        fireEvent.click(lyricsButtons[0]);
+
+        // Lyrics popup should now be visible
+        expect(screen.getByTestId('lyrics-popup')).toBeInTheDocument();
+
+        // Verify the lyrics content
+        expect(screen.getByTestId('lyrics-content')).toHaveTextContent(/These are the lyrics for Song 1/);
+
+        // Close the lyrics popup
+        fireEvent.click(screen.getByTestId('close-lyrics'));
+
+        // Lyrics popup should not be visible again
+        expect(screen.queryByTestId('lyrics-popup')).not.toBeInTheDocument();
+    });
+
+    test('shows add to favorites button on hover and handles adding to favorites', () => {
+        render(<SongList {...defaultProps} />);
+
+        // Get the first song row
+        const songRows = screen.getAllByRole('row');
+        const firstSongRow = songRows[1]; // First row after header
+
+        // Add to favorites button should not be visible initially
+        expect(screen.queryByText(/\+ Add to favorites/i)).not.toBeInTheDocument();
+
+        // Hover over the song row
+        fireEvent.mouseEnter(firstSongRow);
+
+        // Add to favorites button should now be visible
+        const addToFavButton = screen.getByText(/\+ Add to favorites/i);
+        expect(addToFavButton).toBeInTheDocument();
+
+        // Click add to favorites button
+        fireEvent.click(addToFavButton);
+
+        // Toast should appear with success message
+        expect(screen.getByTestId('toast')).toBeInTheDocument();
+        expect(screen.getByText(/Song successfully added to favorites list/i)).toBeInTheDocument();
+
+        // Check that toast can be closed
+        fireEvent.click(screen.getByTestId('close-toast'));
+
+        // Mouse leave the row
+        fireEvent.mouseLeave(firstSongRow);
+
+        // Add to favorites button should not be visible again
+        expect(screen.queryByText(/\+ Add to favorites/i)).not.toBeInTheDocument();
+    });
+
+    test('shows error toast when adding a song that is already in favorites', () => {
+        render(<SongList {...defaultProps} />);
+
+        // Get the first song row
+        const songRows = screen.getAllByRole('row');
+        const firstSongRow = songRows[1]; // First row after header
+
+        // Hover over the song row
+        fireEvent.mouseEnter(firstSongRow);
+
+        // Click add to favorites button for the first time
+        const addToFavButton = screen.getByText(/\+ Add to favorites/i);
+        fireEvent.click(addToFavButton);
+
+        // Check success toast
+        expect(screen.getByText(/Song successfully added to favorites list/i)).toBeInTheDocument();
+
+        // Close the toast
+        fireEvent.click(screen.getByTestId('close-toast'));
+
+        // Click add to favorites button again for the same song
+        fireEvent.click(addToFavButton);
+
+        // Check error toast
+        expect(screen.getByText(/Song is already in your favorites list/i)).toBeInTheDocument();
+        expect(screen.getByTestId('toast').className).toContain('error');
+    });
+
+    test('handles song with url instead of id correctly', () => {
+        render(<SongList {...defaultProps} />);
+
+        // Get the song with url instead of id (Song 3)
+        const song3Row = screen.getByText('Song 3').closest('tr');
+
+        // Hover over the song row
+        fireEvent.mouseEnter(song3Row);
+
+        // Add to favorites button should be visible
+        const addToFavButton = within(song3Row).getByText(/\+ Add to favorites/i);
+        expect(addToFavButton).toBeInTheDocument();
+
+        // Click add to favorites button
+        fireEvent.click(addToFavButton);
+
+        // Toast should appear with success message
+        expect(screen.getByTestId('toast')).toBeInTheDocument();
+
+        // Click lyrics button
+        const lyricsButton = within(song3Row).getByRole('button', { name: /lyrics/i });
+        fireEvent.click(lyricsButton);
+
+        // Lyrics popup should appear
+        expect(screen.getByTestId('lyrics-popup')).toBeInTheDocument();
+
+        // Verify the lyrics content for the song with URL
+        expect(screen.getByTestId('lyrics-content')).toHaveTextContent(/These are the lyrics for Song 3/);
+    });
+
+    test('handles case when lyrics are not available for a song', () => {
+        // Create a modified lyrics map without lyrics for song 1
+        const incompleteMap = new Map([
+            ['2', 'These are the lyrics for Song 2 without match'],
+            ['3', 'These are the lyrics for Song 3 with test word also'],
         ]);
 
-        render(<SongList {...defaultProps} lyricsMap={partialLyricsMap} />)
+        render(<SongList {...defaultProps} lyricsMap={incompleteMap} />);
 
-        const rows = screen.getAllByRole("row")
-        expect(rows.length).toBe(1 + 1)
+        // Song 1 should not be displayed as it has no lyrics
+        expect(screen.queryByText('Song 1')).not.toBeInTheDocument();
 
-        expect(screen.getByText("Song 1")).toBeInTheDocument()
-        expect(screen.queryByText("Song 2")).not.toBeInTheDocument()
-        expect(screen.queryByText("Song 3")).not.toBeInTheDocument()
-    })
+        // Only Song 3 should be displayed (which has lyrics containing the search term)
+        expect(screen.getByText('Song 3')).toBeInTheDocument();
+        expect(screen.queryByText('Song 2')).not.toBeInTheDocument();
+    });
 
-    test("renders the correct number of songs when all have lyrics", () => {
-        render(<SongList {...defaultProps} />)
-        const rows = screen.getAllByRole("row")
-        expect(rows.length).toBe(mockSongs.length + 1)
-    })
+    test('provides "Lyrics not available" message when lyrics are missing', () => {
+        // Create a song without lyrics in the map
+        const songWithoutLyrics = { id: '4', title: 'No Lyrics Song', artist: 'Artist 4', year: 2023 };
+        const songsWithExtra = [...mockSongs, songWithoutLyrics];
 
-    test("displays song details correctly", () => {
-        render(<SongList {...defaultProps} />)
-        expect(screen.getByText("Song 1")).toBeInTheDocument()
-        expect(screen.getByText("Artist 1")).toBeInTheDocument()
-        expect(screen.getByText("2020")).toBeInTheDocument()
-    })
+        // Add this song to displaySongs directly by modifying the lyricsMap
+        const modifiedMap = new Map(mockLyricsMap);
+        modifiedMap.set('4', 'with test word but will be overridden');
 
-    test("calls onClose when close button is clicked", () => {
-        render(<SongList {...defaultProps} />)
-        const closeButton = screen.getByRole("button", { name: "✕" })
-        fireEvent.click(closeButton)
-        expect(defaultProps.onClose).toHaveBeenCalled()
-    })
+        render(<SongList {...defaultProps} songs={songsWithExtra} lyricsMap={modifiedMap} />);
 
-    test("calls onClose when backdrop is clicked", () => {
-        const { container } = render(<SongList {...defaultProps} />)
-        const backdrop = container.querySelector(".song-list-backdrop")
-        fireEvent.click(backdrop)
-        expect(defaultProps.onClose).toHaveBeenCalled()
-    })
+        // Find the new song
+        const noLyricsSongRow = screen.getByText('No Lyrics Song').closest('tr');
 
-    test("shows lyrics popup with correct data when lyrics button is clicked", () => {
-        render(<SongList {...defaultProps} />)
-        const lyricsButtons = screen.getAllByText("Lyrics")
-        fireEvent.click(lyricsButtons[0])
+        // Click lyrics button for this song
+        const lyricsButton = within(noLyricsSongRow).getByRole('button', { name: /lyrics/i });
 
-        expect(LyricsPopup).toHaveBeenCalledWith(
-            expect.objectContaining({
-                song: {
-                    ...mockSongs[0],
-                    lyrics: "Lyrics for Song 1"
-                },
-                visible: true,
-            }),
-            expect.anything(),
-        )
-    })
+        // Force the test case where lyrics might be removed between filtering and clicking
+        modifiedMap.delete('4');
 
-    test("handles songs with url instead of id", () => {
-        render(<SongList {...defaultProps} />)
-        const lyricsButtons = screen.getAllByText("Lyrics")
-        fireEvent.click(lyricsButtons[2])
+        fireEvent.click(lyricsButton);
 
-        expect(LyricsPopup).toHaveBeenCalledWith(
-            expect.objectContaining({
-                song: {
-                    ...mockSongs[2],
-                    lyrics: "Lyrics for Song 3"
-                },
-                visible: true,
-            }),
-            expect.anything(),
-        )
-    })
+        // Check that the popup shows "Lyrics not available" message
+        expect(screen.getByTestId('lyrics-popup')).toBeInTheDocument();
+        expect(screen.getByTestId('lyrics-content')).toHaveTextContent('Lyrics not available for this song.');
+    });
 
-    test("shows add to favorites button on hover", () => {
-        render(<SongList {...defaultProps} />)
-        const songRow = screen.getByText("Song 1").closest("tr")
+    test('updates displaySongs when props change', () => {
+        const { rerender } = render(<SongList {...defaultProps} />);
 
-        fireEvent.mouseEnter(songRow)
+        // Initially, Song 1 and Song 3 should be displayed
+        expect(screen.getByText('Song 1')).toBeInTheDocument();
+        expect(screen.getByText('Song 3')).toBeInTheDocument();
 
-        expect(screen.getByText("+ Add to favorites")).toBeInTheDocument()
+        // Change search term
+        rerender(<SongList {...defaultProps} searchTerm="different term" />);
 
-        fireEvent.mouseLeave(songRow)
+        // No songs should match now
+        expect(screen.queryByText('Song 1')).not.toBeInTheDocument();
+        expect(screen.queryByText('Song 3')).not.toBeInTheDocument();
+        expect(screen.getByText(/No songs with available lyrics were found containing 'different term'/i)).toBeInTheDocument();
 
-        expect(screen.queryByText("+ Add to favorites")).not.toBeInTheDocument()
-    })
+        // Change songs
+        const newSongs = [
+            { id: '5', title: 'New Song', artist: 'New Artist', year: 2023 }
+        ];
+        const newLyricsMap = new Map([
+            ['5', 'These lyrics contain the test word']
+        ]);
 
-    // test("adds song to favorites when add to favorites button is clicked", async () => {
-    //     render(<SongList {...defaultProps} />)
-    //     const songRow = screen.getByText("Song 1").closest("tr")
-    //
-    //     fireEvent.mouseEnter(songRow)
-    //
-    //     const addButton = screen.getByText("+ Add to favorites")
-    //
-    //     act(() => {
-    //         fireEvent.click(addButton)
-    //     })
-    //
-    //     expect(Toast).toHaveBeenCalledWith(
-    //         expect.objectContaining({
-    //             message: "Song successfully added to favorites list.",
-    //             type: "success",
-    //             visible: true,
-    //         }),
-    //         expect.anything(),
-    //     )
-    // })
+        rerender(<SongList {...defaultProps} songs={newSongs} lyricsMap={newLyricsMap} />);
 
-    // test("shows error toast when adding a song that is already in favorites", () => {
-    //     render(<SongList {...defaultProps} />)
-    //     const songRow = screen.getByText("Song 1").closest("tr")
-    //
-    //     fireEvent.mouseEnter(songRow)
-    //     const addButton = screen.getByText("+ Add to favorites")
-    //
-    //     act(() => {
-    //         fireEvent.click(addButton)
-    //     })
-    //
-    //     act(() => {
-    //         fireEvent.click(addButton)
-    //     })
-    //
-    //     expect(Toast).toHaveBeenLastCalledWith(
-    //         expect.objectContaining({
-    //             message: "Song is already in your favorites list.",
-    //             type: "error",
-    //             visible: true,
-    //         }),
-    //         expect.anything(),
-    //     )
-    // })
-
-    test("closes lyrics popup", () => {
-        render(<SongList {...defaultProps} />)
-
-        // Open lyrics popup
-        const lyricsButtons = screen.getAllByText("Lyrics")
-        fireEvent.click(lyricsButtons[0])
-
-        const { onClose } = LyricsPopup.mock.calls[0][0]
-
-        // Call onClose
-        act(() => {
-            onClose()
-        })
-
-        expect(LyricsPopup).toHaveBeenLastCalledWith(
-            expect.objectContaining({
-                visible: false,
-            }),
-            expect.anything(),
-        )
-    })
-
-    // test("closes toast notification", () => {
-    //     render(<SongList {...defaultProps} />)
-    //
-    //     Toast.mockClear()
-    //
-    //     const songRow = screen.getByText("Song 1").closest("tr")
-    //     fireEvent.mouseEnter(songRow)
-    //
-    //     act(() => {
-    //         fireEvent.click(screen.getByText("+ Add to favorites"))
-    //     })
-    //
-    //     expect(Toast).toHaveBeenCalled()
-    //
-    //     // Get the most recent call to Toast
-    //     const mostRecentCall = Toast.mock.calls[Toast.mock.calls.length - 1][0]
-    //     expect(mostRecentCall.visible).toBe(true)
-    //     expect(mostRecentCall.type).toBe("success")
-    //
-    //     const { onClose } = mostRecentCall
-    //
-    //     act(() => {
-    //         onClose()
-    //     })
-    //
-    //     // Check that the toast was closed
-    //     const callsAfterClose = Toast.mock.calls.slice(-1)[0][0]
-    //     expect(callsAfterClose.visible).toBe(false)
-    // })
-
-    test("shows message when no songs with lyrics are found", () => {
-        const emptyLyricsMap = new Map();
-
-        render(<SongList {...defaultProps} lyricsMap={emptyLyricsMap} />)
-
-        expect(screen.getByText("No songs found with available lyrics matching the criteria.")).toBeInTheDocument()
-    })
-})
+        // New song should be displayed
+        expect(screen.getByText('New Song')).toBeInTheDocument();
+    });
+});

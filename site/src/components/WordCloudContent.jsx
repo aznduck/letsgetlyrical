@@ -26,7 +26,6 @@ function getFrequencies(text, maxWords = 100) {
     const noBrackets = text.replace(/\[.*?\]/g, "");
     const words = noBrackets.toLowerCase().match(/\b[a-z']+\b/g) || [];
     const freq = {};
-    let skippedStemmedEmpty = 0;
 
     console.log(`getFrequencies: Found ${words.length} potential words.`);
 
@@ -49,30 +48,12 @@ function getFrequencies(text, maxWords = 100) {
                 // Use the valid stemmed word as the key
                 const key = stemmed.trim(); // Trim just in case
                 freq[key] = (freq[key] || 0) + 1;
-            } else {
-                // Log why it was skipped AFTER stemming
-                // console.log(`getFrequencies: SKIPPED Post-Stem - Cleaned: '${cleaned}', Stemmed: '${stemmed}' (Type: ${typeof stemmed}, Length<=1 or Empty)`);
-                skippedStemmedEmpty++;
             }
-        } else {
-            // Skipped before stemming (stop word or short)
         }
-    }
-
-    if (skippedStemmedEmpty > 0) {
-        console.log(`getFrequencies: Skipped ${skippedStemmedEmpty} words post-stemming due to length/empty.`);
     }
 
     const freqEntries = Object.entries(freq);
     console.log(`getFrequencies: Generated ${freqEntries.length} unique stemmed words.`);
-
-    // *** Check for empty keys BEFORE mapping ***
-    const keys = Object.keys(freq);
-    const emptyKeysFound = keys.some(k => k.trim().length === 0);
-    if (emptyKeysFound) {
-        console.error("!!! getFrequencies: Found EMPTY STRING as a key in the 'freq' object BEFORE sorting/mapping !!!");
-    }
-
 
     const sortedFrequencies = freqEntries
         .sort(([, a], [, b]) => b - a)
@@ -98,7 +79,6 @@ function getFrequencies(text, maxWords = 100) {
 
 const getGeniusPathFromUrl = (url) => {
     try {
-        if (!url) return null;
         const parsed = new URL(url);
         return parsed.pathname.startsWith("/") ? parsed.pathname.slice(1) : parsed.pathname;
     } catch (err) {
@@ -107,7 +87,7 @@ const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloud = ({
+const WordCloudContent = ({
                        songsData = [],
                        variant = "default",
                        onAddFavorites,
@@ -302,4 +282,4 @@ const WordCloud = ({
     );
 };
 
-export default WordCloud;
+export default WordCloudContent;
