@@ -7,6 +7,7 @@ public class FavoriteSongRequest extends FavoriteGetRequest {
     private String fullTitle;
     private String dateReleased;
     private String lyrics;
+    private String album;
 
     public String getSongName() {
         return songName;
@@ -54,5 +55,13 @@ public class FavoriteSongRequest extends FavoriteGetRequest {
 
     public void setLyrics(String lyrics) {
         this.lyrics = lyrics;
+    }
+
+    public String getAlbum() {
+        return album;
+    }
+
+    public void setAlbum(String album) {
+        this.album = album;
     }
 }

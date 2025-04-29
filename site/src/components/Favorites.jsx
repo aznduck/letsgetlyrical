@@ -36,6 +36,45 @@ function Favorites({ initialFavorites = null }) {
 
     const timerRef = useRef(null)
 
+    useEffect(() => {
+        if (!initialFavorites) {
+            const fetchFavorites = async () => {
+                try {
+                    const yourData = {
+                        username: "johndoe",
+                        password: ""
+                    };
+                    const response = await fetch("/api/favorite/get", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(yourData)
+                    });
+
+                    const data = await response.json();
+                    console.log(JSON.stringify(data));
+
+                    const favoritesArray = data.favorites || [];
+
+                    if (Array.isArray(favoritesArray)) {
+                        const withIds = favoritesArray.map((song, idx) => ({
+                            ...song
+                        }));
+                        setFavorites(withIds);
+                    } else {
+                        console.warn("Unexpected data format:", data);
+                    }
+                }
+                catch(error) {
+                    console.error("Failed to retrieve favorites: ", error);
+                }
+            };
+
+            fetchFavorites();
+        }
+    }, [initialFavorites]);
+
     const toggleMenu = () => {
         setShowMenu(!showMenu)
     }
