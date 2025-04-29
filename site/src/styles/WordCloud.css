@@ -43,6 +43,9 @@
     color: white;
     margin: 0;
 }
+.word-cloud-info {
+    padding-left: 40px;
+}
 
 .word-cloud-actions {
     display: flex;
