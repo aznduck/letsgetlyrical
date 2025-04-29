@@ -155,8 +155,6 @@ const WordCloudContent = ({
         setSelectedWord(null);
     }, []);
 
-    const fontSizeMapper = useCallback(word => Math.max(18, Math.min(70, Math.log2(word.value + 1) * 8)), []);
-
 
     const renderContent = () => {
         if (isLoading) return <div className="word-cloud-loading">Fetching lyrics and generating cloud...</div>;
@@ -165,7 +163,7 @@ const WordCloudContent = ({
             if (songsData && songsData.length > 0) {
                 if (!error) return <div className="word-cloud-info">No significant words found or lyrics unavailable.</div>;
                 else return null;
-            } else return <div className="word-cloud-info">Select songs to generate a word cloud.</div>;
+            } else return <div className="word-cloud-info">No songs to generate a word cloud.</div>;
         }
 
         if (selectedType === "table") {
@@ -195,7 +193,7 @@ const WordCloudContent = ({
                     <div className="wordcloud-wrapper" style={{ height: '100%', width: '100%' }}>
                         <Cloud
                             data={cloudData}
-                            fontSizeMapper={fontSizeMapper}
+                            fontSizeMapper={word => Math.max(18, Math.min(70, word.value))}
                             rotate={rotate}
                             font="Inter"
                             padding={2}

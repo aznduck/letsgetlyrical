@@ -64,7 +64,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                         <form onSubmit={handleSearchSubmit} className="search-container">
                             <button
                                 type="button"
-                                className="home-button"
+                                className="nav-button"
                                 onClick={handleHomeClick}
                                 title="Go to Home"
                             >
@@ -111,7 +111,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                                 />
                             </div>
 
-                            <button type="submit" className="search-submit-button" aria-label="Submit search">
+                            <button type="submit" className="nav-button" aria-label="Submit search">
                                 <Search size={20} />
                             </button>
                         </form>

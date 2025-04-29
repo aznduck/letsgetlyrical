@@ -15,6 +15,7 @@ import LandingPage from "./pages/LandingPage"
 import FavsCloudPage from "./pages/FavsCloudPage"
 import SearchPage from "./pages/SearchPage"
 import Wordcloud from "./components/WordCloudContent";
+import ComparePage from "./pages/ComparePage";
 
 // Create auth context
 export const AuthContext = createContext(null)
@@ -159,7 +160,7 @@ function App() {
                     <Route
                         path="/compare"
                         element={
-                            <LandingPage />
+                            <ComparePage />
                         }
                     />
 
@@ -198,6 +199,15 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <Wordcloud />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/compare"
+                        element={
+                            <ProtectedRoute>
+                                <ComparePage />
                             </ProtectedRoute>
                         }
                     />

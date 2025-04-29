@@ -23,7 +23,7 @@ const SongDetailsPopup = ({ song, onClose }) => {
                         />
                     </div>
 
-                    <div className="song-info">
+                    <div className="popup-song-info">
                         <span className="album-label">Album</span>
                         <h2 className="song-title" data-testid="pop-up-song-title">
                             {song.title}
