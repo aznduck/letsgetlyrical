@@ -18,6 +18,10 @@ const LandingPage = () => {
         navigate("/favscloud", { state: { generateCloud: true } });
     };
 
+    const handleCompareWithFriends = () => {
+        navigate("/compare");
+    };
+
     return (
         <div className="landing-page">
             <Navbar onLogout={handleLogout} />
@@ -29,7 +33,8 @@ const LandingPage = () => {
                         <div className="action-buttons">
                             <button className="action-button" onClick={handleGenerateCloud}>
                                 Generate favorites cloud</button>
-                            <button className="action-button">Compare with friends!</button>
+                            <button className="action-button" onClick={handleCompareWithFriends}>
+                                Compare with friends!</button>
                         </div>
                         <img
                             src="/images/welcome_graphic.png"

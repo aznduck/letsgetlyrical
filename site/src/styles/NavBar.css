@@ -60,7 +60,7 @@
     min-width: 300px;
 }
 
-.home-button {
+.nav-button {
     background-color: rgba(255, 255, 255, 0.2);
     border: none;
     color: rgba(255, 255, 255, 0.7);
@@ -73,7 +73,7 @@
     cursor: pointer;
 }
 
-.home-button:hover {
+.nav-button:hover {
     background-color: rgba(255, 255, 255, 0.3);
     color: rgba(255, 255, 255);
 }
