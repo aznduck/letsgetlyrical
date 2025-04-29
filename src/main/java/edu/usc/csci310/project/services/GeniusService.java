@@ -37,7 +37,7 @@ public class GeniusService {
     private final RestTemplate restTemplate;
     private final String baseUrl = "https://api.genius.com";
 
-    @Value("${genius.client.access.token}")
+    @Value("${GENIUS_CLIENT_ACCESS_TOKEN}")
     private String clientAccessToken;
 
     public GeniusService(RestTemplate restTemplate) {
