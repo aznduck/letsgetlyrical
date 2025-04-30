@@ -1,7 +1,8 @@
-import { useCallback, useState } from "react";
-import LyricsPopup from "./LyricsPopUp"; // Corrected import name casing
+import { useCallback, useState, useEffect } from "react"; // Import useEffect
+import LyricsPopup from "./LyricsPopUp";
 import Toast from "./Toast";
 import "../styles/SongList.css";
+
 
 function SongList({ searchTerm, songs, onClose, lyricsMap }) {
     const [selectedSongData, setSelectedSongData] = useState(null);
@@ -9,6 +10,29 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
     const [hoveredSong, setHoveredSong] = useState(null);
     const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
     const [favorites, setFavorites] = useState([]);
+    const [displaySongs, setDisplaySongs] = useState([]);
+
+    useEffect(() => {
+        if (!searchTerm || !songs || !lyricsMap) {
+            setDisplaySongs([]);
+            return;
+        }
+
+        const filteredSongs = songs.filter(song => {
+            const songId = song.id || song.url;
+            const lyrics = lyricsMap?.get(songId);
+
+            if (!lyrics) {
+                return false;
+            }
+
+            return lyrics.toLowerCase().includes(searchTerm.toLowerCase());
+
+        });
+
+        setDisplaySongs(filteredSongs);
+
+    }, [searchTerm, songs, lyricsMap]);
 
     const handleLyricsClick = (song) => {
         const songId = song.id || song.url;
@@ -30,39 +54,17 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
         }));
     }, []);
 
-    const handleAddToFavorites = async (song) => {
-        const MOCK_DATA = {
-            songId: 1000,
-            username: "johndoe",
-            password: "",
-            songName: "Test Song",
-            songArtist: "Test Artist",
-            fullTitle: "Test Title",
-            dateReleased: "December 25, 1999",
-            album: "Test Album",
-            lyrics: "Baby baby baby ohh"
-        }
+    const handleAddToFavorites = (song) => {
+        const isFavorited = favorites.some((fav) => (fav.id || fav.url) === (song.id || song.url));
 
-        if (favorites.some((fav) => fav.id === song.id)) {
+        if (isFavorited) {
             setToast({
                 visible: true,
                 message: "Song is already in your favorites list.",
                 type: "error",
             });
         } else {
-            const response = await fetch("api/favorite/add", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(MOCK_DATA)
-            });
-
-            const data = await response.json();
-            console.log(`POGGERS`);
-            console.log(data);
-
-            setFavorites((prev) => [...prev, song])
+            setFavorites((prev) => [...prev, song]);
             setToast({
                 visible: true,
                 message: "Song successfully added to favorites list.",
@@ -70,12 +72,6 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
             });
         }
     };
-
-
-    const displaySongs = songs.filter(song => {
-        const songId = song.id || song.url;
-        return lyricsMap?.has(songId) && lyricsMap?.get(songId);
-    });
 
     return (
         <>
@@ -87,10 +83,10 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
                     </button>
 
                     <div className="song-list-content">
-                        <h2 className="song-list-title">Songs potentially containing '{searchTerm}'</h2>
+                        <h2 className="song-list-title">Songs containing the word '{searchTerm}'</h2>
 
                         {displaySongs.length === 0 && (
-                            <p className="song-list-info">No songs found with available lyrics matching the criteria.</p>
+                            <p className="song-list-info">No songs with available lyrics were found containing '{searchTerm}'.</p>
                         )}
 
                         {displaySongs.length > 0 && (
@@ -108,7 +104,7 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
                                     <tbody>
                                     {displaySongs.map((song, index) => (
                                         <tr
-                                            key={song.id || song.url} // Use consistent key
+                                            key={song.id || song.url}
                                             onMouseEnter={() => setHoveredSong(song.id || song.url)}
                                             onMouseLeave={() => setHoveredSong(null)}
                                         >
@@ -123,7 +119,6 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
                                             </td>
                                             <td>{song.artist}</td>
                                             <td>{song.year}</td>
-                                            {/*<td>{song.frequency}</td> Remove if song obj doesn't have it */}
                                             <td>
                                                 <button className="song-list-lyrics-button" onClick={() => handleLyricsClick(song)}>
                                                     Lyrics

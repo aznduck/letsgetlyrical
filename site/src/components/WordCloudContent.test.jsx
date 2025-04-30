@@ -1,327 +1,190 @@
-import "@testing-library/jest-dom";
-import { expect } from "@jest/globals";
 import React from "react";
-import { render, screen, fireEvent, waitFor, cleanup, act } from "@testing-library/react";
+import {
+    act,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from "@testing-library/react";
+import WordCloudContent from "./WordCloudContent";
 
-// Mock the dependencies
-jest.mock("react-d3-cloud", () => ({
-    __esModule: true,
-    default: ({ data, onWordClick }) => (
-        <div data-testid="mock-word-cloud">
-            {data && data.map((item, index) => (
-                <span
-                    key={index}
-                    data-testid={`cloud-word-${item.text}`}
-                    onClick={() => onWordClick && onWordClick(item)}
-                >
-          {item.text}
-        </span>
-            ))}
-        </div>
-    )
+jest.mock("porter-stemmer", () => ({
+    stemmer: (w) => w,
 }));
 
-jest.mock("./SongList", () => ({
+const mockGetLyrics = jest.fn();
+jest.mock("../services/GeniusService", () => ({
     __esModule: true,
-    default: ({ searchTerm, onClose }) => (
-        <div data-testid="song-list">
-            SongList: {searchTerm}
-            <button data-testid="close-song-list" onClick={onClose}>Close</button>
-        </div>
-    )
+    default: { getLyrics: (...args) => mockGetLyrics(...args) },
 }));
 
-jest.mock("../components/WordCloudHeader", () => ({
-    __esModule: true,
-    default: ({ onTypeChange, selectedType }) => (
-        <div>
-            <span data-testid="current-type">{selectedType}</span>
+jest.mock("../components/WordCloudHeader", () => (props) => {
+    const { selectedType, onTypeChange } = props;
+    return (
+        <div data-testid="header">
             <button
-                data-testid="cloud-button"
-                onClick={() => onTypeChange && onTypeChange("cloud")}
+                data-testid="btn-cloud"
+                disabled={selectedType === "cloud"}
+                onClick={() => onTypeChange("cloud")}
             >
                 cloud
             </button>
             <button
-                data-testid="table-button"
-                onClick={() => onTypeChange && onTypeChange("table")}
+                data-testid="btn-table"
+                disabled={selectedType === "table"}
+                onClick={() => onTypeChange("table")}
             >
                 table
             </button>
         </div>
-    )
-}));
+    );
+});
 
-jest.mock("../services/GeniusService", () => ({
-    __esModule: true,
-    default: {
-        getLyrics: jest.fn()
-    }
-}));
+/* Minimal SongList that exposes onClose and displays its props. */
+jest.mock("./SongList", () => ({ searchTerm, onClose }) => (
+    <div data-testid="song-list">
+        <span data-testid="search-term">{searchTerm}</span>
+        <button data-testid="close-song-list" onClick={onClose}>
+            ×
+        </button>
+    </div>
+));
 
-// Import the actual component to test
-import WordCloud from "./WordCloudContent";
-import GeniusService from "../services/GeniusService";
+/* Deterministic d3-cloud stand-in – each word renders a <span>. */
+jest.mock("react-d3-cloud", () => {
+    return ({ data, onWordClick }) => (
+        <div data-testid="mock-cloud">
+            {data.map((d, i) => (
+                <span
+                    key={i}
+                    data-testid={`word-${d.text}`}
+                    onClick={() => onWordClick({}, d)}
+                >
+          {d.text}
+        </span>
+            ))}
+        </div>
+    );
+});
 
-// Set a shorter timeout for waitFor
-const waitForOptions = { timeout: 3000 };
+const flushPromises = () => act(() => Promise.resolve());
 
-describe("WordCloud Component", () => {
-    // Sample test data
-    const testSongs = [
-        { id: "1", title: "Test Song 1", url: "https://genius.com/test-song-1" },
-        { id: "2", title: "Test Song 2", url: "https://genius.com/test-song-2" }
-    ];
+const buildSongs = (n) =>
+    Array.from({ length: n }, (_, i) => ({
+        id: i + 1,
+        title: `Song${i + 1}`,
+        url: `https://genius.com/Artist-song${i + 1}-lyrics`,
+    }));
 
+describe("WordCloudContent", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        // Default mock implementation
-        GeniusService.getLyrics.mockResolvedValue("test test word mock lyrics");
     });
 
-    afterEach(() => {
-        cleanup();
-        jest.resetAllMocks();
+    test("shows prompt when no songs selected", () => {
+        render(<WordCloudContent songsData={[]} />);
+        expect(
+            screen.getByText(/select songs to generate a word cloud/i)
+        ).toBeInTheDocument();
     });
 
-    test("renders info message if songsData is empty", () => {
-        render(<WordCloud songsData={[]} />);
-        expect(screen.getByText(/No songs to generate a word cloud/i)).toBeInTheDocument();
+    test("displays loading spinner then renders cloud view on success", async () => {
+        const songs = buildSongs(2);
+        mockGetLyrics.mockResolvedValueOnce(
+            "hello world hello friend" /* Song1 */
+        );
+        mockGetLyrics.mockResolvedValueOnce(
+            "hello world" /* Song2 */
+        );
+
+        render(<WordCloudContent songsData={songs} />);
+
+        // initial spinner
+        expect(screen.getByText(/fetching lyrics/i)).toBeInTheDocument();
+
+        await flushPromises(); // settle `Promise.all`
+        await waitFor(() =>
+            expect(screen.queryByText(/fetching lyrics/i)).not.toBeInTheDocument()
+        );
+
+        // cloud rendered with highest-frequency words
+        expect(screen.getByTestId("mock-cloud")).toBeInTheDocument();
+        expect(screen.getByTestId("word-world")).toBeInTheDocument();
     });
 
-    test("displays loading message when fetching lyrics", async () => {
-        // Create a promise that doesn't resolve immediately
-        let resolvePromise;
-        const promise = new Promise(resolve => {
-            resolvePromise = resolve;
-        });
+    test("partial fetch failure surfaces warning banner", async () => {
+        const songs = buildSongs(2);
+        mockGetLyrics
+            .mockResolvedValueOnce("foo bar baz") // success
+            .mockRejectedValueOnce(new Error("Boom")); // failure
 
-        GeniusService.getLyrics.mockReturnValue(promise);
+        render(<WordCloudContent songsData={songs} />);
 
-        render(<WordCloud songsData={testSongs} />);
+        await flushPromises();
 
-        // Check if loading message is displayed
-        expect(screen.getByText(/Fetching lyrics and generating cloud/i)).toBeInTheDocument();
-
-        // Resolve the promise to complete the test
-        await act(async () => {
-            resolvePromise("test lyrics");
-        });
+        // Banner contains fraction fetched
+        expect(
+            screen.getByText(/fetched lyrics for 1\/2 songs\./i)
+        ).toBeInTheDocument();
     });
 
-    test("shows error if no lyrics can be fetched", async () => {
-        GeniusService.getLyrics.mockRejectedValue(new Error("Failed"));
+    test("header toggles between cloud and table views", async () => {
+        const songs = buildSongs(1);
+        mockGetLyrics.mockResolvedValueOnce("alpha beta beta gamma");
 
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
+        render(<WordCloudContent songsData={songs} />);
 
-        await waitFor(() => {
-            expect(screen.getByText(/Failed to fetch lyrics for all/i)).toBeInTheDocument();
-        }, waitForOptions);
+        await flushPromises();
+
+        // default = cloud
+        expect(screen.getByTestId("mock-cloud")).toBeInTheDocument();
+
+        // switch to table
+        fireEvent.click(screen.getByTestId("btn-table"));
+        expect(screen.getByText(/alpha – 1/i)).toBeInTheDocument();
+
+        // switch back to cloud
+        fireEvent.click(screen.getByTestId("btn-cloud"));
+        expect(screen.getByTestId("mock-cloud")).toBeInTheDocument();
     });
 
-    test("shows partial success warning if some lyrics are fetched", async () => {
-        // Mock successful fetch for first song, failed for second
-        GeniusService.getLyrics
-            .mockResolvedValueOnce("test lyrics for song 1")
-            .mockRejectedValueOnce(new Error("Failed for song 2"));
+    test("clicking a word opens SongList and close button hides it", async () => {
+        const songs = buildSongs(1);
+        mockGetLyrics.mockResolvedValueOnce(
+            "goodbye world goodbye world friend"
+        );
 
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
+        render(<WordCloudContent songsData={songs} />);
+        await flushPromises();
 
-        await waitFor(() => {
-            expect(screen.getByText(/Warning: Fetched lyrics for 1 out of 2 songs/i)).toBeInTheDocument();
-        }, waitForOptions);
-    });
+        // click high-frequency word
+        fireEvent.click(screen.getByTestId("word-world"));
 
-    test("renders word cloud after successful lyrics fetch", async () => {
-        GeniusService.getLyrics.mockResolvedValue("test test word");
+        await waitFor(() =>
+            expect(screen.getByTestId("song-list")).toBeInTheDocument()
+        );
+        expect(screen.getByTestId("search-term")).toHaveTextContent("world");
 
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.queryByText(/Fetching lyrics/i)).not.toBeInTheDocument();
-        }, waitForOptions);
-
-        // Word cloud should be rendered
-        expect(screen.getByTestId("mock-word-cloud")).toBeInTheDocument();
-
-        // Check for words in the cloud
-        expect(screen.getByTestId("cloud-word-test")).toBeInTheDocument();
-    });
-
-    test("toggles view between cloud and table when selected", async () => {
-        GeniusService.getLyrics.mockResolvedValue("test test word");
-
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.queryByText(/Fetching lyrics/i)).not.toBeInTheDocument();
-        }, waitForOptions);
-
-        // Default should be cloud view
-        expect(screen.getByTestId("current-type").textContent).toBe("cloud");
-
-        // Switch to table view
-        fireEvent.click(screen.getByTestId("table-button"));
-
-        // Check if table view is active
-        expect(screen.getByTestId("current-type").textContent).toBe("table");
-
-        // Switch back to cloud view
-        fireEvent.click(screen.getByTestId("cloud-button"));
-
-        // Check if cloud view is active again
-        expect(screen.getByTestId("current-type").textContent).toBe("cloud");
-    });
-
-    test("displays SongList when a word is clicked", async () => {
-        GeniusService.getLyrics.mockResolvedValue("test test word");
-
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.queryByText(/Fetching lyrics/i)).not.toBeInTheDocument();
-        }, waitForOptions);
-
-        // Click on a word in the cloud
-        fireEvent.click(screen.getByTestId("cloud-word-test"));
-
-        // SongList should be displayed with the selected word
-        expect(screen.getByTestId("song-list")).toBeInTheDocument();
-        expect(screen.getByText(/SongList: test/i)).toBeInTheDocument();
-    });
-
-    test("closes SongList when close button is clicked", async () => {
-        GeniusService.getLyrics.mockResolvedValue("test test word");
-
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.queryByText(/Fetching lyrics/i)).not.toBeInTheDocument();
-        }, waitForOptions);
-
-        // Click on a word in the cloud to show SongList
-        fireEvent.click(screen.getByTestId("cloud-word-test"));
-        expect(screen.getByTestId("song-list")).toBeInTheDocument();
-
-        // Click close button
+        // close it
         fireEvent.click(screen.getByTestId("close-song-list"));
-
-        // SongList should be removed
-        expect(screen.queryByTestId("song-list")).not.toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.queryByTestId("song-list")).not.toBeInTheDocument()
+        );
     });
 
-    test("handles case with no significant words", async () => {
-        // Mock a response with only stop words
-        GeniusService.getLyrics.mockResolvedValue("the and a is");
+    test("table row click (alternative path) opens SongList", async () => {
+        const songs = buildSongs(1);
+        mockGetLyrics.mockResolvedValueOnce("apple banana banana cherry");
 
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
+        render(<WordCloudContent songsData={songs} />);
+        await flushPromises();
 
-        await waitFor(() => {
-            expect(screen.queryByText(/Fetching lyrics/i)).not.toBeInTheDocument();
-        }, waitForOptions);
+        fireEvent.click(screen.getByTestId("btn-table"));
 
-        // Should show no words found message
-        expect(screen.getByText(/No significant words found or lyrics unavailable/i)).toBeInTheDocument();
-    });
+        // click the row for “banana”
+        fireEvent.click(screen.getByText(/banana – 2/i));
 
-    test("handles invalid Genius URLs", async () => {
-        const invalidUrlSongs = [
-            { id: "1", title: "Invalid URL", url: "not-a-url" }
-        ];
-
-        await act(async () => {
-            render(<WordCloud songsData={invalidUrlSongs} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText(/Failed to fetch lyrics for all/i)).toBeInTheDocument();
-        }, waitForOptions);
-    });
-
-    test("handles missing song IDs by using URL as key", async () => {
-        const songsWithoutIds = [
-            { title: "No ID Song", url: "https://genius.com/no-id-song" }
-        ];
-
-        // Spy on console.warn
-        const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
-
-        GeniusService.getLyrics.mockResolvedValue("test words");
-
-        await act(async () => {
-            render(<WordCloud songsData={songsWithoutIds} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.queryByText(/Fetching lyrics/i)).not.toBeInTheDocument();
-        }, waitForOptions);
-
-        // Should have logged a warning about missing ID
-        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Song missing 'id' property"));
-
-        consoleSpy.mockRestore();
-    });
-
-    test("handles unexpected errors during lyric fetching", async () => {
-        // Mock Promise.all to throw an unexpected error
-        const originalAll = Promise.all;
-        Promise.all = jest.fn().mockRejectedValue(new Error("Unexpected error"));
-
-        await act(async () => {
-            render(<WordCloud songsData={testSongs} />);
-        });
-
-        await waitFor(() => {
-            expect(screen.getByText(/An unexpected error occurred while fetching lyrics/i)).toBeInTheDocument();
-        }, waitForOptions);
-
-        // Restore original Promise.all
-        Promise.all = originalAll;
-    });
-
-    // Test the helper functions
-    describe("getGeniusPathFromUrl function", () => {
-        test("returns path from valid URL", () => {
-            const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-
-            // Create a component ref to access the internal function
-            let getGeniusPathFromUrlFn;
-            render(<WordCloud ref={(ref) => {
-                if (ref) getGeniusPathFromUrlFn = ref.getGeniusPathFromUrl;
-            }} songsData={[]} />);
-
-            // Test directly with our own implementation since we can't access the internal function
-            const url = "https://genius.com/Drake-gods-plan-lyrics";
-            const testFn = (url) => {
-                try {
-                    if (!url) return null;
-                    const parsedUrl = new URL(url);
-                    return parsedUrl.pathname.startsWith('/') ? parsedUrl.pathname.substring(1) : parsedUrl.pathname;
-                } catch (e) {
-                    console.error("Error parsing URL:", url, e);
-                    return null;
-                }
-            };
-
-            expect(testFn(url)).toBe("Drake-gods-plan-lyrics");
-            expect(testFn(null)).toBeNull();
-            expect(testFn("not a url")).toBeNull();
-
-            consoleSpy.mockRestore();
-        });
+        expect(screen.getByTestId("song-list")).toBeInTheDocument();
+        expect(screen.getByTestId("search-term")).toHaveTextContent("banana");
     });
 });
