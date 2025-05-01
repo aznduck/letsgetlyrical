@@ -9,6 +9,8 @@ import SongDetailsPopup from "../components/SongDetailsPopUp"
 import Favorites from "../components/Favorites"
 import "../styles/ComparePage.css"
 import "../styles/SongDetailsPopUp.css"
+import FriendSearchBar from "../components/FriendsSearchBar";
+import FavoriteService from "../services/FavoriteService";
 
 
 function ComparePage() {
@@ -35,156 +37,9 @@ function ComparePage() {
     const [enemyResult, setEnemyResult] = useState(null)
 
 
-    const mockComparisonResults = [
-        {
-            id: 1,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 5,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao", "davidhan"],
-        },
-        {
-            id: 2,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 5,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao", "davidhan"],
-        },
-        {
-            id: 3,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 4,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao"],
-        },
-        {
-            id: 4,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 4,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao"],
-        },
-        {
-            id: 5,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 3,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen"],
-        },
-        {
-            id: 6,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou"],
-        },
-        {
-            id: 7,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "felixchen"],
-        },
-        {
-            id: 8,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["vitozhou", "johnsongao"],
-        },
-        {
-            id: 9,
-            title: "Despacito",
-            artist: "Luis Fonsi, Daddy Yankee",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "davidhan"],
-        },
-        {
-            id: 10,
-            title: "Shape of You",
-            artist: "Ed Sheeran",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["felixchen", "johnsongao"],
-        },
-        {
-            id: 11,
-            title: "Blinding Lights",
-            artist: "The Weeknd",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan"],
-        },
-        {
-            id: 12,
-            title: "Dance Monkey",
-            artist: "Tones and I",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["vitozhou"],
-        },
-        {
-            id: 13,
-            title: "Rockstar",
-            artist: "Post Malone, 21 Savage",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["felixchen"],
-        },
-        {
-            id: 14,
-            title: "Someone You Loved",
-            artist: "Lewis Capaldi",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["johnsongao"],
-        },
-        {
-            id: 15,
-            title: "One Dance",
-            artist: "Drake, Wizkid, Kyla",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["davidhan"],
-        },
-    ]
-
-    const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value)
-    }
-
-    const handleSearchClear = () => {
-        setSearchQuery("")
-    }
-
-    const handleSearchSubmit = (e) => {
-        e.preventDefault()
-        if (searchQuery.trim() && !selectedFriends.includes(searchQuery.trim())) {
-            setSelectedFriends([...selectedFriends, searchQuery.trim()])
-            setSearchQuery("")
-        }
-    }
 
     const handleRemoveFriend = (friend) => {
         setSelectedFriends(selectedFriends.filter((f) => f !== friend))
-    }
-
-    const handleCompare = () => {
-        //something something compare
-        // Sort
-        const sortedResults = [...mockComparisonResults].sort((a, b) => {
-            return sortOrder === "desc" ? b.frequency - a.frequency : a.frequency - b.frequency
-        })
-        setComparisonResults(sortedResults)
     }
 
     const handleFindSoulmate = () => {
@@ -252,34 +107,111 @@ function ComparePage() {
         setHoverSong(null)
     }
 
+
+    const handleCompare = async () => {
+        if (selectedFriends.length === 0) return;
+
+        setIsLoading(true);
+
+        try {
+            // Fetch favorites for all selected friends using your existing service
+            const allFavoritePromises = selectedFriends.map(async username => {
+                try {
+                    const response = await FavoriteService.fetchFavorites(username);
+
+                    if (!response.ok) {
+                        console.error(`Failed to fetch favorites for ${username}: ${response.status}`);
+                        return [];
+                    }
+
+                    // Parse the response
+                    const responseData = await response.json();
+                    console.log(`Data for ${username}:`, responseData);
+
+                    // Extract the favorites array from the response
+                    const favorites = responseData.favorites || [];
+
+                    // Map each song to include the username of who favorited it
+                    return favorites.map(song => ({
+                        id: song.id,
+                        title: song.title,
+                        artist: song.artist,
+                        albumCover: "/placeholder.svg", // You'll need to add album artwork
+                        album: song.album,
+                        user: username
+                    }));
+                } catch (error) {
+                    console.error(`Error fetching favorites for ${username}:`, error);
+                    return [];
+                }
+            });
+
+            const allFavoritesArrays = await Promise.all(allFavoritePromises);
+            const allFavorites = allFavoritesArrays.flat();
+
+            console.log("All favorites:", allFavorites);
+
+            if (allFavorites.length === 0) {
+                setComparisonResults([]);
+                setIsLoading(false);
+                return;
+            }
+
+            // Create song frequency map
+            const songMap = new Map();
+
+            allFavorites.forEach(song => {
+                // Create a unique key based on title and artist
+                const songKey = `${song.title || ''}-${song.artist || ''}`.toLowerCase();
+
+                if (!songMap.has(songKey)) {
+                    songMap.set(songKey, {
+                        id: song.id || Math.random().toString(36).substr(2, 9),
+                        title: song.title || 'Unknown Title',
+                        artist: song.artist || 'Unknown Artist',
+                        albumCover: song.albumCover || "/placeholder.svg",
+                        album: song.album || "",
+                        frequency: 1,
+                        users: [song.user]
+                    });
+                } else {
+                    const existingSong = songMap.get(songKey);
+                    // Only count each user once per song
+                    if (!existingSong.users.includes(song.user)) {
+                        existingSong.frequency += 1;
+                        existingSong.users.push(song.user);
+                    }
+                }
+            });
+
+            // Convert map to array and sort by frequency
+            const sortedResults = Array.from(songMap.values())
+                .sort((a, b) => {
+                    return sortOrder === "desc" ?
+                        b.frequency - a.frequency :
+                        a.frequency - b.frequency;
+                });
+
+            setComparisonResults(sortedResults);
+        } catch (error) {
+            console.error("Error comparing favorites:", error);
+            setComparisonResults([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="compare-page">
             <Navbar onLogout={handleLogout} />
 
             <div className="compare-container">
                 <div className="friends-search-section">
-                    <form onSubmit={handleSearchSubmit} className="friends-search-form">
-                        <div className="friends-search-input-container">
-                            <Search size={18} className="friends-search-icon"/>
-                            <input
-                                type="text"
-                                placeholder="Enter a username"
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="friends-search-input"
-                            />
-                            {searchQuery && (
-                                <button
-                                    type="button"
-                                    className="friends-clear-search"
-                                    onClick={handleSearchClear}
-                                    aria-label="Clear search"
-                                >
-                                    <X size={16}/>
-                                </button>
-                            )}
-                        </div>
-                    </form>
+                    <FriendSearchBar onSelectFriend={(user) => {
+                        if (!selectedFriends.includes(user.username)) {
+                            setSelectedFriends([...selectedFriends, user.username]);
+                        }
+                    }}/>
 
                     <div className="selected-friends-list">
                         {selectedFriends.map((friend, index) => (
@@ -313,7 +245,12 @@ function ComparePage() {
                         </div>
                     </div>
 
-                    {comparisonResults.length > 0 ? (
+                    {isLoading ? (
+                        <div className="comparison-loading">
+                            <Loader2 className="loading-spinner" size={48}/>
+                            <p>Finding common songs...</p>
+                        </div>
+                    ) : comparisonResults.length > 0 ? (
                         <div className="comparison-results">
                             <div className="comparison-table-header">
                                 <div className="common-songs-header">Common Songs</div>
@@ -330,7 +267,8 @@ function ComparePage() {
                                         onClick={() => handleSongClick(result)}
                                     >
                                         <div className="compare-song-info">
-                                            <div className="song-thumbnail"></div>
+                                            <div className="song-thumbnail"
+                                                 style={{backgroundImage: `url(${result.albumCover})`}}></div>
                                             <div className="song-details">
                                                 <div className="song-title">{result.title}</div>
                                                 <div className="song-artist">{result.artist}</div>
@@ -338,8 +276,8 @@ function ComparePage() {
                                         </div>
                                         <div className="song-frequency"
                                              onMouseEnter={(e) => handleSongMouseEnter(e, result)}
-                                             onMouseLeave={handleSongMouseLeave}>{
-                                            result.frequency}
+                                             onMouseLeave={handleSongMouseLeave}>
+                                            {result.frequency}
                                         </div>
                                     </div>
                                 ))}
@@ -399,18 +337,18 @@ function ComparePage() {
                     <div className="lyrical-match-popup">
                         {isLoading ? (
                             <div className="lyrical-match-loading">
-                                <Loader2 className="loading-spinner" size={48} />
+                                <Loader2 className="loading-spinner" size={48}/>
                                 <h2>Your lyrical soulmate is...</h2>
                             </div>
                         ) : (
                             <div className="lyrical-match-result">
                                 <button className="close-match-button" onClick={closeSoulmatePopup}>
-                                    <X size={24} />
+                                    <X size={24}/>
                                 </button>
                                 <h2>Your lyrical soulmate is...</h2>
                                 <h1 className="match-username">{soulmateResult}</h1>
                                 <div className="match-icon-container">
-                                    <Heart className="match-icon soulmate-icon" size={120} />
+                                    <Heart className="match-icon soulmate-icon" size={120}/>
                                 </div>
                             </div>
                         )}

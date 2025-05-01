@@ -26,7 +26,7 @@ describe('FriendSearchBar Component', () => {
         await act(async () => {
             render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
-        expect(screen.getByPlaceholderText('Search for friends...')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Enter a username')).toBeInTheDocument();
     });
 
     test('displays loading state while fetching users', async () => {
@@ -75,7 +75,7 @@ describe('FriendSearchBar Component', () => {
             render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
-        const searchInput = screen.getByPlaceholderText('Search for friends...');
+        const searchInput = screen.getByPlaceholderText('Enter a username');
         fireEvent.change(searchInput, { target: { value: 'test' } });
 
         await waitFor(() => {
@@ -90,7 +90,7 @@ describe('FriendSearchBar Component', () => {
             render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
-        const searchInput = screen.getByPlaceholderText('Search for friends...');
+        const searchInput = screen.getByPlaceholderText('Enter a username');
         fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
 
         await waitFor(() => {
@@ -103,7 +103,7 @@ describe('FriendSearchBar Component', () => {
             render(<FriendSearchBar onSelectFriend={mockOnSelectFriend} />);
         });
 
-        const searchInput = screen.getByPlaceholderText('Search for friends...');
+        const searchInput = screen.getByPlaceholderText('Enter a username');
         fireEvent.change(searchInput, { target: { value: 'test' } });
 
         await waitFor(() => {
@@ -121,6 +121,6 @@ describe('FriendSearchBar Component', () => {
         });
 
         expect(global.fetch).toHaveBeenCalled();
-        expect(screen.getByPlaceholderText('Search for friends...')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Enter a username')).toBeInTheDocument();
     });
 });
