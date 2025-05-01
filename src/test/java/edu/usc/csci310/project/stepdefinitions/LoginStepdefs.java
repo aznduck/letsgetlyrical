@@ -123,6 +123,13 @@ public class LoginStepdefs {
         assert driver.getPageSource().contains(text);
     }
 
+    @Then("I should see the password requirements error")
+    public void iShouldSeeThePasswordRequirementsError() {
+        WebElement errorElement = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector(".error-message")));
+        assert errorElement.getText().contains("Invalid input: password must contain a lowercase, uppercase, and number");
+    }
+
     @And("I press the Enter key")
     public void iPressTheEnterKey() {
         WebElement passwordField = wait.until(ExpectedConditions.elementToBeClickable(By.id("password")));

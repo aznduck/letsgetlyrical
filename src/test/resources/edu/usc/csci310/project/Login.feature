@@ -6,7 +6,7 @@ Feature: Login to the app
     And I click on "Sign in"
     Then I should be redirected to the landing page
     And I log out
-    Then I should be redirected back to the login page
+    And I should be redirected back to the login page
 
   Scenario: Login with invalid credentials
     Given I am on the login page
@@ -19,7 +19,7 @@ Feature: Login to the app
     Given I am on the login page
     When I enter "User1" for username AND "abc" for password
     And I click on "Sign in"
-    Then I should see an error message "Invalid input: password must contain a lowercase, uppercase, and number"
+    Then I should see the password requirements error
     And I should remain on the login page
 
   Scenario: Login with empty fields
@@ -35,7 +35,7 @@ Feature: Login to the app
     And I click on "Sign in"
     And I click on "Sign in"
     And I click on "Sign in"
-      And I click on "Sign in"
+    And I click on "Sign in"
     Then I should see an error message "Account locked."
 
   Scenario: Toggle between login and register
