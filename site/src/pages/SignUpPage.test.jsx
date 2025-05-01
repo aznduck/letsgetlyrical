@@ -51,7 +51,7 @@ describe("SignUpPage Component", () => {
 
         const passwordInput = screen.getByLabelText("Password");
         const confirmPasswordInput = screen.getByLabelText("Confirm Password")
-        const [passwordToggle, confirmPasswordToggle] = screen.getAllByRole("button", { name: /hide/i });
+        const [passwordToggle, confirmPasswordToggle] = screen.getAllByRole("button", { name: /Show/i });
 
         expect(passwordInput).toHaveAttribute("type", "password");
 
