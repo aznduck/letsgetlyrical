@@ -2,6 +2,7 @@ import { Heart, MoreHorizontal, AlignJustify, Lock, Globe, SquareMinus , Chevron
 import {useEffect, useRef, useState} from "react";
 import SongDetailsPopUp from "./SongDetailsPopUp"
 import "../styles/Favorites.css"
+import FavoriteService from "../services/FavoriteService"
 
 const mockFavorites = [
     { id: 1, title: "Song Title 1", artist: "Artist Name 1", album: "Album Name 1" },
@@ -40,17 +41,8 @@ function Favorites({ initialFavorites = null }) {
         if (!initialFavorites) {
             const fetchFavorites = async () => {
                 try {
-                    const yourData = {
-                        username: "johndoe",
-                        password: ""
-                    };
-                    const response = await fetch("/api/favorite/get", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(yourData)
-                    });
+                    const user = JSON.parse(localStorage.getItem("user"));
+                    const response = await FavoriteService.fetchFavorites(user.username);
 
                     const data = await response.json();
                     console.log(JSON.stringify(data));
