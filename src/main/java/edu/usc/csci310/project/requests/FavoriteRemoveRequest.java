@@ -1,16 +1,7 @@
 package edu.usc.csci310.project.requests;
 
-public class FavoriteRemoveRequest {
-    private String username;
+public class FavoriteRemoveRequest extends CreateUserRequest{
     private int songId;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String name) {
-        this.username = name;
-    }
 
     public int getSongId() {
         return songId;
