@@ -36,7 +36,24 @@ const FavoriteService = {
             return response;
         }
         catch(error) {
+            console.error(error);
+        }
+    },
 
+    removeFavorites: async(data) => {
+        try {
+            const response = await fetch("api/favorite/remove", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            return response;
+        }
+        catch(error) {
+            console.error(error);
         }
     }
 

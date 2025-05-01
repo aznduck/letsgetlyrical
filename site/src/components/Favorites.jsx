@@ -5,23 +5,24 @@ import "../styles/Favorites.css"
 import FavoriteService from "../services/FavoriteService"
 
 const mockFavorites = [
-    { id: 1, title: "Song Title 1", artist: "Artist Name 1", album: "Album Name 1" },
-    { id: 2, title: "Song Title 2", artist: "Artist Name 2", album: "Album Name 2" },
-    { id: 3, title: "Song Title 3", artist: "Artist Name 3", album: "Album Name 3" },
-    { id: 4, title: "Song Title 4", artist: "Artist Name 4", album: "Album Name 4" },
-    { id: 5, title: "Song Title 5", artist: "Artist Name 5", album: "Album Name 5" },
-    { id: 6, title: "Song Title 6", artist: "Artist Name 6", album: "Album Name 6" },
-    { id: 7, title: "Song Title 7", artist: "Artist Name 7", album: "Album Name 7" },
-    { id: 8, title: "Song Title 8", artist: "Artist Name 8", album: "Album Name 8" },
-    { id: 9, title: "Song Title 9", artist: "Artist Name 9", album: "Album Name 9" },
-    { id: 10, title: "Song Title 10", artist: "Artist Name 10", album: "Album Name 10" },
-    { id: 11, title: "Song Title 11", artist: "Artist Name 11", album: "Album Name 11" },
-    { id: 12, title: "Song Title 12", artist: "Artist Name 12", album: "Album Name 12" },
-    { id: 13, title: "Song Title 13", artist: "Artist Name 13", album: "Album Name 13" },
-    { id: 14, title: "Song Title 14", artist: "Artist Name 14", album: "Album Name 14" },
-    { id: 15, title: "Song Title 15", artist: "Artist Name 15", album: "Album Name 15" },
-    { id: 16, title: "Song Title longer with a much longer name", artist: "Artist Name 16", album: "Album Name 16" },
-]
+    { id: 1, title: "Song Title 1", artist: "Artist Name 1", album: "Album Name 1", songId: "1" },
+    { id: 2, title: "Song Title 2", artist: "Artist Name 2", album: "Album Name 2", songId: "2" },
+    { id: 3, title: "Song Title 3", artist: "Artist Name 3", album: "Album Name 3", songId: "3" },
+    { id: 4, title: "Song Title 4", artist: "Artist Name 4", album: "Album Name 4", songId: "4" },
+    { id: 5, title: "Song Title 5", artist: "Artist Name 5", album: "Album Name 5", songId: "5" },
+    { id: 6, title: "Song Title 6", artist: "Artist Name 6", album: "Album Name 6", songId: "6" },
+    { id: 7, title: "Song Title 7", artist: "Artist Name 7", album: "Album Name 7", songId: "7" },
+    { id: 8, title: "Song Title 8", artist: "Artist Name 8", album: "Album Name 8", songId: "8" },
+    { id: 9, title: "Song Title 9", artist: "Artist Name 9", album: "Album Name 9", songId: "9" },
+    { id: 10, title: "Song Title 10", artist: "Artist Name 10", album: "Album Name 10", songId: "10" },
+    { id: 11, title: "Song Title 11", artist: "Artist Name 11", album: "Album Name 11", songId: "11" },
+    { id: 12, title: "Song Title 12", artist: "Artist Name 12", album: "Album Name 12", songId: "12" },
+    { id: 13, title: "Song Title 13", artist: "Artist Name 13", album: "Album Name 13", songId: "13" },
+    { id: 14, title: "Song Title 14", artist: "Artist Name 14", album: "Album Name 14", songId: "14" },
+    { id: 15, title: "Song Title 15", artist: "Artist Name 15", album: "Album Name 15", songId: "15" },
+    { id: 16, title: "Song Title longer with a much longer name", artist: "Artist Name 16", album: "Album Name 16", songId: "16" },
+];
+
 
 function Favorites({ initialFavorites = null }) {
     const [showMenu, setShowMenu] = useState(false)
@@ -36,11 +37,6 @@ function Favorites({ initialFavorites = null }) {
     const [songToRemove, setSongToRemove] = useState(null)
 
     const timerRef = useRef(null)
-    const menuButtonRef = useRef(null)
-    const actionMenuRef = useRef(null)
-    const deleteModalRef = useRef(null)
-    const removeModalRef = useRef(null)
-    const lastFocusedElementRef = useRef(null)
 
     useEffect(() => {
         if (!initialFavorites) {
@@ -56,7 +52,8 @@ function Favorites({ initialFavorites = null }) {
 
                     if (Array.isArray(favoritesArray)) {
                         const withIds = favoritesArray.map((song, idx) => ({
-                            ...song
+                            ...song,
+                            id: idx+1 // overriding with front end assigned id
                         }));
                         setFavorites(withIds);
                     } else {
@@ -65,45 +62,13 @@ function Favorites({ initialFavorites = null }) {
                 }
                 catch(error) {
                     console.error("Failed to retrieve favorites: ", error);
-                    return { json: async () => ({ favorites: [] }) };
+                    setFavorites([]);
                 }
             };
 
             fetchFavorites();
         }
     }, [initialFavorites]);
-
-    useEffect(() => {
-        if (showDeleteConfirmation && deleteModalRef.current) {
-            lastFocusedElementRef.current = document.activeElement
-            deleteModalRef.current.focus()
-
-            const handleKeyDown = (e) => {
-                if (e.key === "Escape") {
-                    handleCancelDelete()
-                }
-            }
-
-            document.addEventListener("keydown", handleKeyDown)
-            return () => document.removeEventListener("keydown", handleKeyDown)
-        }
-    }, [showDeleteConfirmation])
-
-    useEffect(() => {
-        if (showRemoveConfirmation && removeModalRef.current) {
-            lastFocusedElementRef.current = document.activeElement
-            removeModalRef.current.focus()
-
-            const handleKeyDown = (e) => {
-                if (e.key === "Escape") {
-                    handleCancelRemoveSong()
-                }
-            }
-
-            document.addEventListener("keydown", handleKeyDown)
-            return () => document.removeEventListener("keydown", handleKeyDown)
-        }
-    }, [showRemoveConfirmation])
 
     const toggleMenu = () => {
         setShowMenu(!showMenu)
@@ -124,19 +89,11 @@ function Favorites({ initialFavorites = null }) {
 
     const handleCancelDelete = () => {
         setShowDeleteConfirmation(false)
-
-        if (menuButtonRef.current) {
-            menuButtonRef.current.focus()
-        }
     }
 
     const handleConfirmDelete = () => {
         setFavorites([])
         setShowDeleteConfirmation(false)
-
-        if (menuButtonRef.current) {
-            menuButtonRef.current.focus()
-        }
     }
 
     const handleSongClick = (song) => {
@@ -145,17 +102,13 @@ function Favorites({ initialFavorites = null }) {
 
     const closeSongDetails = () => {
         setSelectedSong(null)
-
-        if (lastFocusedElementRef.current) {
-            lastFocusedElementRef.current.focus()
-        }
     }
 
     const handleSongHover = (e, index) => {
-        lastFocusedElementRef.current = e.currentTarget
-
+        // Get the position of the hovered song title
         const rect = e.currentTarget.getBoundingClientRect()
 
+        // Position the menu to the left of the song title
         setActionMenuPosition({
             top: rect.top + window.scrollY + 25,
             left: rect.left + window.scrollX - 20,
@@ -175,10 +128,6 @@ function Favorites({ initialFavorites = null }) {
     const closeActionMenu = () => {
         setShowActionMenu(false)
         setSelectedSongIndex(null)
-
-        if (lastFocusedElementRef.current) {
-            lastFocusedElementRef.current.focus()
-        }
     }
 
     const moveSongUp = () => {
@@ -221,32 +170,41 @@ function Favorites({ initialFavorites = null }) {
         closeActionMenu()
     }
 
-    const handleConfirmRemoveSong = () => {
-        const newFavorites = favorites.filter(
-            (_, index) => index !== favorites.findIndex((song) => song.id === songToRemove.id),
-        )
+    const handleConfirmRemoveSong = async () => {
+        const newFavorites = favorites.filter((song) => song.songId !== songToRemove.songId)
+            .map((song, index) => ({
+                ...song,
+                id: index + 1, // reset id starting from 1
+            }));
 
         // Update the IDs to maintain sequential order
         newFavorites.forEach((song, index) => {
             song.id = index + 1
         })
 
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        console.log(songToRemove);
+
+        const dataToPass = {
+            username: user.username,
+            songId: songToRemove.songId
+        }
+
+        const response = await FavoriteService.removeFavorites(dataToPass)
+
+        const data = await response.json();
+        console.log("Remove results:");
+        console.log(JSON.stringify(data));
+
         setFavorites(newFavorites)
         setShowRemoveConfirmation(false)
         setSongToRemove(null)
-
-        if (menuButtonRef.current) {
-            menuButtonRef.current.focus()
-        }
     }
 
     const handleCancelRemoveSong = () => {
         setShowRemoveConfirmation(false)
         setSongToRemove(null)
-
-        if (menuButtonRef.current) {
-            menuButtonRef.current.focus()
-        }
     }
 
 
@@ -254,12 +212,6 @@ function Favorites({ initialFavorites = null }) {
     const handleClickOutside = (e) => {
         if (!e.target.closest(".favorites-menu-button") && !e.target.closest(".favorites-popup-menu")) {
             setShowMenu(false)
-        }
-    }
-
-    const handleActionMenuKeyDown = (e) => {
-        if (e.key === "Escape") {
-            closeActionMenu()
         }
     }
 
@@ -275,19 +227,13 @@ function Favorites({ initialFavorites = null }) {
     }, [])
 
     return (
-        <div className="favorites-section"
-             role="region"
-             aria-label="Your Favorites">
+        <div className="favorites-section">
 
             {showDeleteConfirmation && (
-                <div className="delete-modal-overlay"
-                     role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title"
-                >
-                    <div className="confirmation-dialog"
-                         ref={deleteModalRef} tabIndex={-1}
-                    >
-                        <h2 id="delete-dialog-title">Are you sure?</h2>
-                        <p id="delete-dialog-description"> This will delete your entire favorites list.</p>
+                <div className="delete-modal-overlay">
+                    <div className="confirmation-dialog">
+                        <h2>Are you sure?</h2>
+                        <p>This will delete your entire favorites list.</p>
                         <div className="confirmation-actions">
                             <button className="cancel-button" onClick={handleCancelDelete}>
                                 Cancel
@@ -301,14 +247,10 @@ function Favorites({ initialFavorites = null }) {
             )}
 
             {showRemoveConfirmation && (
-                <div className="delete-modal-overlay"
-                     role="dialog" aria-modal="true" aria-labelledby="remove-dialog-title"
-                >
-                    <div className="confirmation-dialog"
-                         ref={removeModalRef} tabIndex={-1}
-                    >
-                        <h2 id="remove-dialog-title">Remove Song</h2>
-                        <p id="remove-dialog-description">Are you sure you want to remove "{songToRemove?.title}" from your favorites?</p>
+                <div className="delete-modal-overlay">
+                    <div className="confirmation-dialog">
+                        <h2>Remove Song</h2>
+                        <p>Are you sure you want to remove "{songToRemove?.title}" from your favorites?</p>
                         <div className="confirmation-actions">
                             <button className="cancel-button" onClick={handleCancelRemoveSong}>
                                 Cancel
@@ -340,87 +282,59 @@ function Favorites({ initialFavorites = null }) {
                         }
                     }}
                     onMouseLeave={closeActionMenu}
-                    onKeyDown={handleActionMenuKeyDown}
-                    ref={actionMenuRef}
-                    role="menu"
-                    aria-label="Song actions"
-                    tabIndex={-1}
                 >
                     <div className="action-menu-header">
-                        <span id="move-song-label">Move song</span>
+                        <span>Move song</span>
                         <div className="action-menu-buttons">
                             <button className="action-menu-button" onClick={moveSongUp}
-                                    disabled={selectedSongIndex === 0}
-                                    aria-label="Move song up"
-                                    role="menuitem">
+                                    disabled={selectedSongIndex === 0}>
                                 <div className="up-button">
-                                    <ChevronUp size={18} aria-hidden="true"/>
+                                    <ChevronUp size={18}/>
                                 </div>
                             </button>
                             <button
                                 className="action-menu-button"
                                 onClick={moveSongDown}
                                 disabled={selectedSongIndex === favorites.length - 1}
-                                aria-label="Move song down"
-                                role="menuitem">
+                            >
                                 <div className="down-button">
-                                    <ChevronDown size={18} aria-hidden="true"/>
+                                    <ChevronDown size={18}/>
                                 </div>
                             </button>
                         </div>
                     </div>
-                    <div className="action-menu-divider" role="separator"></div>
-                    <button className="remove-song-button" onClick={removeSong}
-                            role="menuitem"
-                            aria-label="Remove song from favorites">
+                    <div className="action-menu-divider"></div>
+                    <button className="remove-song-button" onClick={removeSong}>
                         Remove song
                     </button>
                 </div>
             )}
 
             <div className="favorites-header">
-                <div className="favorites-title" >
-                    <Heart size={20} aria-hidden="true"/>
-                    <h2 id="favorites-heading">Your Favorites</h2>
+                <div className="favorites-title">
+                    <Heart size={20} />
+                    <h2>Your Favorites</h2>
                 </div>
                 <div className="favorites-menu-container">
-                    <button className="favorites-menu-button"
-                            aria-label="Favorites menu"
-                            onClick={toggleMenu}
-                            aria-expanded={showMenu}
-                            aria-haspopup="true"
-                            ref={menuButtonRef}
-                    >
-                        <AlignJustify size={20} aria-hidden="true"/>
+                    <button className="favorites-menu-button" aria-label="Favorites menu" onClick={toggleMenu}>
+                        <AlignJustify size={20}/>
                     </button>
 
                     {showMenu && (
-                        <div className="favorites-popup-menu"
-                             role="menu" aria-labelledby="favorites-menu-label">
-                            <span id="favorites-menu-label" className="sr-only">
-                                 Favorites options
-                             </span>
-                            <button className={`popup-menu-item ${isPrivate ? "selected" : ""}`}
-                                    onClick={setPrivateMode}
-                                    role="menuitem"
-                                    aria-pressed={isPrivate}>
-                                <Lock size={20} aria-hidden="true"/>
+                        <div className="favorites-popup-menu">
+                            <button className={`popup-menu-item ${isPrivate ? "selected" : ""}`} onClick={setPrivateMode}>
+                                <Lock size={20} />
                                 <span>Private</span>
                                 {isPrivate}
                             </button>
-                            <button className={`popup-menu-item ${!isPrivate ? "selected" : ""}`}
-                                    onClick={setPublicMode}
-                                    role="menuitem"
-                                    aria-pressed={!isPrivate}>
-                                <Globe size={20} aria-hidden="true"/>
+                            <button className={`popup-menu-item ${!isPrivate ? "selected" : ""}`} onClick={setPublicMode}>
+                                <Globe size={20} />
                                 <span>Public</span>
                                 {!isPrivate}
                             </button>
-                            <div className="popup-menu-divider" role="separator"></div>
-                            <button className="popup-menu-item popup-menu-item-delete"
-                                    onClick={handleDeleteClick}
-                                    role="menuitem">
-                                <SquareMinus size={20} aria-hidden="true"/>
+                            <div className="popup-menu-divider"></div>
+                            <button className="popup-menu-item popup-menu-item-delete" onClick={handleDeleteClick}>
+                                <SquareMinus size={20} />
                                 <span>Delete</span>
                             </button>
                         </div>
@@ -428,48 +342,34 @@ function Favorites({ initialFavorites = null }) {
                 </div>
             </div>
 
-            <div className="favorites-table-header" role="rowgroup">
-                <div className="favorites-column-header" role="columnheader">#</div>
-                <div className="favorites-column-header" role="columnheader">Song</div>
-                <div className="favorites-column-header" role="columnheader"></div>
+            <div className="favorites-table-header">
+                <div className="favorites-column-header">#</div>
+                <div className="favorites-column-header">Song</div>
+                <div className="favorites-column-header"></div>
             </div>
 
-            <div className="favorites-list"
-                 role="table"
-                 aria-labelledby="favorites-heading"
-            >
+            <div className="favorites-list">
                 {favorites.length > 0 ? (
                     favorites.map((song, index) => (
-                        <div key={song.id} className="favorite-item" role="row">
-                            <div className="favorite-number" role="cell">{song.id}</div>
+                        <div key={song.id} className="favorite-item">
+                            <div className="favorite-number">{song.id}</div>
                             <div
                                 className="favorite-title"
                                 onClick={() => handleSongClick(song)}
                                 onMouseEnter={(e) => handleSongHover(e, index)}
-                                data-testid="list-song-title"
-                                role="cell"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        handleSongClick(song)
-                                        e.preventDefault()
-                                    }
-                                }}
-                                aria-label={`View details for ${song.title}`}
-                            >
+                                data-testid="list-song-title">
                                 {song.title}
                             </div>
-                            <div className="favorite-actions" role="cell">
-                                <button className="favorite-action-button" onClick={() => handleSongHover(song)}
-                                        aria-label={`Actions for ${song.title}`}>
+                            <div className="favorite-actions">
+                                <button className="favorite-action-button" onClick={(e) => handleSongHover(e, index)} aria-label={`Actions for ${song.title}`}>
                                     <MoreHorizontal size={16} aria-hidden="true"/>
                                 </button>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="empty-favorites" role="cell">
-                        <p role="cell">No favorites yet</p>
+                    <div className="empty-favorites">
+                        <p>No favorites yet</p>
                     </div>
                 )}
             </div>
