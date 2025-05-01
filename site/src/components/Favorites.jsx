@@ -361,8 +361,8 @@ function Favorites({ initialFavorites = null }) {
                                 {song.title}
                             </div>
                             <div className="favorite-actions">
-                                <button className="favorite-action-button" onClick={(e) => handleSongHover(e, index)}>
-                                    <MoreHorizontal size={16}/>
+                                <button className="favorite-action-button" onClick={(e) => handleSongHover(e, index)} aria-label={`Actions for ${song.title}`}>
+                                    <MoreHorizontal size={16} aria-hidden="true"/>
                                 </button>
                             </div>
                         </div>
