@@ -43,7 +43,7 @@ describe('LandingPage Component', () => {
     });
 
     test('renders cloud graphic and action buttons', () => {
-        expect(screen.getByAltText('Cloud with Welcome back text')).toBeInTheDocument();
+        expect(screen.getByAltText('Welcome back graphic with decorative word cloud')).toBeInTheDocument();
         expect(screen.getByText('Generate favorites cloud')).toBeInTheDocument();
         expect(screen.getByText('Compare with friends!')).toBeInTheDocument();
     });

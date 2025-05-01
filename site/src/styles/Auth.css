@@ -36,7 +36,7 @@ body {
 }
 
 .auth-logo {
-    max-width: 300px;
+    max-width: 200px;
     height: auto;
 }
 
@@ -380,6 +380,13 @@ input {
 .log-in-footer a:hover,
 .sign-up-subtitle a:hover {
     text-decoration: underline;
+}
+
+.skip-link:focus {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10000;
 }
 
 

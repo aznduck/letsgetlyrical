@@ -1,11 +1,14 @@
 package edu.usc.csci310.project.stepdefinitions;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.And;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+
+import java.util.List;
 
 import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -149,5 +152,11 @@ public class WordCloudStepdefs {
         waitUntilElementIsVisible(By.className("word-table-container"));
         assertFalse(driver.findElements(By.className("word-table-container")).isEmpty(),
                 "Word cloud did not switch to table view.");
+    }
+
+    @And("the following friends have public favorite song lists:")
+    public void theFollowingFriendsHavePublicFavoriteSongLists(DataTable dataTable) {
+        List<String> usernames = dataTable.asList(String.class);
+
     }
 }
