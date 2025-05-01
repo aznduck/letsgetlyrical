@@ -60,6 +60,7 @@ function Favorites({ initialFavorites = null }) {
                 }
                 catch(error) {
                     console.error("Failed to retrieve favorites: ", error);
+                    return { json: async () => ({ favorites: [] }) };
                 }
             };
 
