@@ -259,9 +259,9 @@ public class WordCloudStepdefs {
                 "Word cloud did not switch to table view.");
     }
 
-    @And("the following friends have public favorite song lists:")
-    public void theFollowingFriendsHavePublicFavoriteSongLists(DataTable dataTable) {
-        List<String> usernames = dataTable.asList(String.class);
-
-    }
+//    @And("the following friends have public favorite song lists:")
+//    public void theFollowingFriendsHavePublicFavoriteSongLists(DataTable dataTable) {
+//        List<String> usernames = dataTable.asList(String.class);
+//
+//    }
 }
