@@ -157,13 +157,6 @@ function App() {
                         }
                     />
 
-                    <Route
-                        path="/compare"
-                        element={
-                            <ComparePage />
-                        }
-                    />
-
                     {/* Protected Routes */}
                     <Route
                         path="/landing"
@@ -211,6 +204,15 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+
+                    {/* Unprotected direct access routes */}
+                    <Route path="/test/landing" element={<LandingPage />} />
+                    <Route path="/test/favscloud" element={<FavsCloudPage />} />
+                    <Route path="/test/search" element={<SearchPage />} />
+                    <Route path="/test/wordcloud" element={<Wordcloud />} />
+                    <Route path="/test/compare" element={<ComparePage />} />
+                    <Route path="/test/login" element={<LoginPage />} />
+                    <Route path="/test/signup" element={<SignupPage />} />
 
                     {/* Catch all route - redirect to landing if logged in, otherwise login */}
                     <Route

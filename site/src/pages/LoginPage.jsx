@@ -49,7 +49,7 @@ const LoginPage = () => {
         if(response.status === HTTP_STATUS_OK) {
             setMessage(data.username);
             login({ username });
-        //     redirect in 3 seconds to landing page
+        //     redirect in 2 seconds to landing page
             setTimeout(() => {
                 navigate("/landing");
             }, 2000);
@@ -80,6 +80,9 @@ const LoginPage = () => {
                 setError(data.username);
             }
         }
+        if (error) {
+            document.getElementById("username").focus()
+        }
     }
 
     // resets the lockout period
@@ -95,19 +98,32 @@ const LoginPage = () => {
         return () => clearInterval(interval); // Cleanup on unmount
     }, []);
 
+    useEffect(() => {
+        document.getElementById("username").focus()
+    }, [])
+
     return (
         <AuthLayout>
             <div className="log-in-container">
-                <form onSubmit={handleSubmit} className="log-in-form">
-                    <h1>Sign in</h1>
+                <form onSubmit={handleSubmit} className="log-in-form" aria-labelledby="signin-heading">
+                    <h1 id="signin-heading">Sign in</h1>
 
-                    {error && <div className="error-message">{error}</div>}
-                    {message && <div className="login-message">{message}</div>}
+                    {error && <div className="error-message"
+                                   role="alert" aria-live="assertive">{error}</div>}
+                    {message && <div className="login-message"
+                                     role="status" aria-live="polite">{message}</div>}
 
                     <div className="form-group">
                         <label htmlFor="username">Username</label>
-                        <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)}
-                               required/>
+                        <input id="username"
+                               type="text"
+                               value={username}
+                               onChange={(e) => setUsername(e.target.value)}
+                               aria-required="true"
+                               aria-invalid={error && error.includes("username") ? "true" : "false"}
+                               aria-describedby={error && error.includes("username") ? "username-error" : undefined}
+                               required
+                        />
                     </div>
 
                     <PasswordInput
@@ -117,12 +133,14 @@ const LoginPage = () => {
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
-                    <button type="submit" className="submit-button">
+                    <button type="submit" className="submit-button"
+                            aria-busy={message ? "true" : "false"}>
                         Sign in
                     </button>
 
                     <div className="log-in-footer">
-                        Don't have an account? <Link to="/signup">Sign up</Link>
+                        Don't have an account? <Link to="/signup"
+                                                     aria-label="Sign up for a new account">Sign up</Link>
                     </div>
                 </form>
             </div>

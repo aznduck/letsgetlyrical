@@ -64,7 +64,7 @@ describe("PasswordInput Component", () => {
         }))
 
         render(<PasswordInput {...defaultProps} />)
-        const toggleButton = screen.getByRole("button", { name: /hide/i })
+        const toggleButton = screen.getByRole("button", { name: /Show/i })
         fireEvent.click(toggleButton)
         expect(mockToggle).toHaveBeenCalled()
     })

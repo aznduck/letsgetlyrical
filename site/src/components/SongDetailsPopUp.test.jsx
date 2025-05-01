@@ -48,7 +48,7 @@ describe("SongDetailsPopUp Component", () => {
         render(<SongDetailsPopUp song={mockSong} onClose={mockOnClose} />)
 
         // Click close button
-        const closeButton = screen.getByLabelText("Close")
+        const closeButton = screen.getByLabelText("Close song details")
         fireEvent.click(closeButton)
 
         // Check if onClose was called
