@@ -47,8 +47,9 @@ const SearchPage = () => {
                 try {
                     const artists = await GeniusService.searchArtist(query);
                     if (artists && artists.length > 0) {
-                        setPotentialArtists(artists);
-                        setShowArtistPopup(true)
+                        const filteredArtists = Array.from(new Map(artists.map(a => [a.artist_id, a])).values())
+                        setPotentialArtists(filteredArtists);
+                        setShowArtistPopup(true);
                     } else {
                         setError(`No artists found matching "${query}". Please try a different search term.`);
                         setPotentialArtists([]);
