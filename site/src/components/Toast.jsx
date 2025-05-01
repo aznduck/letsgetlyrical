@@ -34,8 +34,12 @@ function Toast({ message, type, visible, onClose }) {
         <div
             className={`toast-container ${type === "success" ? "toast-success" : "toast-error"}`}
             onClick={onClose} // Add click handler to close on click anywhere on the toast
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            tabIndex={-1}
         >
-            <span className="toast-icon">{type === "success" ? "✓" : "✕"}</span>
+            <span className="toast-icon" aria-hidden="true">{type === "success" ? "✓" : "✕"}</span>
             <span className="toast-message">{message}</span>
         </div>
     )

@@ -130,6 +130,7 @@ describe("ComparePage Component", () => {
         // Just check that the username appears in the document after selection
         // This will pass as long as the username is displayed somewhere
         expect(screen.getByText("testuser")).toBeInTheDocument()
+
     })
 
     test("prevents duplicate friend selection", async () => {
@@ -170,6 +171,7 @@ describe("ComparePage Component", () => {
         expect(screen.getByText("Your lyrical soulmate is...")).toBeInTheDocument()
         act(() => jest.advanceTimersByTime(2000))
         await waitFor(() => expect(screen.getByText("maliahotan")).toBeInTheDocument())
+
     })
 
     test("handles find enemy button click", async () => {
@@ -177,8 +179,10 @@ describe("ComparePage Component", () => {
         render(<ComparePage />)
         fireEvent.click(screen.getByText("Find Lyrical Enemy"))
         expect(screen.getByText("Your lyrical enemy is...")).toBeInTheDocument()
+
         act(() => jest.advanceTimersByTime(2000))
         await waitFor(() => expect(screen.getByText("maliahotan")).toBeInTheDocument())
+
     })
 
     test("handles logout button", () => {
@@ -188,3 +192,4 @@ describe("ComparePage Component", () => {
         expect(mockNavigate).toHaveBeenCalledWith("/login")
     })
 })
+

@@ -36,6 +36,11 @@ function Favorites({ initialFavorites = null }) {
     const [songToRemove, setSongToRemove] = useState(null)
 
     const timerRef = useRef(null)
+    const menuButtonRef = useRef(null)
+    const actionMenuRef = useRef(null)
+    const deleteModalRef = useRef(null)
+    const removeModalRef = useRef(null)
+    const lastFocusedElementRef = useRef(null)
 
     useEffect(() => {
         if (!initialFavorites) {
@@ -68,6 +73,38 @@ function Favorites({ initialFavorites = null }) {
         }
     }, [initialFavorites]);
 
+    useEffect(() => {
+        if (showDeleteConfirmation && deleteModalRef.current) {
+            lastFocusedElementRef.current = document.activeElement
+            deleteModalRef.current.focus()
+
+            const handleKeyDown = (e) => {
+                if (e.key === "Escape") {
+                    handleCancelDelete()
+                }
+            }
+
+            document.addEventListener("keydown", handleKeyDown)
+            return () => document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [showDeleteConfirmation])
+
+    useEffect(() => {
+        if (showRemoveConfirmation && removeModalRef.current) {
+            lastFocusedElementRef.current = document.activeElement
+            removeModalRef.current.focus()
+
+            const handleKeyDown = (e) => {
+                if (e.key === "Escape") {
+                    handleCancelRemoveSong()
+                }
+            }
+
+            document.addEventListener("keydown", handleKeyDown)
+            return () => document.removeEventListener("keydown", handleKeyDown)
+        }
+    }, [showRemoveConfirmation])
+
     const toggleMenu = () => {
         setShowMenu(!showMenu)
     }
@@ -87,11 +124,19 @@ function Favorites({ initialFavorites = null }) {
 
     const handleCancelDelete = () => {
         setShowDeleteConfirmation(false)
+
+        if (menuButtonRef.current) {
+            menuButtonRef.current.focus()
+        }
     }
 
     const handleConfirmDelete = () => {
         setFavorites([])
         setShowDeleteConfirmation(false)
+
+        if (menuButtonRef.current) {
+            menuButtonRef.current.focus()
+        }
     }
 
     const handleSongClick = (song) => {
@@ -100,13 +145,17 @@ function Favorites({ initialFavorites = null }) {
 
     const closeSongDetails = () => {
         setSelectedSong(null)
+
+        if (lastFocusedElementRef.current) {
+            lastFocusedElementRef.current.focus()
+        }
     }
 
     const handleSongHover = (e, index) => {
-        // Get the position of the hovered song title
+        lastFocusedElementRef.current = e.currentTarget
+
         const rect = e.currentTarget.getBoundingClientRect()
 
-        // Position the menu to the left of the song title
         setActionMenuPosition({
             top: rect.top + window.scrollY + 25,
             left: rect.left + window.scrollX - 20,
@@ -126,6 +175,10 @@ function Favorites({ initialFavorites = null }) {
     const closeActionMenu = () => {
         setShowActionMenu(false)
         setSelectedSongIndex(null)
+
+        if (lastFocusedElementRef.current) {
+            lastFocusedElementRef.current.focus()
+        }
     }
 
     const moveSongUp = () => {
@@ -181,11 +234,19 @@ function Favorites({ initialFavorites = null }) {
         setFavorites(newFavorites)
         setShowRemoveConfirmation(false)
         setSongToRemove(null)
+
+        if (menuButtonRef.current) {
+            menuButtonRef.current.focus()
+        }
     }
 
     const handleCancelRemoveSong = () => {
         setShowRemoveConfirmation(false)
         setSongToRemove(null)
+
+        if (menuButtonRef.current) {
+            menuButtonRef.current.focus()
+        }
     }
 
 
@@ -193,6 +254,12 @@ function Favorites({ initialFavorites = null }) {
     const handleClickOutside = (e) => {
         if (!e.target.closest(".favorites-menu-button") && !e.target.closest(".favorites-popup-menu")) {
             setShowMenu(false)
+        }
+    }
+
+    const handleActionMenuKeyDown = (e) => {
+        if (e.key === "Escape") {
+            closeActionMenu()
         }
     }
 
@@ -208,13 +275,19 @@ function Favorites({ initialFavorites = null }) {
     }, [])
 
     return (
-        <div className="favorites-section">
+        <div className="favorites-section"
+             role="region"
+             aria-label="Your Favorites">
 
             {showDeleteConfirmation && (
-                <div className="delete-modal-overlay">
-                    <div className="confirmation-dialog">
-                        <h2>Are you sure?</h2>
-                        <p>This will delete your entire favorites list.</p>
+                <div className="delete-modal-overlay"
+                     role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title"
+                >
+                    <div className="confirmation-dialog"
+                         ref={deleteModalRef} tabIndex={-1}
+                    >
+                        <h2 id="delete-dialog-title">Are you sure?</h2>
+                        <p id="delete-dialog-description"> This will delete your entire favorites list.</p>
                         <div className="confirmation-actions">
                             <button className="cancel-button" onClick={handleCancelDelete}>
                                 Cancel
@@ -228,10 +301,14 @@ function Favorites({ initialFavorites = null }) {
             )}
 
             {showRemoveConfirmation && (
-                <div className="delete-modal-overlay">
-                    <div className="confirmation-dialog">
-                        <h2>Remove Song</h2>
-                        <p>Are you sure you want to remove "{songToRemove?.title}" from your favorites?</p>
+                <div className="delete-modal-overlay"
+                     role="dialog" aria-modal="true" aria-labelledby="remove-dialog-title"
+                >
+                    <div className="confirmation-dialog"
+                         ref={removeModalRef} tabIndex={-1}
+                    >
+                        <h2 id="remove-dialog-title">Remove Song</h2>
+                        <p id="remove-dialog-description">Are you sure you want to remove "{songToRemove?.title}" from your favorites?</p>
                         <div className="confirmation-actions">
                             <button className="cancel-button" onClick={handleCancelRemoveSong}>
                                 Cancel
@@ -263,59 +340,87 @@ function Favorites({ initialFavorites = null }) {
                         }
                     }}
                     onMouseLeave={closeActionMenu}
+                    onKeyDown={handleActionMenuKeyDown}
+                    ref={actionMenuRef}
+                    role="menu"
+                    aria-label="Song actions"
+                    tabIndex={-1}
                 >
                     <div className="action-menu-header">
-                        <span>Move song</span>
+                        <span id="move-song-label">Move song</span>
                         <div className="action-menu-buttons">
                             <button className="action-menu-button" onClick={moveSongUp}
-                                    disabled={selectedSongIndex === 0}>
+                                    disabled={selectedSongIndex === 0}
+                                    aria-label="Move song up"
+                                    role="menuitem">
                                 <div className="up-button">
-                                    <ChevronUp size={18}/>
+                                    <ChevronUp size={18} aria-hidden="true"/>
                                 </div>
                             </button>
                             <button
                                 className="action-menu-button"
                                 onClick={moveSongDown}
                                 disabled={selectedSongIndex === favorites.length - 1}
-                            >
+                                aria-label="Move song down"
+                                role="menuitem">
                                 <div className="down-button">
-                                    <ChevronDown size={18}/>
+                                    <ChevronDown size={18} aria-hidden="true"/>
                                 </div>
                             </button>
                         </div>
                     </div>
-                    <div className="action-menu-divider"></div>
-                    <button className="remove-song-button" onClick={removeSong}>
+                    <div className="action-menu-divider" role="separator"></div>
+                    <button className="remove-song-button" onClick={removeSong}
+                            role="menuitem"
+                            aria-label="Remove song from favorites">
                         Remove song
                     </button>
                 </div>
             )}
 
             <div className="favorites-header">
-                <div className="favorites-title">
-                    <Heart size={20} />
-                    <h2>Your Favorites</h2>
+                <div className="favorites-title" >
+                    <Heart size={20} aria-hidden="true"/>
+                    <h2 id="favorites-heading">Your Favorites</h2>
                 </div>
                 <div className="favorites-menu-container">
-                    <button className="favorites-menu-button" aria-label="Favorites menu" onClick={toggleMenu}>
-                        <AlignJustify size={20}/>
+                    <button className="favorites-menu-button"
+                            aria-label="Favorites menu"
+                            onClick={toggleMenu}
+                            aria-expanded={showMenu}
+                            aria-haspopup="true"
+                            ref={menuButtonRef}
+                    >
+                        <AlignJustify size={20} aria-hidden="true"/>
                     </button>
 
                     {showMenu && (
-                        <div className="favorites-popup-menu">
-                            <button className={`popup-menu-item ${isPrivate ? "selected" : ""}`} onClick={setPrivateMode}>
-                                <Lock size={20} />
+                        <div className="favorites-popup-menu"
+                             role="menu" aria-labelledby="favorites-menu-label">
+                            <span id="favorites-menu-label" className="sr-only">
+                                 Favorites options
+                             </span>
+                            <button className={`popup-menu-item ${isPrivate ? "selected" : ""}`}
+                                    onClick={setPrivateMode}
+                                    role="menuitem"
+                                    aria-pressed={isPrivate}>
+                                <Lock size={20} aria-hidden="true"/>
                                 <span>Private</span>
                                 {isPrivate}
                             </button>
-                            <button className={`popup-menu-item ${!isPrivate ? "selected" : ""}`} onClick={setPublicMode}>
-                                <Globe size={20} />
+                            <button className={`popup-menu-item ${!isPrivate ? "selected" : ""}`}
+                                    onClick={setPublicMode}
+                                    role="menuitem"
+                                    aria-pressed={!isPrivate}>
+                                <Globe size={20} aria-hidden="true"/>
                                 <span>Public</span>
                                 {!isPrivate}
                             </button>
-                            <div className="popup-menu-divider"></div>
-                            <button className="popup-menu-item popup-menu-item-delete" onClick={handleDeleteClick}>
-                                <SquareMinus size={20} />
+                            <div className="popup-menu-divider" role="separator"></div>
+                            <button className="popup-menu-item popup-menu-item-delete"
+                                    onClick={handleDeleteClick}
+                                    role="menuitem">
+                                <SquareMinus size={20} aria-hidden="true"/>
                                 <span>Delete</span>
                             </button>
                         </div>
@@ -323,34 +428,48 @@ function Favorites({ initialFavorites = null }) {
                 </div>
             </div>
 
-            <div className="favorites-table-header">
-                <div className="favorites-column-header">#</div>
-                <div className="favorites-column-header">Song</div>
-                <div className="favorites-column-header"></div>
+            <div className="favorites-table-header" role="rowgroup">
+                <div className="favorites-column-header" role="columnheader">#</div>
+                <div className="favorites-column-header" role="columnheader">Song</div>
+                <div className="favorites-column-header" role="columnheader"></div>
             </div>
 
-            <div className="favorites-list">
+            <div className="favorites-list"
+                 role="table"
+                 aria-labelledby="favorites-heading"
+            >
                 {favorites.length > 0 ? (
                     favorites.map((song, index) => (
-                        <div key={song.id} className="favorite-item">
-                            <div className="favorite-number">{song.id}</div>
+                        <div key={song.id} className="favorite-item" role="row">
+                            <div className="favorite-number" role="cell">{song.id}</div>
                             <div
                                 className="favorite-title"
                                 onClick={() => handleSongClick(song)}
                                 onMouseEnter={(e) => handleSongHover(e, index)}
-                                data-testid="list-song-title">
+                                data-testid="list-song-title"
+                                role="cell"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        handleSongClick(song)
+                                        e.preventDefault()
+                                    }
+                                }}
+                                aria-label={`View details for ${song.title}`}
+                            >
                                 {song.title}
                             </div>
-                            <div className="favorite-actions">
-                                <button className="favorite-action-button" onClick={() => handleSongHover(song)}>
-                                    <MoreHorizontal size={16}/>
+                            <div className="favorite-actions" role="cell">
+                                <button className="favorite-action-button" onClick={() => handleSongHover(song)}
+                                        aria-label={`Actions for ${song.title}`}>
+                                    <MoreHorizontal size={16} aria-hidden="true"/>
                                 </button>
                             </div>
                         </div>
                     ))
                 ) : (
-                    <div className="empty-favorites">
-                        <p>No favorites yet</p>
+                    <div className="empty-favorites" role="cell">
+                        <p role="cell">No favorites yet</p>
                     </div>
                 )}
             </div>

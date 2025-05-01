@@ -37,6 +37,7 @@ const FriendSearchBar = ({ onSelectFriend }) => {
     return (
         <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto' }}>
             <input
+                id="friend-search"
                 type="text"
                 placeholder="Enter a username"
                 value={query}
@@ -85,6 +86,7 @@ const FriendSearchBar = ({ onSelectFriend }) => {
                                 e.currentTarget.style.backgroundColor = '#000';
                             }}
                         >
+
                             {user.username}
                         </li>
                     ))}
