@@ -57,7 +57,7 @@ public class FavoriteService {
             throw new RuntimeException(e);
         }
 
-        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, album, lyrics) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, lyrics, album) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(insertSongsSQL)) {
             if(isSongAdded(songId)) {
                 result = 0; // represents song is already in DB
