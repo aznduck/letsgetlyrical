@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect } from "react"; // Import useEffect
 import LyricsPopup from "./LyricsPopUp";
 import Toast from "./Toast";
 import "../styles/SongList.css";
+import FavoriteService from "../services/FavoriteService"
 
 
 function SongList({ searchTerm, songs, onClose, lyricsMap }) {
@@ -54,8 +55,33 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
         }));
     }, []);
 
-    const handleAddToFavorites = (song) => {
+    const handleAddToFavorites = async (song) => {
         const isFavorited = favorites.some((fav) => (fav.id || fav.url) === (song.id || song.url));
+
+        // console.log("Poggers");
+        // console.log(song);
+        // console.log("Lyrics");
+        // console.log(lyricsMap.get(song.id));
+        // console.log(lyricsMap)
+
+        const allData = {...song, username: localStorage.getItem("user")};
+        const dataToPass = {
+            username: JSON.parse(allData.username)?.username ?? allData.username,
+            songId: allData.id,
+            songName: allData.title,
+            songArtist: allData.artist,
+            // fullTitle: allData.title + (allData.featuring ? ` (feat. ${allData.featuring})` : ""),
+            fullTitle: allData.fullTitle,
+            dateReleased: allData.dateReleased,
+            album: allData.album,
+            lyrics: lyricsMap.get(allData.id)
+        }
+        // console.log(dataToPass)
+
+        const response = await FavoriteService.addToFavorites(dataToPass);
+        const data = await response.json();
+        console.log("response:");
+        console.log(JSON.stringify(data))
 
         if (isFavorited) {
             setToast({

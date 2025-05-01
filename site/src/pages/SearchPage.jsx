@@ -89,7 +89,11 @@ const SearchPage = () => {
                             artist: song.primary_artist?.name || selectedArtist.artist_name || 'Unknown Artist',
                             featuring: song.featured_artists?.map(a => a.name).join(', ') || '',
                             albumCover: song.song_art_image_thumbnail_url || song.header_image_thumbnail_url || DEFAULT_ALBUM_COVER,
-                            url: song.url || ''
+                            url: song.url || '',
+                            dateReleased: song.release_date_for_display || "",
+                            fullTitle: song.full_title || "",
+                            album: ""
+
                         }));
                         setSongs(formattedSongs);
                     } else {
@@ -229,6 +233,7 @@ const SearchPage = () => {
                             ) : selectedArtist || (potentialArtists.length === 0 && searchQuery) ? (
                                 <WordCloudContent
                                     songsData={songs}
+
                                     onAddFavorites={handleAddFavorites}
                                 />
                             ) : null /* Or show initial prompt */}
