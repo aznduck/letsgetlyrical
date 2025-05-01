@@ -214,7 +214,7 @@ describe("ComparePage Component", () => {
         expect(screen.getByText("testuser")).toBeInTheDocument()
 
         // Remove the friend
-        const removeButton = screen.getByRole("button", { name: "" }) // The X button has no text
+        const removeButton = screen.getByRole("button", { name: "Remove testuser from selected friends" }) // The X button has no text
         fireEvent.click(removeButton)
 
         // Check if friend was removed
@@ -439,7 +439,7 @@ describe("ComparePage Component", () => {
         expect(screen.getByText("maliahotan")).toBeInTheDocument()
 
         // Close the popup
-        const closeButton = screen.getByRole("button", { name: "" }) // The X button
+        const closeButton = screen.getByRole("button", { name: "Close dialog" }) // The X button
         fireEvent.click(closeButton)
 
         // Check if popup was closed
@@ -468,7 +468,7 @@ describe("ComparePage Component", () => {
         expect(screen.getByText("maliahotan")).toBeInTheDocument()
 
         // Close the popup
-        const closeButton = screen.getByRole("button", { name: "" }) // The X button
+        const closeButton = screen.getByRole("button", { name: "Close dialog" }) // The X button
         fireEvent.click(closeButton)
 
         // Check if popup was closed
@@ -495,7 +495,7 @@ describe("ComparePage Component", () => {
         expect(screen.getByText("maliahotan")).toBeInTheDocument()
 
         // Click the close button to close it
-        const closeButton = screen.getByRole("button", { name: "" })
+        const closeButton = screen.getByRole("button", { name: "Close dialog" })
         fireEvent.click(closeButton)
 
         // Popup should be gone
@@ -522,7 +522,7 @@ describe("ComparePage Component", () => {
         expect(screen.getByText("maliahotan")).toBeInTheDocument()
 
         // Click the close button to close it
-        const closeButton = screen.getByRole("button", { name: "" })
+        const closeButton = screen.getByRole("button", { name: "Close dialog" })
         fireEvent.click(closeButton)
 
         // Popup should be gone

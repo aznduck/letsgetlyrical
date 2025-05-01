@@ -8,7 +8,7 @@ describe('Footer Component', () => {
     });
 
     test('renders footer with team logo', () => {
-        expect(screen.getByAltText('TEAM 23')).toBeInTheDocument();
+        expect(screen.getByAltText('TEAM 23 logo')).toBeInTheDocument();
     });
 
     test('renders about section with correct heading', () => {

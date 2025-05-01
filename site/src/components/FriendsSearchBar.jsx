@@ -37,23 +37,30 @@ const FriendSearchBar = ({ onSelectFriend }) => {
     return (
         <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto' }}>
             <input
+                id="friend-search"
                 type="text"
                 placeholder="Search for friends..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-controls="search-results"
+                aria-autocomplete="list"
             />
             {isLoading ? (
-                <p>Loading users...</p>
+                <p role="status" aria-live="polite">Loading users...</p>
             ) : query && filteredUsers.length > 0 ? (
-                <ul>
+                <ul id="search-results" role="listbox" aria-label="Search results" className="search-results">
                     {filteredUsers.map((user) => (
-                        <li key={user.id} onClick={() => onSelectFriend(user)}>
+                        <li key={user.id}
+                            id={`user-${user.id}`}
+                            role="option"
+                            onClick={() => onSelectFriend(user)}
+                            tabIndex={-1}>
                             {user.username}
                         </li>
                     ))}
                 </ul>
             ) : query && filteredUsers.length === 0 ? (
-                <p>No users found</p>
+                <p role="status" aria-live="polite">No users found</p>
             ) : null}
         </div>
     );
