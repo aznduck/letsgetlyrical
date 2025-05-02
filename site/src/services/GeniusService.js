@@ -30,11 +30,10 @@ const GeniusService = {
         }
     },
 
-    getTopSongs: async (artistId, numSongs = 10) => { // Add numSongs parameter with default
+    getTopSongs: async (artistId, numSongs = 10, sort = "popularity") => {
         try {
-            // Pass numSongs as per_page query parameter
             const response = await fetch(
-                `${BACKEND_URL}/artists/${artistId}/songs?per_page=${numSongs}`
+                `${BACKEND_URL}/artists/${artistId}/songs?per_page=${numSongs}&sort=${sort}`
             );
 
             if (!response.ok) {

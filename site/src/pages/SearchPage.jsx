@@ -17,6 +17,7 @@ const SearchPage = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [numSongs, setNumSongs] = useState(10);
+    const [sort, setSort] = useState("popularity");
 
     const [potentialArtists, setPotentialArtists] = useState([]);
     const [selectedArtist, setSelectedArtist] = useState(null);
@@ -31,9 +32,19 @@ const SearchPage = () => {
         const query = params.get('q') || '';
         const numParam = params.get('num');
         const num = Number.parseInt(numParam, 10) > 0 ? Number.parseInt(numParam, 10) : 10;
+        const sortParam = params.get('sort') || 'popularity';
+        console.log("query: " + query);
+
+        console.log("--- useEffect Triggered ---");
+        console.log("Raw location.search:", location.search);
+        console.log("Extracted query (q):", query);
+        console.log("Extracted numParam (num):", numParam);
+        console.log("Extracted sortParam (sort):", sortParam);
+        console.log("--------------------------");
 
         setSearchQuery(query);
         setNumSongs(num);
+        setSort(sortParam);
 
         setPotentialArtists([]);
         setSelectedArtist(null);
@@ -81,7 +92,7 @@ const SearchPage = () => {
                 setError(null);
                 setSongs([]);
                 try {
-                    const fetchedSongs = await GeniusService.getTopSongs(selectedArtist.artist_id, numSongs);
+                    const fetchedSongs = await GeniusService.getTopSongs(selectedArtist.artist_id, numSongs, sort);
 
                     if (fetchedSongs && fetchedSongs.length > 0) {
                         const formattedSongs = fetchedSongs.map((song, index) => ({
@@ -155,13 +166,13 @@ const SearchPage = () => {
                 onLogout={handleLogout}
                 initialSearchQuery={searchQuery}
                 initialNumSongs={numSongs}
+                initialSortOption={sort}
             />
 
             <div className="search-page-content">
 
                 {error && !isLoading && <div className="search-error-message">Error: {error}</div>}
 
-                {/* Artist Selection Popup */}
                 {showArtistPopup && potentialArtists.length > 0 && !selectedArtist && (
                     <div className="artist-popup-overlay">
                         <div className="artist-popup">
