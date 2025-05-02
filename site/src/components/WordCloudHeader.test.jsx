@@ -102,20 +102,22 @@ describe("WordCloudHeader Component", () => {
         expect(generateButton).toBeInTheDocument()
 
         // Check for compare with friends button
-        const compareButton = screen.getByText("Compare with friends!")
-        expect(compareButton).toBeInTheDocument()
+        const compareButtons = screen.getAllByText("Compare with friends!");
+        expect(compareButtons).toHaveLength(2);
 
-        // Click generate button
+        const compareButtonsByAriaLabel = screen.getAllByLabelText("Compare with friends");
+        expect(compareButtonsByAriaLabel).toHaveLength(2);
+
         fireEvent.click(generateButton)
 
-        // Check that onGenerateFavorites was called
         expect(mockOnGenerateFavorites).toHaveBeenCalled()
 
-        // Click compare button
-        fireEvent.click(compareButton)
+        fireEvent.click(compareButtons[0]);
+        expect(mockOnCompareWithFriends).toHaveBeenCalled();
 
-        // Check that onCompareWithFriends was called
-        expect(mockOnCompareWithFriends).toHaveBeenCalled()
+        mockOnCompareWithFriends.mockReset();
+        fireEvent.click(compareButtons[1]);
+        expect(mockOnCompareWithFriends).toHaveBeenCalled();
     })
 
     test("disables generate button when cloud is already generated", () => {
@@ -145,5 +147,33 @@ describe("WordCloudHeader Component", () => {
 
         // Check for favorites table title
         expect(screen.getByText("Your Favorites Word Table")).toBeInTheDocument()
+
+        rerender(<WordCloudHeader variant="default" selectedType="table" />)
+
+        expect(screen.getByText("Your Word Table")).toBeInTheDocument()
     })
+
+
+    describe("WordCloudHeader", () => {
+        test("calls onTypeChange with 'cloud' when Cloud option is clicked", () => {
+            const onTypeChangeMock = jest.fn();
+
+            render(
+                <WordCloudHeader
+                    variant="favorites"
+                    selectedType="table"
+                    onTypeChange={onTypeChangeMock}
+                />
+            );
+
+            const editButton = screen.getByLabelText("Edit word cloud type");
+            fireEvent.click(editButton);
+
+            const cloudButton = screen.getByText(/Cloud/);
+            fireEvent.click(cloudButton);
+
+            expect(onTypeChangeMock).toHaveBeenCalledWith("cloud");
+        });
+    });
+
 })

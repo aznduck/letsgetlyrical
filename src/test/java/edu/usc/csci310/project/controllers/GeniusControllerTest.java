@@ -15,7 +15,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString; // Keep if needed, but eq() is often better
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,6 +30,7 @@ class GeniusControllerTest {
     @MockBean
     private GeniusService geniusService;
 
+    // --- searchArtist Tests (Unaffected) ---
     @Test
     void searchArtist_whenServiceReturnsArtists_shouldReturnOkWithArtists() throws Exception {
         String query = "Queen";
@@ -69,20 +70,21 @@ class GeniusControllerTest {
         mockMvc.perform(get("/api/genius/search").param("q", query))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].error", is("Failed to search artists")));
+                .andExpect(jsonPath("$.error", is("Failed to search artists")));
 
         verify(geniusService).searchArtist(query);
     }
 
     @Test
-    void getTopSongs_withValidArtistIdAndDefaultPerPage_shouldReturnOkWithSongs() throws Exception {
+    void getTopSongs_withValidArtistIdAndDefaultParams_shouldReturnOkWithSongs() throws Exception {
         Long artistId = 123L;
+        int defaultPerPage = 10;
+        String defaultSort = "popularity";
         List<Map<String, Object>> mockSongs = List.of(
                 Map.of("id", 101L, "title", "Song A"),
                 Map.of("id", 102L, "title", "Song B")
         );
-        when(geniusService.getTopSongs(eq(artistId), eq(10))).thenReturn(mockSongs);
+        when(geniusService.getTopSongs(eq(artistId), eq(defaultPerPage), eq(defaultSort))).thenReturn(mockSongs);
 
         mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId))
                 .andExpect(status().isOk())
@@ -91,17 +93,18 @@ class GeniusControllerTest {
                 .andExpect(jsonPath("$[0].title", is("Song A")))
                 .andExpect(jsonPath("$[1].title", is("Song B")));
 
-        verify(geniusService).getTopSongs(artistId, 10);
+        verify(geniusService).getTopSongs(artistId, defaultPerPage, defaultSort);
     }
 
     @Test
     void getTopSongs_withValidArtistIdAndSpecificPerPage_shouldReturnOkWithSongs() throws Exception {
         Long artistId = 123L;
         int perPage = 5;
+        String defaultSort = "popularity";
         List<Map<String, Object>> mockSongs = List.of(
                 Map.of("id", 101L, "title", "Song A")
         );
-        when(geniusService.getTopSongs(eq(artistId), eq(perPage))).thenReturn(mockSongs);
+        when(geniusService.getTopSongs(eq(artistId), eq(perPage), eq(defaultSort))).thenReturn(mockSongs);
 
         mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
                         .param("per_page", String.valueOf(perPage)))
@@ -110,62 +113,90 @@ class GeniusControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].id", is(101)));
 
-        verify(geniusService).getTopSongs(artistId, perPage);
+        verify(geniusService).getTopSongs(artistId, perPage, defaultSort);
     }
+
+    @Test
+    void getTopSongs_withSpecificSortParameter_shouldCallServiceWithCorrectSort() throws Exception {
+        Long artistId = 123L;
+        int defaultPerPage = 10;
+        String specificSort = "title";
+        List<Map<String, Object>> mockSongs = List.of(
+                Map.of("id", 103L, "title", "Alphabet Song")
+        );
+        when(geniusService.getTopSongs(eq(artistId), eq(defaultPerPage), eq(specificSort))).thenReturn(mockSongs);
+
+        mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
+                        .param("sort", specificSort))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].title", is("Alphabet Song")));
+
+        verify(geniusService).getTopSongs(artistId, defaultPerPage, specificSort);
+    }
+
 
     @Test
     void getTopSongs_withPerPageTooLow_shouldCallServiceWithPerPageOne() throws Exception {
         Long artistId = 123L;
+        int expectedPerPage = 1;
+        String defaultSort = "popularity";
         List<Map<String, Object>> mockSongs = List.of(Map.of("id", 101L, "title", "Song A"));
-        when(geniusService.getTopSongs(eq(artistId), eq(1))).thenReturn(mockSongs);
+        when(geniusService.getTopSongs(eq(artistId), eq(expectedPerPage), eq(defaultSort))).thenReturn(mockSongs);
 
         mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
                         .param("per_page", "0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
 
-        verify(geniusService).getTopSongs(artistId, 1);
+        verify(geniusService).getTopSongs(artistId, expectedPerPage, defaultSort);
     }
 
     @Test
     void getTopSongs_withPerPageTooHigh_shouldCallServiceWithPerPageFifty() throws Exception {
         Long artistId = 123L;
+        int expectedPerPage = 50;
+        String defaultSort = "popularity";
         List<Map<String, Object>> mockSongs = List.of(Map.of("id", 101L, "title", "Song A"));
-        when(geniusService.getTopSongs(eq(artistId), eq(50))).thenReturn(mockSongs);
+        when(geniusService.getTopSongs(eq(artistId), eq(expectedPerPage), eq(defaultSort))).thenReturn(mockSongs);
 
         mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId)
                         .param("per_page", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
 
-        verify(geniusService).getTopSongs(artistId, 50);
+        verify(geniusService).getTopSongs(artistId, expectedPerPage, defaultSort);
     }
 
     @Test
     void getTopSongs_whenServiceReturnsEmptyList_shouldReturnOkWithEmptyList() throws Exception {
         Long artistId = 456L;
-        when(geniusService.getTopSongs(eq(artistId), anyInt())).thenReturn(Collections.emptyList());
+        int defaultPerPage = 10;
+        String defaultSort = "popularity";
+        when(geniusService.getTopSongs(eq(artistId), anyInt(), eq(defaultSort))).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(0)));
 
-        verify(geniusService).getTopSongs(artistId, 10);
+        verify(geniusService).getTopSongs(artistId, defaultPerPage, defaultSort);
     }
 
     @Test
     void getTopSongs_whenServiceThrowsException_shouldReturnInternalServerError() throws Exception {
         Long artistId = 789L;
-        when(geniusService.getTopSongs(eq(artistId), anyInt())).thenThrow(new RuntimeException("Service layer error"));
+        int defaultPerPage = 10;
+        String defaultSort = "popularity";
+        when(geniusService.getTopSongs(eq(artistId), anyInt(), eq(defaultSort))).thenThrow(new RuntimeException("Service layer error"));
 
         mockMvc.perform(get("/api/genius/artists/{artistId}/songs", artistId))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].error", is("Failed to fetch top songs")));
+                .andExpect(jsonPath("$.error", is("Failed to fetch top songs")));
 
-        verify(geniusService).getTopSongs(artistId, 10);
+        verify(geniusService).getTopSongs(artistId, defaultPerPage, defaultSort);
     }
 
     @Test
@@ -205,11 +236,13 @@ class GeniusControllerTest {
     void getLyrics_withValidUrl_shouldReturnOkWithLyrics() throws Exception {
         String url = "https://genius.com/Queen-bohemian-rhapsody-lyrics";
         String mockLyrics = "Sample lyrics content";
+        // Simulate the service returning the raw lyrics string
         when(geniusService.getLyrics(eq(url))).thenReturn(mockLyrics);
 
         mockMvc.perform(get("/api/genius/lyrics").param("url", url))
                 .andExpect(status().isOk())
-                .andExpect(content().string(mockLyrics));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.lyrics", is(mockLyrics)));
 
         verify(geniusService).getLyrics(url);
     }
@@ -222,8 +255,8 @@ class GeniusControllerTest {
         mockMvc.perform(get("/api/genius/lyrics").param("url", url))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0]", is("Failed to get lyrics")));
+                .andExpect(jsonPath("$.error", is("Failed to get lyrics")));
+
 
         verify(geniusService).getLyrics(url);
     }

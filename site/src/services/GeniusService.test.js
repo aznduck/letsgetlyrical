@@ -5,7 +5,7 @@ let consoleErrorSpy;
 
 beforeEach(() => {
     fetch.mockClear();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(jest.fn());
 });
 
 afterEach(() => {
@@ -91,8 +91,8 @@ describe('GeniusService', () => {
         const artistId = 123;
         const defaultNumSongs = 10;
         const customNumSongs = 5;
-        const expectedUrlDefault = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${defaultNumSongs}`;
-        const expectedUrlCustom = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${customNumSongs}`;
+        const expectedUrlDefault = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${defaultNumSongs}&sort=popularity`;
+        const expectedUrlCustom = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${customNumSongs}&sort=popularity`;
         const mockSongs = [{ id: 1, title: "Song A" }, { id: 2, title: "Song B" }];
 
         it('should fetch top songs successfully with default number', async () => {
@@ -249,8 +249,8 @@ describe('GeniusService', () => {
     });
 
     describe('getLyrics', () => {
-        const pageURL = "test-artist-song-lyrics";
-        const expectedUrl = `${BACKEND_URL}/lyrics/${pageURL}`;
+        const pageURL = "https://genius.com/test-artist-song-lyrics";
+        const expectedUrl = `${BACKEND_URL}/lyrics?url=${pageURL}`;
         const mockLyrics = "[Verse 1]\nLa la la...";
 
         it('should fetch lyrics successfully as text', async () => {
@@ -283,8 +283,7 @@ describe('GeniusService', () => {
             expect(fetch).toHaveBeenCalledTimes(1);
             expect(fetch).toHaveBeenCalledWith(expectedUrl);
             expect(lyrics).toBeUndefined();
-            expect(consoleErrorSpy).toHaveBeenCalledWith("Backend API error response:", errorText);
-            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching song:", "Backend API returned an error: 404 Not Found");
+            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching lyrics:", "Backend API error response: 404: Lyrics page not found");
         });
 
         it('should return undefined on fetch network error', async () => {
@@ -296,7 +295,7 @@ describe('GeniusService', () => {
             expect(fetch).toHaveBeenCalledTimes(1);
             expect(fetch).toHaveBeenCalledWith(expectedUrl);
             expect(lyrics).toBeUndefined();
-            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching song:", networkError.message);
+            expect(consoleErrorSpy).toHaveBeenCalledWith("Error fetching lyrics:", networkError.message);
         });
     });
 });

@@ -30,11 +30,10 @@ const GeniusService = {
         }
     },
 
-    getTopSongs: async (artistId, numSongs = 10) => { // Add numSongs parameter with default
+    getTopSongs: async (artistId, numSongs = 10, sort = "popularity") => {
         try {
-            // Pass numSongs as per_page query parameter
             const response = await fetch(
-                `${BACKEND_URL}/artists/${artistId}/songs?per_page=${numSongs}`
+                `${BACKEND_URL}/artists/${artistId}/songs?per_page=${numSongs}&sort=${sort}`
             );
 
             if (!response.ok) {
@@ -88,21 +87,20 @@ const GeniusService = {
         }
     },
 
-    getLyrics: async (pageURL) => {
+    getLyrics: async (url) => {
         try {
             const response = await fetch(
-                `${BACKEND_URL}/lyrics?url=${encodeURIComponent(pageURL)}`
+                `${BACKEND_URL}/lyrics?url=${url}`
             );
 
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(`Backend error ${response.status}: ${errText}`);
+                throw new Error(`Backend API error response: ${response.status}: ${errText}`);
             }
 
             return await response.text();
         } catch (err) {
             console.error("Error fetching lyrics:", err.message);
-            return null;
         }
     },
 };

@@ -50,10 +50,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 300px;
+    min-height: 500px;
     font-size: 1.2rem;
     color: rgba(255, 255, 255, 0.7);
     text-align: center;
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
 }
 
 /* Artist Selection Popup */
@@ -139,8 +140,7 @@
     display: flex;
     gap: 1rem;
     flex: 1;
-    overflow: hidden;
-    max-height: calc(100vh - 72px);
+    overflow: visible;
 }
 
 /* Left Column - Song List */
@@ -185,6 +185,7 @@
     padding: 0.72rem 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    border-radius: 8px;
 }
 
 .song-item:hover {
@@ -213,6 +214,7 @@
     min-width: 0; /* Allow text to be truncated */
     flex: 1;
     margin-right: 1rem;
+    text-align: left;
 }
 
 .song-title {
@@ -255,14 +257,11 @@
     display: flex;
     border-radius: 12px 0 0 0;
     background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
-    overflow: hidden;
-}
-
-/* Ensure the word cloud section fills the wrapper */
-.word-cloud-wrapper .word-cloud-section {
-    border-radius: 0;
+    overflow: visible;
+    min-height: 700px;
     width: 100%;
 }
+
 
 /* Loading indicator for word cloud */
 .word-cloud-loading {
@@ -289,6 +288,7 @@
 @media (max-width: 768px) {
     .search-results-container {
         flex-direction: column;
+        border-radius: 0;
     }
 
     .search-results-list {

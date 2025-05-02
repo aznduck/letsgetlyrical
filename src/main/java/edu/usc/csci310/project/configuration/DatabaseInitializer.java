@@ -34,6 +34,7 @@ public class DatabaseInitializer {
                     "songArtist TEXT NOT NULL, " +
                     "fullTitle TEXT NOT NULL, " +
                     "dateReleased TEXT NOT NULL, " +
+                    "album TEXT NOT NULL, " +
                     "lyrics TEXT NOT NULL)";
             stmt.executeUpdate(createSongsTableSQL);
             System.out.println("Table songs created");

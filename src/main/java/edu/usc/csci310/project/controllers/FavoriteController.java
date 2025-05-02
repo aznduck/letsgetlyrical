@@ -1,19 +1,20 @@
 package edu.usc.csci310.project.controllers;
 
+import edu.usc.csci310.project.models.FavoriteSong;
+import edu.usc.csci310.project.models.MatchResult;
 import edu.usc.csci310.project.requests.FavoriteGetRequest;
 import edu.usc.csci310.project.requests.FavoriteSongRequest;
 import edu.usc.csci310.project.requests.FavoriteRemoveRequest;
+import edu.usc.csci310.project.responses.MatchResultResponse;
 import edu.usc.csci310.project.responses.UserFavoritesResponse;
 import edu.usc.csci310.project.responses.UserResponse;
 import edu.usc.csci310.project.services.FavoriteService;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,9 +31,13 @@ public class FavoriteController {
             if(result >= 0) {
                 return ResponseEntity.status(200).body(new UserResponse(result, "Added to favorites!", ""));
             }
-            else { // result = -1, userId not found
-                return ResponseEntity.status(400).body(new UserResponse(-2, "User not found", ""));
+            else if(result == -1) { // result = -1, userId not found
+                return ResponseEntity.status(400).body(new UserResponse(-1, "User not found", ""));
             }
+            else { // result = -2, userId has already favorited songId
+                return ResponseEntity.status(409).body(new UserResponse(-2, "Song already favorited", ""));
+            }
+
         }
         catch (RuntimeException rte) {
             String exceptionMessage = rte.getMessage();
@@ -60,9 +65,9 @@ public class FavoriteController {
     @PostMapping("/get")
     public ResponseEntity<UserFavoritesResponse> getFavoriteSong(@RequestBody FavoriteGetRequest request) {
         try {
-            List<Integer> result = favoriteService.getFavoriteSongs(request); // list of user's favorite songIDs
+            List<FavoriteSong> result = favoriteService.getFavoriteSongs(request); // list of user's favorite songIDs
             if (result == null || result.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new UserFavoritesResponse(-2, "No favorite songs found.", ""));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new UserFavoritesResponse(-2, "No favorite songs found.", null));
             }
             else {
                 return ResponseEntity.ok(new UserFavoritesResponse(1, "Favorite songs found.", result));
@@ -70,7 +75,28 @@ public class FavoriteController {
         }
         catch (RuntimeException rte) {
             String exceptionMessage = rte.getMessage();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new UserFavoritesResponse(-1, exceptionMessage, ""));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new UserFavoritesResponse(-1, exceptionMessage, null));
+        }
+    }
+
+    @PostMapping("/get/soulmate")
+    public ResponseEntity<MatchResultResponse> getSoulmate(@RequestBody FavoriteGetRequest request) {
+        try {
+            String username = request.getUsername();
+            if (username == null || username.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MatchResultResponse(new MatchResult()));
+            }
+            // Check if the user exists
+            int userId = favoriteService.getUserId(username);
+            if (userId == -1) {
+                return ResponseEntity.ok().body(new MatchResultResponse(new MatchResult()));
+            }
+            MatchResult result = favoriteService.findMatches(userId);
+            return ResponseEntity.ok(new MatchResultResponse(result));
+        } catch (Exception e) {
+//            String exceptionMessage = e.getMessage();
+           e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MatchResultResponse(new MatchResult()));
         }
     }
 }

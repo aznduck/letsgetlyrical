@@ -12,12 +12,14 @@
 
 body {
     background: linear-gradient(180deg, #002574 35%, #09162F 96%);
+    width: 100vw;
 }
 
 .app {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100vw;
 }
 
 .auth-container {
@@ -36,7 +38,7 @@ body {
 }
 
 .auth-logo {
-    max-width: 300px;
+    max-width: 200px;
     height: auto;
 }
 
@@ -380,6 +382,13 @@ input {
 .log-in-footer a:hover,
 .sign-up-subtitle a:hover {
     text-decoration: underline;
+}
+
+.skip-link:focus {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10000;
 }
 
 

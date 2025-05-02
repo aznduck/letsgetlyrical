@@ -52,6 +52,13 @@ describe('NavBar Component', () => {
         expect(numSongsInput.value).toBe('10');
     });
 
+    test('handles sort option change', () => {
+        const sortDropdown = screen.getByLabelText('Sort order');
+        expect(sortDropdown.value).toBe('popularity');
+        fireEvent.change(sortDropdown, { target: { value: 'title' } });
+        expect(sortDropdown.value).toBe('title');
+    });
+
     test('clears search input when clear button is clicked', () => {
         const searchInput = screen.getByPlaceholderText('Enter an artist');
         fireEvent.change(searchInput, { target: { value: 'Taylor Swift' } });
@@ -90,4 +97,43 @@ describe('NavBar Component', () => {
         fireEvent.blur(searchInput);
         expect(searchContainer).not.toHaveClass('focused');
     });
+
+    test('submits search form and navigates to search page', () => {
+        const searchInput = screen.getByPlaceholderText('Enter an artist');
+        const numSongsInput = screen.getByPlaceholderText('Num Songs');
+        const searchButton = screen.getByRole('button', { name: /submit search/i });
+
+        fireEvent.change(searchInput, { target: { value: 'Drake' } });
+        fireEvent.change(numSongsInput, { target: { value: '5' } });
+
+        fireEvent.click(searchButton);
+
+        expect(mockNavigate).toHaveBeenCalledWith('/search?q=Drake&num=5&sort=popularity');
+    });
+
+    test('logs message when search query is empty on submit', () => {
+        const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        const searchButton = screen.getByRole('button', { name: /submit search/i });
+
+        fireEvent.click(searchButton);
+
+        expect(consoleLogSpy).toHaveBeenCalledWith('Search query is empty');
+
+        consoleLogSpy.mockRestore();
+    });
+
+    test('applies focus styling to num songs input', () => {
+        const numSongsInput = screen.getByPlaceholderText('Num Songs');
+        const numSongsContainer = numSongsInput.closest('.num-songs-container');
+
+        fireEvent.focus(numSongsInput);
+        expect(numSongsContainer).toHaveClass('focused');
+
+        fireEvent.blur(numSongsInput);
+        expect(numSongsContainer).not.toHaveClass('focused');
+    });
+
+
+
 });

@@ -14,7 +14,8 @@ import SignupPage from "./pages/SignUpPage"
 import LandingPage from "./pages/LandingPage"
 import FavsCloudPage from "./pages/FavsCloudPage"
 import SearchPage from "./pages/SearchPage"
-import Wordcloud from "./components/WordCloud";
+import Wordcloud from "./components/WordCloudContent";
+import ComparePage from "./pages/ComparePage";
 
 // Create auth context
 export const AuthContext = createContext(null)
@@ -194,6 +195,24 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+
+                    <Route
+                        path="/compare"
+                        element={
+                            <ProtectedRoute>
+                                <ComparePage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Unprotected direct access routes */}
+                    <Route path="/test/landing" element={<LandingPage />} />
+                    <Route path="/test/favscloud" element={<FavsCloudPage />} />
+                    <Route path="/test/search" element={<SearchPage />} />
+                    <Route path="/test/wordcloud" element={<Wordcloud />} />
+                    <Route path="/test/compare" element={<ComparePage />} />
+                    <Route path="/test/login" element={<LoginPage />} />
+                    <Route path="/test/signup" element={<SignupPage />} />
 
                     {/* Catch all route - redirect to landing if logged in, otherwise login */}
                     <Route

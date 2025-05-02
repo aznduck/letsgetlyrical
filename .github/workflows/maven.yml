@@ -22,6 +22,8 @@ jobs:
 
     - name: Build with Maven
       run: mvn --batch-mode test
+      env:
+        GENIUS_CLIENT_ACCESS_TOKEN: ${{ secrets.GENIUS_CLIENT_ACCESS_TOKEN }}
 
     - name: Upload Jacoco coverage report
       uses: actions/upload-artifact@v4

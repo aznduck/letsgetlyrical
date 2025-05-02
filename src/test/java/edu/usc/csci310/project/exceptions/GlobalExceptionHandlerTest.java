@@ -1,7 +1,5 @@
-package edu.usc.csci310.project.exception;
+package edu.usc.csci310.project.exceptions;
 
-import edu.usc.csci310.project.exception.GlobalExceptionHandler;
-import edu.usc.csci310.project.exception.UsernameNotAvailableException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 

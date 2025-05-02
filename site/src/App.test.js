@@ -1,5 +1,5 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
+import React, {useCallback, useEffect, useState} from 'react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App, { AuthContext, useAuth, ProtectedRoute } from './App';
 
@@ -116,4 +116,102 @@ describe('useAuth Hook', () => {
 
         expect(screen.getByTestId('user-status')).toHaveTextContent('Not logged in');
     });
+
+    test('shows loading indicator when isLoading is true', () => {
+        render(
+            <MemoryRouter>
+                <AuthContext.Provider value={{ user: null, isLoading: true }}>
+                    <ProtectedRoute>
+                        <div data-testid="protected-content">Protected Content</div>
+                    </ProtectedRoute>
+                </AuthContext.Provider>
+            </MemoryRouter>
+        );
+
+        expect(screen.getByText('Loading...')).toBeInTheDocument();
+        expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
+    });
+
+
+
+
+    test('removes invalid stored user from localStorage', () => {
+        localStorage.setItem('user', '{bad json');
+
+        const removeItemSpy = jest.spyOn(window.localStorage.__proto__, 'removeItem');
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        render(
+            <MemoryRouter>
+                <AuthContext.Provider value={{}}>
+                    <App />
+                </AuthContext.Provider>
+            </MemoryRouter>
+        );
+
+        expect(removeItemSpy).toHaveBeenCalledWith('user');
+        expect(consoleErrorSpy).toHaveBeenCalled();
+
+        consoleErrorSpy.mockRestore();
+        removeItemSpy.mockRestore();
+    });
+
+
+
+    test('calls setLastActivity when user is active', () => {
+        const dateNowSpy = jest.spyOn(Date, 'now');
+        const fakeUser = { username: 'testuser' };
+
+        localStorage.setItem('user', JSON.stringify(fakeUser));
+
+        render(
+            <MemoryRouter initialEntries={['/landing']}>
+                <App />
+            </MemoryRouter>
+        );
+
+        act(() => {
+            fireEvent.mouseMove(window);
+        });
+
+        expect(dateNowSpy).toHaveBeenCalled();
+
+        dateNowSpy.mockRestore();
+    });
+
+
+    test('logs out user after inactivity timeout', () => {
+        jest.useFakeTimers();
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        const fakeUser = { username: 'inactiveUser' };
+        localStorage.setItem('user', JSON.stringify(fakeUser));
+
+        render(
+            <MemoryRouter initialEntries={['/landing']}>
+                <App />
+            </MemoryRouter>
+        );
+
+        act(() => {
+            jest.advanceTimersByTime(70000);
+        });
+
+        expect(localStorage.getItem('user')).toBeNull();
+        expect(screen.queryByText('inactiveUser')).not.toBeInTheDocument();
+
+        jest.useRealTimers();
+    });
+
+
+
+
+
+
+
+
+
+
+
+
 });

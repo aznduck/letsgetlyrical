@@ -6,6 +6,10 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,7 +57,12 @@ public class SearchStepdefs {
 
     @And("I click the Search button")
     public void iClickTheSearchButton() {
-        driver.findElement(By.className("search-submit-button")).click();
+
+//        driver.findElement(By.className("search-submit-button")).click();
+        WebElement searchBtn = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(
+                        By.cssSelector("button[aria-label='Submit search']")));
+        searchBtn.click();
     }
 
     @And("I select {string} from the list of artists")
@@ -179,10 +188,6 @@ public class SearchStepdefs {
 
     }
 
-    @Then("the word cloud should include words from both the search result and favorites list")
-    public void theWordCloudContains() {
-        skipTestForNow();
-    }
 
     @When("I search for {string} with {int} songs")
     public void iSearchForWithSongs(String arg0, int arg1) {
@@ -204,10 +209,6 @@ public class SearchStepdefs {
         assertFalse(pageSource.contains(arg2), "Expected not to find " + arg2 + " in the list, but found it.");
     }
 
-    @Then("the word cloud should show stemmed words \\(e.g., {string} and {string} counted together)")
-    public void theWordCloudShouldShowStemmedWordsEGAndCountedTogether(String arg0, String arg1) {
-        skipTestForNow();
-    }
 
     @Then("the word cloud should contain no more than {int} unique words")
     public void theWordCloudShouldContainNoMoreThanUniqueWords(int arg0) {
@@ -237,5 +238,15 @@ public class SearchStepdefs {
     @Then("I should not see {string}, {string}, {string} on word cloud")
     public void iShouldNotSeeOnWordCloud(String arg0, String arg1, String arg2) {
         System.out.println("I should not see " + arg0 + ", " + arg1 + ", " + arg2 + " on word cloud");
+    }
+
+    @Then("the word cloud should show stemmed words counted together")
+    public void theWordCloudShouldShowStemmedWordsCountedTogether() {
+        skipTestForNow();
+    }
+
+    @Then("the word cloud should include words from both lists")
+    public void theWordCloudShouldIncludeWordsFromBothLists() {
+        skipTestForNow();
     }
 }

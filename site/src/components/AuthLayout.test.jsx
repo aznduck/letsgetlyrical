@@ -20,8 +20,8 @@ describe("AuthLayout Component", () => {
             </AuthLayout>,
         )
 
-        const logo = screen.getByAltText("Let's get lyrical!")
-        const teamLabel = screen.getByAltText("Team 23")
+        const logo = screen.getByAltText("Let's get lyrical! Neon Logo")
+        const teamLabel = screen.getByAltText("Team 23 Neon Sign")
 
         expect(logo).toBeInTheDocument()
         expect(teamLabel).toBeInTheDocument()
