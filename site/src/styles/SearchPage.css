@@ -50,10 +50,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 300px;
+    min-height: 500px;
     font-size: 1.2rem;
     color: rgba(255, 255, 255, 0.7);
     text-align: center;
+    background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(4, 29, 81, 0.40) 69%, rgba(5, 16, 37, 0.40) 100%);
 }
 
 /* Artist Selection Popup */
@@ -287,6 +288,7 @@
 @media (max-width: 768px) {
     .search-results-container {
         flex-direction: column;
+        border-radius: 0;
     }
 
     .search-results-list {

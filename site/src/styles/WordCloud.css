@@ -44,7 +44,7 @@
     margin: 0;
 }
 .word-cloud-info {
-    padding-left: 40px;
+    padding-left: 32px;
 }
 
 .word-cloud-actions {
@@ -314,3 +314,78 @@
     }
 }
 
+.compare-friends-button-mobile {
+    display: none;
+}
+
+@media screen and (max-width: 600px) {
+    .word-cloud-header h2 {
+        font-size: 1.2rem; /* Smaller font size for header text */
+    }
+
+    .word-cloud-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .compare-friends-button {
+        width: 100%; /* Make button take full width */
+        margin-top: 8px;
+    }
+
+    .word-cloud-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .generate-favorites-button {
+        width: 100%;
+    }
+
+    .compare-friends-button {
+        display: none;
+    }
+
+    /* Create a new class for the repositioned button */
+    .word-cloud-section {
+        position: relative;
+        padding-bottom: 70px; /* Make space for the button at bottom */
+    }
+
+    /* Add a pseudo-element to hold the button at the bottom */
+    .word-cloud-section::after {
+        content: "";
+        display: block;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+    }
+
+    /* Style for the repositioned button */
+    .word-cloud-section .compare-friends-button-mobile {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        width: calc(100% - 32px);
+        background-color: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 100px;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 0.2rem 1.5rem;
+        height: 48px;
+        transition: background-color 0.2s;
+        display: block;
+        text-align: center;
+        z-index: 10;
+    }
+
+    .word-cloud-section .compare-friends-button-mobile:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
