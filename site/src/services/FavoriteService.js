@@ -38,7 +38,8 @@ const FavoriteService = {
         catch(error) {
 
         }
-    }
+    },
+
 
 }
 
