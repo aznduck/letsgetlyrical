@@ -5,11 +5,13 @@ public class FavoriteSong {
     public String title;
     public String artist;
     public String album;
+    public int songId;
 
-    public FavoriteSong(int id, String title, String artist, String album) {
+    public FavoriteSong(int id, String title, String artist, String album, int songId) {
         this.id = id;
         this.title = title;
         this.artist = artist;
         this.album = album;
+        this.songId = songId;
     }
 }

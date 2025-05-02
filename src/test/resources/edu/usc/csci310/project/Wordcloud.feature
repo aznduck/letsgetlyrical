@@ -24,16 +24,16 @@ Feature: Word Cloud Generation
     #When I generate the word cloud
     #Then the word cloud should appear within 1 second
 
-#  Scenario: Clicking on a word brings up relevant songs
-#    Given the word cloud is displayed
-#    When I click on the word "love"
-#    Then I should see a list of songs containing the word "love"
+  Scenario: Clicking on a word brings up relevant songs
+    Given the word cloud is displayed
+    When I click on the word "tu"
+    Then I should see a list of songs containing the word "tu"
 
-#  Scenario: Relevant songs should have lyrics
-#    Given the word cloud is displayed
-#    When I click on the first word
-#    And I click on the lyrics button
-#    Then I should see lyrics
+  Scenario: Relevant songs should have lyrics
+    Given the word cloud is displayed
+    When I click on the word "tu"
+    And I click on the lyrics button
+    Then I should see lyrics
 
   Scenario: Clicking toggle switches between cloud and table
     Given the word cloud is displayed as a cloud

@@ -1,6 +1,7 @@
 import {render, screen, fireEvent, waitFor, act} from "@testing-library/react"
 import "@testing-library/jest-dom"
 import Favorites from "./Favorites"
+import FavoriteService from "../services/FavoriteService";
 
 // Mock the Lucide React icons
 jest.mock("lucide-react", () => ({
@@ -27,6 +28,38 @@ jest.mock("./SongDetailsPopUp", () => ({
     ),
 }))
 
+jest.mock("../services/FavoriteService", () => ({
+    __esModule: true,
+    default: {
+        fetchFavorites: jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve({ favorites: [] }),
+            })
+        ),
+        removeFavorites: jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve({ message: "Song removed" }),
+            })
+        ),
+    },
+}));
+
+beforeEach(() => {
+    jest.clearAllMocks();
+
+    // ensure a user is in localStorage
+    localStorage.setItem("user", JSON.stringify({ username: "test_user" }));
+
+    // restore the implementations that the component expects
+    FavoriteService.fetchFavorites.mockResolvedValue({
+        json: jest.fn().mockResolvedValue({ favorites: [] }),
+    });
+
+    FavoriteService.removeFavorites.mockResolvedValue({
+        json: jest.fn().mockResolvedValue({ message: "Song removed" }),
+    });
+});
+
 beforeAll(() => {
     if (!Element.prototype.closest) {
         Element.prototype.closest = function (s) {
@@ -48,14 +81,11 @@ beforeAll(() => {
 describe("Favorites Component", () => {
     // Test data with guaranteed unique IDs
     const testFavorites = [
-        { id: 101, title: "Test Song 1", artist: "Test Artist 1", album: "Test Album 1" },
-        { id: 102, title: "Test Song 2", artist: "Test Artist 2", album: "Test Album 2" },
-        { id: 103, title: "Test Song 3", artist: "Test Artist 3", album: "Test Album 3" },
+        { id: 101, songId: "101", title: "Test Song 1", artist: "Test Artist 1", album: "Test Album 1" },
+        { id: 102, songId: "102", title: "Test Song 2", artist: "Test Artist 2", album: "Test Album 2" },
+        { id: 103, songId: "103", title: "Test Song 3", artist: "Test Artist 3", album: "Test Album 3" },
     ]
 
-    beforeEach(() => {
-        jest.clearAllMocks()
-    })
 
     test("renders favorites list correctly", () => {
         render(<Favorites initialFavorites={testFavorites} />)
@@ -68,6 +98,102 @@ describe("Favorites Component", () => {
         expect(screen.getByText("Test Song 2")).toBeInTheDocument()
         expect(screen.getByText("Test Song 3")).toBeInTheDocument()
     })
+
+    test("fetches and displays favorites", async () => {
+        const fetchedFavoritesList = [
+            { songId: 1, title: "Song A", artist: "Artist A", album: "Album A" },
+            { songId: 2, title: "Song B", artist: "Artist B", album: "Album B" },
+        ];
+        FavoriteService.fetchFavorites.mockResolvedValue({
+            json: jest.fn().mockResolvedValue({ favorites: fetchedFavoritesList }),
+        });
+
+        render(<Favorites />)
+
+        await waitFor(() => {
+            expect(screen.getByText("Song A")).toBeInTheDocument()
+            expect(screen.getByText("Song B")).toBeInTheDocument()
+        });
+    });
+
+    test("fetched wrong data format", async () => {
+        const badData = { favorites: { some_key: "some_value" } };
+        const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+        FavoriteService.fetchFavorites.mockResolvedValue({
+            json: jest.fn().mockResolvedValue(badData),
+        });
+
+        render(<Favorites />);
+
+        await waitFor(() => {
+            expect(warnSpy).toHaveBeenCalledWith("Unexpected data format:", badData)
+        });
+
+        warnSpy.mockRestore();
+    });
+
+    test("handles fetchFavorites error and clears list", async () => {
+        const fetchError = new Error("fetch failed :(");
+        const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+        FavoriteService.fetchFavorites.mockRejectedValue(fetchError);
+
+        render(<Favorites />);
+
+        await waitFor(() => {
+            expect(errorSpy).toHaveBeenCalledWith("Failed to retrieve favorites: ", fetchError);
+            expect(screen.getByText("No favorites yet")).toBeInTheDocument();
+        });
+
+        errorSpy.mockRestore();
+    });
+
+    // for testing when const favoritesArray defaults to []
+    test("handles missing favorites property and defaults to empty list", async () => {
+        const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+        FavoriteService.fetchFavorites.mockResolvedValue({
+            json: jest.fn().mockResolvedValue({}) // data without favorites key
+        });
+
+        render(<Favorites />);
+
+        // after fetch, list should be empty
+        await waitFor(() => {
+            expect(screen.getByText("No favorites yet")).toBeInTheDocument();
+        });
+
+        expect(warnSpy).not.toHaveBeenCalled();
+        warnSpy.mockRestore();
+    });
+
+    test("handles JSON parse error and clears list", async () => {
+        localStorage.setItem("user", "not valid json");
+        const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        render(<Favorites />);
+
+        await waitFor(() => {
+            expect(errorSpy.mock.calls[0][0]).toBe("Failed to retrieve favorites: ");
+            expect(screen.getByText("No favorites yet")).toBeInTheDocument();
+        });
+
+        errorSpy.mockRestore();
+    });
+
+    test("on fetch error, favorites are cleared", async () => {
+        const fetchError = new Error("test error");
+        jest.spyOn(FavoriteService, "fetchFavorites").mockRejectedValue(fetchError);
+        const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        render(<Favorites />);
+
+        // we should see the empty-state UI
+        await waitFor(() => {
+            expect(screen.getByText("No favorites yet")).toBeInTheDocument();
+            expect(errorSpy).toHaveBeenCalledWith("Failed to retrieve favorites: ", fetchError);
+        });
+
+        errorSpy.mockRestore();
+    });
 
     test("toggles menu when menu button is clicked", () => {
         render(<Favorites initialFavorites={testFavorites} />)
@@ -198,10 +324,16 @@ describe("Favorites Component", () => {
         expect(screen.getByText(/Are you sure you want to remove "Test Song 1"/)).toBeInTheDocument()
 
         // Confirm removal
-        fireEvent.click(screen.getByText("Remove", { selector: ".delete-button" }))
+        await act(async () => {
+            fireEvent.click(screen.getByText("Remove", { selector: ".delete-button" }))
+        })
+
+        await waitFor(() => {
+            expect(screen.queryByText("Test Song 1")).not.toBeInTheDocument()
+        })
 
         // Check that the song is removed
-        expect(screen.queryByText("Test Song 1")).not.toBeInTheDocument()
+        // expect(screen.queryByText("Test Song 1")).not.toBeInTheDocument()
         expect(screen.getByText("Test Song 2")).toBeInTheDocument()
         expect(screen.getByText("Test Song 3")).toBeInTheDocument()
     })
@@ -319,5 +451,33 @@ describe("Favorites Component", () => {
 
         jest.useRealTimers();
     });
+
+    test("shows favorite action menu when button is clicked", async () => {
+        render(<Favorites initialFavorites={testFavorites} />);
+
+        // click the favorite-action-button on first song
+        const moreIcon = screen.getAllByTestId("more-icon")[0];
+        const actionButton = moreIcon.closest('button');
+        fireEvent.click(actionButton);
+
+        // menu should appear
+        await waitFor(() => {
+            expect(screen.getByText("Move song")).toBeInTheDocument();
+            expect(screen.getByText("Remove song")).toBeInTheDocument();
+        });
+    });
+
+    test("clicking inside popup menu does not close it", () => {
+        render(<Favorites initialFavorites={testFavorites} />);
+        // popup menu
+        fireEvent.click(screen.getByLabelText("Favorites menu"));
+        const privateButton = screen.getByText("Private");
+        expect(privateButton).toBeInTheDocument();
+        // click inside popup
+        fireEvent.mouseDown(privateButton);
+        // menu remains open
+        expect(screen.getByText("Private")).toBeInTheDocument();
+    });
+
 
 })

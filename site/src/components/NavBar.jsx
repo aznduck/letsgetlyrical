@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Home, X, LogOut } from "lucide-react";
 
@@ -12,6 +12,8 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
     const [isNumSongsFocused, setIsNumSongsFocused] = useState(false);
     const navigate = useNavigate();
 
+    const searchInputRef = useRef(null)
+
     useEffect(() => {
         setSearchQuery(initialSearchQuery);
         setNumSongs(initialNumSongs === "" ? "" : String(initialNumSongs));
@@ -21,6 +23,10 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
 
     const handleSearchClear = () => {
         setSearchQuery("");
+
+        if (searchInputRef.current) {
+            searchInputRef.current.focus()
+        }
     };
 
     const handleNumSongsChange = (e) => {
@@ -49,9 +55,9 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
     };
 
     return (
-        <nav className="navbar">
+        <nav className="navbar" role="navigation" aria-label="Main navigation">
             <div className="navbar-left">
-                <Link to="/landing" className="logo-container">
+                <Link to="/landing" className="logo-container" aria-label="Home page">
                     <img
                         src="/images/logo_S_20.svg"
                         alt="Let's get lyrical!"
@@ -62,7 +68,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
 
             <div className="navbar-content">
                 <div className="mobile-logo-container">
-                    <Link to="/landing">
+                    <Link to="/landing" aria-label="Home page (mobile)">
                         <img
                             src="/images/logo_S_20.svg"
                             alt="Let's get lyrical! (Mobile)"
@@ -72,18 +78,19 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
                 </div>
                 <div className="navbar-middle">
                     <div className="navbar-center">
-                        <form onSubmit={handleSearchSubmit} className="search-container">
+                        <form onSubmit={handleSearchSubmit} className="search-container" role="search">
                             <button
                                 type="button"
                                 className="nav-button"
                                 onClick={handleHomeClick}
                                 title="Go to Home"
+                                aria-label="Go to home page"
                             >
-                                <Home size={20}/>
+                                <Home size={20} aria-hidden="true"/>
                             </button>
 
                             <div className={`search-input-container ${isSearchFocused ? "focused" : ""}`}>
-                                <Search size={18} className="search-icon"/>
+                                <Search size={18} className="search-icon" aria-hidden="true"/>
                                 <input
                                     type="text"
                                     placeholder="Enter an artist"
@@ -102,12 +109,15 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
                                         data-testid="clear-search-button"
                                         aria-label="Clear search"
                                     >
-                                        <X size={16}/>
+                                        <X size={16} aria-hidden="true"/>
                                     </button>
                                 )}
                             </div>
 
                             <div className={`num-songs-container ${isNumSongsFocused ? "focused" : ""}`}>
+                                <label htmlFor="num-songs" className="sr-only">
+                                    Number of songs
+                                </label>
                                 <input
                                     type="text"
                                     placeholder="Num Songs"
@@ -135,13 +145,13 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
                             </div>
 
                             <button type="submit" className="nav-button" aria-label="Submit search">
-                                <Search size={20} />
+                            <Search size={20} aria-hidden="true"/>
                             </button>
                         </form>
                     </div>
                     <div className="navbar-right">
-                        <button className="logout-button" onClick={onLogout}>
-                            <LogOut size={20}/>
+                        <button className="logout-button" onClick={onLogout} aria-label="Log out of your account">
+                            <LogOut size={20} aria-hidden="true"/>
                             <span className="logout-text">Log out</span>
                         </button>
                     </div>
