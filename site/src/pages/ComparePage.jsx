@@ -178,13 +178,17 @@ function ComparePage() {
             <SkipLink />
             <Navbar onLogout={handleLogout} />
 
-            <div className="compare-container">
-                <div className="friends-search-section">
+            <main id="main-content" className="compare-container">
+                <section className="friends-search-section" aria-labelledby="search-heading">
+                    <h2 id="search-heading" className="sr-only">
+                        Search for Friends
+                    </h2>
+
                     <FriendSearchBar onSelectFriend={(user) => {
                         if (!selectedFriends.includes(user.username)) {
                             setSelectedFriends([...selectedFriends, user.username])
                         }
-                    }} />
+                    }}/>
 
                     <div className="selected-friends-list" role="list" aria-label="Selected friends">
                         {selectedFriends.map((friend, index) => (
@@ -195,7 +199,7 @@ function ComparePage() {
                                     onClick={() => handleRemoveFriend(friend)}
                                     aria-label={`Remove ${friend}`}
                                 >
-                                    <X size={16} />
+                                    <X size={16}/>
                                 </button>
                             </div>
                         ))}
@@ -213,70 +217,91 @@ function ComparePage() {
                             Click to compare
                         </button>
                     </div>
-                </div>
+                </section>
 
-                <main>
-                    <section className="comparison-section">
-                        <div className="comparison-header">
-                            <h2>Compare with Friends</h2>
-                        </div>
 
-                        {isLoading ? (
-                            <div className="comparison-loading">
-                                <Loader2 className="loading-spinner" size={48} />
-                                <p>Finding common songs...</p>
+                <section className="comparison-section" aria-labelledby="comparison-heading">
+                    <div className="comparison-header">
+                        <div className="comparison-title">
+                            <div className="comparison-icon" aria-hidden="true">
+                                <div className="circle"></div>
+                                <div className="circle overlap"></div>
                             </div>
-                        ) : comparisonResults.length > 0 ? (
-                            <div className="comparison-results">
-                                <div className="comparison-table-header">
-                                    <div className="common-songs-header">Common Songs</div>
-                                    <button onClick={toggleSortOrder}>
-                                        Frequency {sortOrder === "desc" ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-                                    </button>
-                                </div>
-                                <div className="comparison-results-list">
-                                    {comparisonResults.map(result => (
-                                        <div
-                                            key={result.id}
-                                            className="comparison-result-item"
-                                            onClick={() => handleSongClick(result)}
-                                            onMouseEnter={(e) => handleSongMouseEnter(e, result)}
-                                            onMouseLeave={handleSongMouseLeave}
-                                        >
-                                            <div className="compare-song-info">
-                                                <div className="song-thumbnail" style={{ backgroundImage: `url(${result.albumCover})` }} />
-                                                <div className="song-details">
-                                                    <div className="song-title">{result.title}</div>
-                                                    <div className="song-artist">{result.artist}</div>
-                                                </div>
+                            <h2 id="comparison-heading">Compare with Friends</h2>
+                        </div>
+                    </div>
+
+                    {isLoading ? (
+                        <div className="comparison-loading">
+                            <Loader2 className="loading-spinner" size={48}/>
+                            <p>Finding common songs...</p>
+                        </div>
+                    ) : comparisonResults.length > 0 ? (
+                        <div className="comparison-results" role="region" aria-label="Comparison results">
+                            <div className="comparison-table-header" role="rowheader">
+                                <div className="common-songs-header">Common Songs</div>
+                                <button onClick={toggleSortOrder}>
+                                    Frequency {sortOrder === "desc" ? <ChevronDown size={16}/> : <ChevronUp size={16}/>}
+                                </button>
+                            </div>
+                            <div className="comparison-results-list">
+                                {comparisonResults.map(result => (
+                                    <div
+                                        key={result.id}
+                                        className="comparison-result-item"
+                                        onClick={() => handleSongClick(result)}
+                                        onMouseEnter={(e) => handleSongMouseEnter(e, result)}
+                                        onMouseLeave={handleSongMouseLeave}
+                                    >
+                                        <div className="compare-song-info">
+                                            <div className="song-thumbnail"
+                                                 style={{backgroundImage: `url(${result.albumCover})`}}/>
+                                            <div className="song-details">
+                                                <div className="song-title">{result.title}</div>
+                                                <div className="song-artist">{result.artist}</div>
                                             </div>
-                                            <div className="song-frequency">{result.frequency}</div>
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className="song-frequency">{result.frequency}</div>
+                                    </div>
+                                ))}
                             </div>
-                        ) : (
-                            <p>No common songs found. Try adding friends and comparing again.</p>
-                        )}
-
-                        <div className="comparison-actions">
-                            <button onClick={handleFindSoulmate}>Find Lyrical Soulmate</button>
-                            <button onClick={handleFindEnemy}>Find Lyrical Enemy</button>
                         </div>
-                    </section>
+                    ) : (
+                        <p>No common songs found. Try adding friends and comparing again.</p>
+                    )}
 
-                    <section className="favorites-container">
-                        <Favorites />
-                    </section>
-                </main>
-            </div>
+                    <div className="comparison-actions">
+                        <button
+                            className="find-soulmate-button"
+                            onClick={handleFindSoulmate}
+                            aria-label="Find your lyrical soulmate"
+                        >
+                            Find Lyrical Soulmate
+                        </button>
+                        <button className="find-enemy-button" onClick={handleFindEnemy}
+                                aria-label="Find your lyrical enemy">
+                            Find Lyrical Enemy
+                        </button>
+                    </div>
+                </section>
 
-            {selectedSong && <SongDetailsPopup song={selectedSong} onClose={closeSongDetails} />}
+                <section className="favorites-container">
+                    <Favorites/>
+                </section>
+            </main>
+
+
+            {selectedSong && <SongDetailsPopup song={selectedSong} onClose={closeSongDetails}/>}
 
             {hoverSong && (
-                <div className="users-with-song-popup" style={{ top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px` }}>
-                    <h3>Users with Song</h3>
-                    <ul>
+                <div
+                    id={`users-for-song-${hoverSong.id}`}
+                    className="users-with-song-popup"
+                    style={{top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px`}}
+                    role="dialog"
+                    aria-label={`Users who have ${hoverSong.title} in their favorites`}>
+                    <h3 className="users-popup-title">Users with Song</h3>
+                    <ul className="users-list" role="list">
                         {hoverSong.users.map((user, idx) => (
                             <li key={idx}>{user}</li>
                         ))}
@@ -285,40 +310,58 @@ function ComparePage() {
             )}
 
             {showSoulmatePopup && (
-                <div className="lyrical-match-overlay">
-                    <div className="lyrical-match-popup" ref={soulmateModalRef}>
+                <div className="lyrical-match-overlay" role="dialog" aria-modal="true" aria-labelledby="soulmate-title">
+                    <div className="lyrical-match-popup" ref={soulmateModalRef} tabIndex="-1">
                         {isLoading ? (
-                            <Loader2 size={48} />
+                            <div className="lyrical-match-loading" role="status" aria-live="polite">
+                                <Loader2 className="loading-spinner" size={48} aria-hidden="true"/>
+                                <h2 id="soulmate-title">Your lyrical soulmate is...</h2>
+                            </div>
                         ) : (
-                            <>
-                                <button onClick={() => setShowSoulmatePopup(false)}><X size={24} /></button>
-                                <h2>Your lyrical soulmate is...</h2>
-                                <h1>{soulmateResult}</h1>
-                                <Heart size={120} />
-                            </>
+                            <div className="lyrical-match-result">
+                                <button className="close-match-button" onClick={closeSoulmatePopup}
+                                        aria-label="Close dialog">
+                                    <X size={24} aria-hidden="true"/>
+                                </button>
+                                <h2 id="soulmate-title">Your lyrical soulmate is...</h2>
+                                <h1 className="match-username">{soulmateResult}</h1>
+                                <div className="match-icon-container" aria-hidden="true">
+                                    <Heart className="match-icon soulmate-icon" size={120}/>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
             )}
 
             {showEnemyPopup && (
-                <div className="lyrical-match-overlay">
-                    <div className="lyrical-match-popup" ref={enemyModalRef}>
+                <div className="lyrical-match-overlay" role="dialog" aria-modal="true" aria-labelledby="enemy-title">
+                    <div className="lyrical-match-popup" ref={enemyModalRef} tabIndex="-1">
                         {isLoading ? (
-                            <Loader2 size={48} />
+                            <div className="lyrical-match-loading" role="status" aria-live="polite">
+                                <Loader2 className="loading-spinner" size={48} aria-hidden="true"/>
+                                <h2 id="enemy-title">Your lyrical enemy is...</h2>
+                            </div>
                         ) : (
-                            <>
-                                <button onClick={() => setShowEnemyPopup(false)}><X size={24} /></button>
-                                <h2>Your lyrical enemy is...</h2>
-                                <h1>{enemyResult}</h1>
-                                <Angry size={120} />
-                            </>
+                            <div className="lyrical-match-result">
+                                <button className="close-match-button" onClick={closeEnemyPopup}
+                                        aria-label="Close dialog">
+                                    <X size={24} aria-hidden="true"/>
+                                </button>
+                                <h2 id="enemy-title">Your lyrical enemy is...</h2>
+                                <h1 className="match-username">{enemyResult}</h1>
+                                <div className="match-icon-container" aria-hidden="true">
+                                    <div className="match-icon enemy-icon">
+                                        <Angry className="match-icon enemy-icon" size={120}/>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
             )}
 
-            <Footer />
+            <Footer/>
         </div>
     )
 }

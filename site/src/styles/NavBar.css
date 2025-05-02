@@ -81,7 +81,7 @@
 .search-input-container {
     flex: 1 1 auto;
     display: flex;
-    min-width: 80px;
+    min-width: 60px;
     align-items: center;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 999px;
@@ -191,7 +191,13 @@
     text-align: center;
 }
 
-@media (min-width: 420px) {
+@media (max-width: 470px) {
+    .submit-search-button {
+        display: none;
+    }
+}
+
+@media (min-width: 500px) {
     .search-input::placeholder {
         color: rgba(255, 255, 255, 0.5);
     }
@@ -253,8 +259,8 @@
 }
 
 .sort-selector {
-    min-width: 80px;
-    max-width: 120px;
+    min-width: 110px;
+    max-width: 150px;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     transition: all 0.2s ease;
@@ -265,20 +271,30 @@
     position: relative;
 }
 
+.sort-selector.focused {
+    background-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
 .sort-selector select {
     appearance: none;
     background-color: transparent;
     border: none;
-    color: white;
+    color: rgba(255, 255, 255, 0.5);
     font-size: 14px;
     width: 100%;
     height: 100%;
-    padding: 0 1rem;
+    padding: 0 1.8rem 0 1rem;
     outline: none;
     cursor: pointer;
     border-radius: 20px;
     text-align: center;
     text-align-last: center;
+}
+
+.sort-selector.focused select {
+    background-color: transparent;
+    box-shadow: none;
 }
 
 .sort-selector select:focus {
@@ -293,9 +309,9 @@
 }
 
 .sort-selector::after {
-    content: '';
+    content: "";
     position: absolute;
-    right: 12px;
+    right: 15px;
     width: 8px;
     height: 8px;
     border-right: 2px solid rgba(255, 255, 255, 0.7);

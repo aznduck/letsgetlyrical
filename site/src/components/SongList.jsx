@@ -149,7 +149,7 @@ function SongList({ searchTerm, songs, onClose, lyricsMap }) {
                                             <td>{song.year}</td>
                                             <td>
                                                 <button
-                                                    className="lyrics-button"
+                                                    className="song-list-lyrics-button"
                                                     onClick={() => handleLyricsClick(song)}
                                                     aria-label={`View lyrics for ${song.title}`}
                                                 >
