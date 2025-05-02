@@ -89,11 +89,11 @@ public class GeniusService {
         return Collections.emptyList();
     }
 
-    public List<Map<String, Object>> getTopSongs(Long artistId, int perPage) {
+    public List<Map<String, Object>> getTopSongs(Long artistId, int perPage, String sort) {
         try {
             URI uri = UriComponentsBuilder.fromUriString(baseUrl + "/artists/" + artistId + "/songs")
-                    .queryParam("sort", "popularity")
                     .queryParam("per_page", perPage)
+                    .queryParam("sort", sort)
                     .build()
                     .toUri();
 
@@ -215,8 +215,6 @@ public class GeniusService {
                 }
 
                 String textWithPlaceholders = workingContainer.text();
-                logger.info("Div text with placeholders: " + textWithPlaceholders);
-
                 String formattedLyrics = textWithPlaceholders.replace(NEWLINE_PLACEHOLDER, "\n").trim();
 
                 lyricsBuilder.append(formattedLyrics);

@@ -19,30 +19,31 @@ public class GeniusController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Map<String, Object>>> searchArtist(@RequestParam String q) {
+    public ResponseEntity<?> searchArtist(@RequestParam String q) {
         try {
             List<Map<String, Object>> results = geniusService.searchArtist(q);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
             System.err.println("Error in searchArtist controller: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(List.of(Map.of("error", "Failed to search artists")));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to search artists"));
         }
     }
 
     @GetMapping("/artists/{artistId}/songs")
-    public ResponseEntity<List<Map<String, Object>>> getTopSongs(
-            @PathVariable Long artistId,
-            @RequestParam(value = "per_page", defaultValue = "10") int perPage
+    public ResponseEntity<?> getTopSongs(
+                                          @PathVariable Long artistId,
+                                          @RequestParam(value = "per_page", defaultValue = "10") int perPage,
+                                          @RequestParam(value = "sort", defaultValue = "popularity") String sort
     ) {
         try {
             if (perPage < 1) perPage = 1;
             if (perPage > 50) perPage = 50;
 
-            List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage);
+            List<Map<String, Object>> songs = geniusService.getTopSongs(artistId, perPage, sort);
             return ResponseEntity.ok(songs);
         } catch (Exception e) {
             System.err.println("Error in getTopSongs controller: " + e.getMessage());
-            return ResponseEntity.internalServerError().body(List.of(Map.of("error", "Failed to fetch top songs")));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to fetch top songs"));
         }
     }
 
@@ -61,10 +62,10 @@ public class GeniusController {
     public ResponseEntity<?> getLyrics(@RequestParam String url) {
         try {
             String result = geniusService.getLyrics(url);
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(Map.of("lyrics", result));
         } catch (Exception e) {
             System.err.println("Error in getLyrics controller: " + e.getMessage());
-            return  ResponseEntity.internalServerError().body(List.of("Failed to get lyrics"));
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to get lyrics"));
         }
     }
 }
