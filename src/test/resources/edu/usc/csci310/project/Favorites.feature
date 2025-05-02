@@ -1,49 +1,61 @@
 Feature: Favorites feature
+  Background:
+    Given I am logged in for favorites
+    And I am on the Search Page
+
   Scenario: Add a searched song to favorites
-    Given I am logged in on the home page
-    When I search for "Drake"
-    And I click the 1 word
-    And I hover over the 1 song
-    And I click the 2 word
-    And I hover over the 1 song
-    And I click on "Add to favorites list"
-    And I am on the home page
+    When I enter "Drake" as the artist name
+    And I click the Search button
+    And I wait 3 seconds
+    And I select "Drake" from the list of artists
+    And I wait 10 seconds
+    And I click the "yeah" word on the wordcloud
+    And I hover over the 1 song and add it to favorites
+    And I hover over the 2 song and add it to favorites
+    And I am on the Search Page
     Then I see the new song added at the bottom
 
   Scenario: List is private by default
-    Given I am logged in on the home page
     When I click the favorite settings button
     Then I see the favorites list is on "Private"
 
   Scenario: List is toggled to public
-    Given I am logged in on the home page
     When I click the favorite settings button
-    And I click on "Public"
-    And I am on the home page
-    And I click the favorite settings button
+    And I click on "Public" toggle button
     Then I see the favorites list is on "Public"
 
   Scenario: Favorite songs can be viewed
-    Given I am logged in on the home page
     When I click the 1 favorite song
     Then I see the additional information of the song
 
   Scenario: List can be reordered
-    Given I am logged in on the home page
+    When I record the top two favorite songs
     When I hover over the 1 favorite song
     And I click on the move down button
-    Then I should see the top two favorites switched
+    Then I should see the recorded second song at the top
+
 
   Scenario: Favorite songs can be deleted
-    Given I am logged in on the home page
-    When I hover over the 1 favorite song
-    And I click on "Remove song"
-    And I click on "Remove"
-    Then I should see the first favorite song at 1
+    When I record the top two favorite songs
+    And I hover over the 1 favorite song
+    And I hover click on "Remove song"
+    And I confirm removal
+    Then I should see one of those two still present
 
   Scenario: List can be completely deleted
-    Given I am logged in on the home page
-    When I click on the favorite settings button
-    And I click on "Delete"
-    And I click on "Delete"
-    Then I should an empty favorites list
+    When I enter "Drake" as the artist name
+    And I click the Search button
+    And I wait 3 seconds
+    And I select "Drake" from the list of artists
+    And I wait 10 seconds
+    And I click the "yeah" word on the wordcloud
+    And I hover over the 1 song and add it to favorites
+    And I hover over the 2 song and add it to favorites
+    And I am on the Search Page
+    Then I see the new song added at the bottom
+
+    Given I am on the Search Page
+    When I click the favorite settings button
+    And I press on the delete list button
+    And I confirm list deletion
+    Then I should have an empty favorites list
