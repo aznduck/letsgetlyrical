@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import "../styles/ComparePage.css"
+import { Search } from "lucide-react"
+
 
 const FriendSearchBar = ({ onSelectFriend }) => {
     const [query, setQuery] = useState('');
@@ -35,25 +38,28 @@ const FriendSearchBar = ({ onSelectFriend }) => {
     }, [query, users]);
 
     return (
-        <div style={{ position: 'relative', maxWidth: '400px', margin: '0 auto' }}>
-            <input
-                id="friend-search"
-                type="text"
-                placeholder="Enter a username"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    fontSize: '16px',
-                    color: '#222',
-                    border: '1px solid #ccc',
-                    borderRadius: '6px',
-                    backgroundColor: '#fff',
-                }}
-            />
+        <div className="friends-search-form" role="search">
+            <div className="friends-search-input-container">
+                <label htmlFor="friend-search" className="sr-only">
+                    Enter a username to compare with
+                </label>
+                <Search size={18} className="friends-search-icon" aria-hidden="true"/>
+                <input
+                    id="friend-search"
+                    type="text"
+                    placeholder="Enter a username"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="friends-search-input"
+                    aria-describedby="search-description"
+                />
+                <div id="search-description" className="sr-only">
+                    Type a username and press Enter to add to your comparison list
+                </div>
+            </div>
+
             {isLoading ? (
-                <p style={{ marginTop: '8px', fontSize: '14px', textAlign: 'center' }}>Loading users...</p>
+                <p style={{marginTop: '8px', fontSize: '14px', textAlign: 'center'}}>Loading users...</p>
             ) : query && filteredUsers.length > 0 ? (
                 <ul
                     style={{
@@ -92,7 +98,7 @@ const FriendSearchBar = ({ onSelectFriend }) => {
                     ))}
                 </ul>
             ) : query && filteredUsers.length === 0 ? (
-                <p style={{ marginTop: '8px', fontSize: '14px', textAlign: 'center' }}>No users found</p>
+                <p style={{marginTop: '8px', fontSize: '14px', textAlign: 'center'}}>No users found</p>
             ) : null}
         </div>
     );
