@@ -6,6 +6,10 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 import static edu.usc.csci310.project.stepdefinitions.StepdefUtils.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,7 +57,12 @@ public class SearchStepdefs {
 
     @And("I click the Search button")
     public void iClickTheSearchButton() {
-        driver.findElement(By.className("search-submit-button")).click();
+
+//        driver.findElement(By.className("search-submit-button")).click();
+        WebElement searchBtn = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(
+                        By.cssSelector("button[aria-label='Submit search']")));
+        searchBtn.click();
     }
 
     @And("I select {string} from the list of artists")
