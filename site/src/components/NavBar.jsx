@@ -10,6 +10,7 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
     const [sortOption, setSortOption] = useState(initialSortOption);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [isNumSongsFocused, setIsNumSongsFocused] = useState(false);
+    const [isSortFocused, setIsSortFocused] = useState(false)
     const navigate = useNavigate();
 
     const searchInputRef = useRef(null)
@@ -133,32 +134,34 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initi
                             </div>
 
                             {/* Updated Sort Selector */}
-                            <div className={`sort-selector`}>
+                            <div className={`sort-selector ${isSortFocused ? "focused" : ""}`}>
                                 <select
-                                    value={sortOption} // Controlled component
-                                    onChange={handleSortChange} // Update state on change
+                                    value={sortOption}
+                                    onChange={handleSortChange}
+                                    onFocus={() => setIsSortFocused(true)}
+                                    onBlur={() => setIsSortFocused(false)}
                                     aria-label="Sort order"
                                 >
-                                    <option value={"popularity"}>Popularity</option> {/* Changed text for clarity */}
+                                    <option value={"popularity"}>Popularity</option>
                                     <option value={"title"}>Title</option>
                                 </select>
                             </div>
 
-                            <button type="submit" className="nav-button" aria-label="Submit search">
-                            <Search size={20} aria-hidden="true"/>
+                            <button type="submit" className="nav-button submit-search-button" aria-label="Submit search">
+                                <Search size={20} aria-hidden="true" />
                             </button>
                         </form>
                     </div>
                     <div className="navbar-right">
                         <button className="logout-button" onClick={onLogout} aria-label="Log out of your account">
-                            <LogOut size={20} aria-hidden="true"/>
+                            <LogOut size={20} aria-hidden="true" />
                             <span className="logout-text">Log out</span>
                         </button>
                     </div>
                 </div>
             </div>
         </nav>
-    );
+    )
 }
 
-export default Navbar;
+export default Navbar
