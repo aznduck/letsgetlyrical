@@ -66,10 +66,9 @@ const FriendSearchBar = ({ onSelectFriend }) => {
                         listStyle: 'none',
                         padding: 0,
                         marginTop: '6px',
-                        border: '1px solid #ddd',
-                        borderRadius: '6px',
-                        backgroundColor: '#000', // black dropdown
-                        color: '#fff',            // white text
+                        borderRadius: '8px',
+                        backgroundColor: '#2d3a54',
+                        color: '#fff',
                         boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                         maxHeight: '180px',
                         overflowY: 'auto',
@@ -86,10 +85,10 @@ const FriendSearchBar = ({ onSelectFriend }) => {
                                 transition: 'background-color 0.2s ease',
                             }}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#333';
+                                e.currentTarget.style.backgroundColor = '#435272';
                             }}
                             onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#000';
+                                e.currentTarget.style.backgroundColor = '#2d3a54';
                             }}
                         >
 
