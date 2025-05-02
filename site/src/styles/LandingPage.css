@@ -5,6 +5,7 @@
     background: #051025;
     color: white;
     height: auto;
+    width: 100vw;
 }
 
 .landing-content {
@@ -152,7 +153,7 @@
     }
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1080px) {
     .main-content {
         min-height: 550px;
         border-radius: 0 12px 0 0;

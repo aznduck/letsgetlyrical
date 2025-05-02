@@ -18,14 +18,14 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    width: 350px;
+    max-width: 350px;
     padding: 28px;
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     background: linear-gradient(180deg, rgba(5, 60, 179, 0.40) 0%, rgba(3, 26, 76, 0.40) 76%, rgba(5, 16, 37, 0.40) 100%);
 }
 
 .friends-search-form {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .friends-search-input-container {
@@ -125,8 +125,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 6px 0 8px 0;
+    margin-bottom: 14px;
+    padding: 6px 0 0 0;
 }
 
 .comparison-title {
@@ -316,7 +316,7 @@
 }
 
 .favorites-container {
-    width: 350px;
+    max-width: 350px;
 }
 
 .comparison-actions {
@@ -492,5 +492,38 @@
     }
     100% {
         transform: rotate(0deg);
+    }
+}
+
+@media (max-width: 1080px) {
+    .compare-container {
+        flex-direction: column;
+    }
+
+    .friends-search-section {
+        max-width: 100%;
+        border-right: none;
+        height: 500px;
+    }
+
+    .friends-search-actions {
+        padding: 0;
+    }
+
+    .comparison-section {
+        border-radius: 0;
+        min-height: 500px;
+    }
+
+    .favorites-container {
+        max-width: 100%;
+    }
+
+    .comparison-results-list {
+        max-height: 500px;
+    }
+
+    .comparison-actions{
+        padding-bottom: 0;
     }
 }

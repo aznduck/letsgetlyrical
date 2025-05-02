@@ -102,94 +102,108 @@ const WordCloudHeader = ({
     }
 
     return (
-        <div
-            className={`word-cloud-header word-cloud-header-${variant} 
-            ${selectedType === "table" ? "word-cloud-header-table" : ""}`}
-            role="region"
-            aria-labelledby="word-cloud-title"
-        >
-            <div className="word-cloud-title-container">
-                <h2 id="word-cloud-title">{headerTitle}</h2>
-                <div className="edit-button-container">
-                    <button
-                        ref={editButtonRef}
-                        className="edit-button"
-                        onClick={handleEditClick}
-                        aria-label="Edit word cloud type"
-                        aria-expanded={showTypeSelector}
-                        aria-haspopup="listbox"
-                    >
-                        <Edit size={20} aria-hidden="true" />
-                        <span className="sr-only">Change view type</span>
-                    </button>
-
-                    {showTypeSelector && (
-                        <div
-                            ref={typeSelectorRef}
-                            className="type-selector-dropdown"
-                            role="listbox"
-                            aria-label="Select view type"
-                            tabIndex={-1}
+        <>
+            <div
+                className={`word-cloud-header word-cloud-header-${variant} 
+                ${selectedType === "table" ? "word-cloud-header-table" : ""}`}
+                role="region"
+                aria-labelledby="word-cloud-title"
+            >
+                <div className="word-cloud-title-container">
+                    <h2 id="word-cloud-title">{headerTitle}</h2>
+                    <div className="edit-button-container">
+                        <button
+                            ref={editButtonRef}
+                            className="edit-button"
+                            onClick={handleEditClick}
+                            aria-label="Edit word cloud type"
+                            aria-expanded={showTypeSelector}
+                            aria-haspopup="listbox"
                         >
-                            <button
-                                ref={firstOptionRef}
-                                className={`type-option ${selectedType === "cloud" ? "selected" : ""}`}
-                                onClick={() => handleTypeSelect("cloud")}
-                                role="option"
-                                aria-selected={selectedType === "cloud"}
-                                tabIndex={0}
+                            <Edit size={20} aria-hidden="true" />
+                            <span className="sr-only">Change view type</span>
+                        </button>
+
+                        {showTypeSelector && (
+                            <div
+                                ref={typeSelectorRef}
+                                className="type-selector-dropdown"
+                                role="listbox"
+                                aria-label="Select view type"
+                                tabIndex={-1}
                             >
-                                Cloud {selectedType === "cloud" && <Check size={20} aria-hidden="true" />}
-                            </button>
-                            <button
-                                ref={lastOptionRef}
-                                className={`type-option ${selectedType === "table" ? "selected" : ""}`}
-                                onClick={() => handleTypeSelect("table")}
-                                role="option"
-                                aria-selected={selectedType === "table"}
-                                tabIndex={0}
-                            >
-                                Table {selectedType === "table" && <Check size={20} aria-hidden="true" />}
-                            </button>
-                        </div>
+                                <button
+                                    ref={firstOptionRef}
+                                    className={`type-option ${selectedType === "cloud" ? "selected" : ""}`}
+                                    onClick={() => handleTypeSelect("cloud")}
+                                    role="option"
+                                    aria-selected={selectedType === "cloud"}
+                                    tabIndex={0}
+                                >
+                                    Cloud {selectedType === "cloud" && <Check size={20} aria-hidden="true" />}
+                                </button>
+                                <button
+                                    ref={lastOptionRef}
+                                    className={`type-option ${selectedType === "table" ? "selected" : ""}`}
+                                    onClick={() => handleTypeSelect("table")}
+                                    role="option"
+                                    aria-selected={selectedType === "table"}
+                                    tabIndex={0}
+                                >
+                                    Table {selectedType === "table" && <Check size={20} aria-hidden="true" />}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="word-cloud-actions">
+                    {variant === "default" && onAddFavorites && (
+                        <button className="add-favorites-button" onClick={onAddFavorites} aria-label="Add your favorites list">
+                            Add your favorites list
+                        </button>
+                    )}
+
+                    {variant === "favorites" && (
+                        <>
+                            {onGenerateFavorites && (
+                                <button
+                                    className={`generate-favorites-button ${isCloudGenerated ? "selected" : ""}`}
+                                    onClick={onGenerateFavorites}
+                                    disabled={isCloudGenerated}
+                                    aria-pressed={isCloudGenerated}
+                                    aria-label={isCloudGenerated ? "Favorites cloud generated" : "Generate favorites cloud"}
+                                >
+                                    Generate favorites cloud
+                                </button>
+                            )}
+                            {onCompareWithFriends && (
+                                <button
+                                    className="compare-friends-button"
+                                    onClick={onCompareWithFriends}
+                                    aria-label="Compare with friends"
+                                >
+                                    Compare with friends!
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
 
-            <div className="word-cloud-actions">
-                {variant === "default" && onAddFavorites && (
-                    <button className="add-favorites-button" onClick={onAddFavorites} aria-label="Add your favorites list">
-                        Add your favorites list
-                    </button>
-                )}
-
-                {variant === "favorites" && (
-                    <>
-                        {onGenerateFavorites && (
-                            <button
-                                className={`generate-favorites-button ${isCloudGenerated ? "selected" : ""}`}
-                                onClick={onGenerateFavorites}
-                                disabled={isCloudGenerated}
-                                aria-pressed={isCloudGenerated}
-                                aria-label={isCloudGenerated ? "Favorites cloud generated" : "Generate favorites cloud"}
-                            >
-                                Generate favorites cloud
-                            </button>
-                        )}
-                        {onCompareWithFriends && (
-                            <button
-                                className="compare-friends-button"
-                                onClick={onCompareWithFriends}
-                                aria-label="Compare with friends"
-                            >
-                                Compare with friends!
-                            </button>
-                        )}
-                    </>
-                )}
-            </div>
-        </div>
+            {/* Add the mobile version of the Compare with friends button */}
+            {variant === "favorites" && onCompareWithFriends && (
+                <button
+                    className="compare-friends-button-mobile"
+                    onClick={onCompareWithFriends}
+                    aria-label="Compare with friends"
+                >
+                    Compare with friends!
+                </button>
+            )}
+        </>
     )
 }
 
 export default WordCloudHeader
+

@@ -12,12 +12,14 @@
 
 body {
     background: linear-gradient(180deg, #002574 35%, #09162F 96%);
+    width: 100vw;
 }
 
 .app {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    width: 100vw;
 }
 
 .auth-container {
