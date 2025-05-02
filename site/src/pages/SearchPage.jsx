@@ -13,18 +13,19 @@ import SongDetailsPopUp from "../components/SongDetailsPopUp"
 const DEFAULT_ALBUM_COVER = "/images/placeholder.svg"
 
 const SearchPage = () => {
-    const { logout } = useAuth()
-    const navigate = useNavigate()
-    const location = useLocation()
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-    const [searchQuery, setSearchQuery] = useState("")
-    const [numSongs, setNumSongs] = useState(10)
+    const [searchQuery, setSearchQuery] = useState('');
+    const [numSongs, setNumSongs] = useState(10);
+    const [sort, setSort] = useState("popularity");
 
-    const [potentialArtists, setPotentialArtists] = useState([])
-    const [selectedArtist, setSelectedArtist] = useState(null)
-    const [songs, setSongs] = useState([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState(null)
+    const [potentialArtists, setPotentialArtists] = useState([]);
+    const [selectedArtist, setSelectedArtist] = useState(null);
+    const [songs, setSongs] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [showArtistPopup, setShowArtistPopup] = useState(false)
     const [selectedSong, setSelectedSong] = useState(null)
     const [announceMessage, setAnnounceMessage] = useState("")
@@ -46,13 +47,23 @@ const SearchPage = () => {
     const artistModalRef = useModalFocus(showArtistPopup, closeArtistPopup)
 
     useEffect(() => {
-        const params = new URLSearchParams(location.search)
-        const query = params.get("q") || ""
-        const numParam = params.get("num")
-        const num = Number.parseInt(numParam, 10) > 0 ? Number.parseInt(numParam, 10) : 10
+        const params = new URLSearchParams(location.search);
+        const query = params.get('q') || '';
+        const numParam = params.get('num');
+        const num = Number.parseInt(numParam, 10) > 0 ? Number.parseInt(numParam, 10) : 10;
+        const sortParam = params.get('sort') || 'popularity';
+        console.log("query: " + query);
 
-        setSearchQuery(query)
-        setNumSongs(num)
+        console.log("--- useEffect Triggered ---");
+        console.log("Raw location.search:", location.search);
+        console.log("Extracted query (q):", query);
+        console.log("Extracted numParam (num):", numParam);
+        console.log("Extracted sortParam (sort):", sortParam);
+        console.log("--------------------------");
+
+        setSearchQuery(query);
+        setNumSongs(num);
+        setSort(sortParam);
 
         setPotentialArtists([])
         setSelectedArtist(null)
@@ -105,7 +116,8 @@ const SearchPage = () => {
                 setSongs([])
                 setAnnounceMessage(`Fetching top songs for ${selectedArtist.artist_name}`)
                 try {
-                    const fetchedSongs = await GeniusService.getTopSongs(selectedArtist.artist_id, numSongs)
+
+                    const fetchedSongs = await GeniusService.getTopSongs(selectedArtist.artist_id, numSongs, sort);
 
                     if (fetchedSongs && fetchedSongs.length > 0) {
                         const formattedSongs = fetchedSongs.map((song, index) => ({
@@ -228,8 +240,13 @@ const SearchPage = () => {
 
     return (
         <div className="search-page">
-            <SkipLink />
-            <Navbar onLogout={handleLogout} initialSearchQuery={searchQuery} initialNumSongs={numSongs} />
+
+            <Navbar
+                onLogout={handleLogout}
+                initialSearchQuery={searchQuery}
+                initialNumSongs={numSongs}
+                initialSortOption={sort}
+            />
 
             {/* Screen reader announcements */}
             <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -243,7 +260,6 @@ const SearchPage = () => {
                     </div>
                 )}
 
-                {/* Artist Selection Popup */}
                 {showArtistPopup && potentialArtists.length > 0 && !selectedArtist && (
                     <div
                         className="artist-popup-overlay"

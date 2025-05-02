@@ -52,6 +52,13 @@ describe('NavBar Component', () => {
         expect(numSongsInput.value).toBe('10');
     });
 
+    test('handles sort option change', () => {
+        const sortDropdown = screen.getByLabelText('Sort order');
+        expect(sortDropdown.value).toBe('popularity');
+        fireEvent.change(sortDropdown, { target: { value: 'title' } });
+        expect(sortDropdown.value).toBe('title');
+    });
+
     test('clears search input when clear button is clicked', () => {
         const searchInput = screen.getByPlaceholderText('Enter an artist');
         fireEvent.change(searchInput, { target: { value: 'Taylor Swift' } });
@@ -101,7 +108,7 @@ describe('NavBar Component', () => {
 
         fireEvent.click(searchButton);
 
-        expect(mockNavigate).toHaveBeenCalledWith('/search?q=Drake&num=5');
+        expect(mockNavigate).toHaveBeenCalledWith('/search?q=Drake&num=5&sort=popularity');
     });
 
     test('logs message when search query is empty on submit', () => {

@@ -2,9 +2,12 @@ import React, {useEffect, useRef, useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Home, X, LogOut } from "lucide-react";
 
-function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
+// Added initialSortOption prop
+function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "", initialSortOption = "popularity" }) {
     const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
     const [numSongs, setNumSongs] = useState(initialNumSongs === "" ? "" : String(initialNumSongs));
+    // State for the sort dropdown
+    const [sortOption, setSortOption] = useState(initialSortOption);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [isNumSongsFocused, setIsNumSongsFocused] = useState(false);
     const navigate = useNavigate();
@@ -14,7 +17,9 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
     useEffect(() => {
         setSearchQuery(initialSearchQuery);
         setNumSongs(initialNumSongs === "" ? "" : String(initialNumSongs));
-    }, [initialSearchQuery, initialNumSongs]);
+        // Update sort option when initial prop changes
+        setSortOption(initialSortOption);
+    }, [initialSearchQuery, initialNumSongs, initialSortOption]); // Added initialSortOption dependency
 
     const handleSearchClear = () => {
         setSearchQuery("");
@@ -25,8 +30,13 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
     };
 
     const handleNumSongsChange = (e) => {
-        const value = e.target.value.replace(/\D/g, "");
+        const value = e.target.value.replace(/\D/g, ""); // Allow only digits
         setNumSongs(value);
+    };
+
+    // Handler for sort dropdown change
+    const handleSortChange = (e) => {
+        setSortOption(e.target.value);
     };
 
     const handleHomeClick = () => {
@@ -37,7 +47,8 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
         e.preventDefault();
         if (searchQuery.trim()) {
             const num = Number.parseInt(numSongs, 10) > 0 ? numSongs : '10';
-            navigate(`/search?q=${encodeURIComponent(searchQuery)}&num=${num}`);
+            const targetUrl = `/search?q=${encodeURIComponent(searchQuery)}&num=${num}&sort=${encodeURIComponent(sortOption)}`;
+            navigate(targetUrl);
         } else {
             console.log("Search query is empty");
         }
@@ -119,6 +130,18 @@ function Navbar({ onLogout, initialSearchQuery = "", initialNumSongs = "" }) {
                                     pattern="[0-9]*"
                                     aria-label="Number of songs"
                                 />
+                            </div>
+
+                            {/* Updated Sort Selector */}
+                            <div className={`sort-selector`}>
+                                <select
+                                    value={sortOption} // Controlled component
+                                    onChange={handleSortChange} // Update state on change
+                                    aria-label="Sort order"
+                                >
+                                    <option value={"popularity"}>Popularity</option> {/* Changed text for clarity */}
+                                    <option value={"title"}>Title</option>
+                                </select>
                             </div>
 
                             <button type="submit" className="nav-button" aria-label="Submit search">

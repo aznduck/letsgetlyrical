@@ -5,7 +5,7 @@ package edu.usc.csci310.project.services;
 import java.sql.*;
 
 import edu.usc.csci310.project.Utils;
-import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.exceptions.UsernameNotAvailableException;
 import edu.usc.csci310.project.requests.CreateUserRequest;
 import org.springframework.stereotype.Service;
 
