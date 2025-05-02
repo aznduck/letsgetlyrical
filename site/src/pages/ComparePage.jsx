@@ -43,24 +43,71 @@ function ComparePage() {
         setAnnounceMessage(`Removed ${friend} from selected friends`)
     }
 
+    async function fetchSoulmate(username) {
+        //GET /api/favorite/get/soulmate
+            const yourData = {
+                username: username===undefined ? "maliahotan" : username,
+                password: ""
+            }
+
+            const response = await fetch("/api/favorite/get/soulmate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(yourData)
+            });
+
+            return response;
+
+    }
+
     const handleFindSoulmate = () => {
         console.log("Finding lyrical soulmate")
         setShowSoulmatePopup(true)
         setIsLoading(true)
-        setTimeout(() => {
+
+        console.log("username find soulmate")
+        fetchSoulmate((getUsername())).then((resp)=>{
+            return resp.json()
+        }).then((resp)=>{
+            //console.log(resp)
             setIsLoading(false)
-            setSoulmateResult("maliahotan")
-        }, 2000)
+            setSoulmateResult(atob(resp.matchResult.bestUsername) + (resp.matchResult.mutualBest?" (mutual best!!)":""));
+        });/*
+            .catch((error)=>{
+            console.error("Error fetching soulmate:", error);
+            setIsLoading(false);
+            setSoulmateResult("Error fetching soulmate");
+        });*/
+
     }
+    function getUsername() {
+        const user = localStorage.getItem("user");
+        if (user) {
+            try {
+                const parsedUser = JSON.parse(user);
+                return parsedUser.username;
+            } catch (error) {
+                console.error('Failed to parse stored user:', error);
+                localStorage.removeItem('user');
+            }
+        }
+        return null;
+    }
+
 
     const handleFindEnemy = () => {
         console.log("Finding lyrical enemy")
         setShowEnemyPopup(true)
         setIsLoading(true)
-        setTimeout(() => {
+        fetchSoulmate((getUsername())).then((resp)=>{
+            return resp.json()
+        }).then((r)=>{
+            console.log(r)
             setIsLoading(false)
-            setEnemyResult("maliahotan")
-        }, 2000)
+            setEnemyResult(atob(r.matchResult.enemyUsername) + (r.matchResult.mutualEnemy?" (mutual enemy!!)":""))
+        });
     }
 
     const handleSongClick = (song) => setSelectedSong(song)

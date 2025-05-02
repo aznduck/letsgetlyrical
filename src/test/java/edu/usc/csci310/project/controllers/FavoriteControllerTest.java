@@ -134,4 +134,13 @@
 //        assertEquals(-1, response.getBody().getId());
 //        assertEquals("Test Exception", response.getBody().getMessage());
 //    }
+//    @Test
+//    void getSoulmateValid() {
+////        FavoriteGetRequest request = generateValidFavoriteGetRequest();
+////        when(favoriteService.getSoulmate(request)).thenReturn(new MatchResultResponse(1, "Soulmate found", new ArrayList<>()));
+////        ResponseEntity<MatchResultResponse> response = favoriteController.getSoulmate(request);
+////        assertEquals(200, response.getStatusCode().value());
+////        assertEquals("Soulmate found", response.getBody().getMessage());
+////    }
+//
 //}
