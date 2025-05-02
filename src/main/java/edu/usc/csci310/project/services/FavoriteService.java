@@ -60,7 +60,7 @@ public class FavoriteService {
             throw new RuntimeException(e);
         }
 
-        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, album, lyrics) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String insertSongsSQL = "INSERT INTO songs (songId, songName, songArtist, fullTitle, dateReleased, lyrics, album) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement pst = connection.prepareStatement(insertSongsSQL)) {
             if(isSongAdded(songId)) {
                 result = 0; // represents song is already in DB
@@ -154,7 +154,7 @@ public List<FavoriteSong> getFavoriteSongs(FavoriteGetRequest request) {
     }
 
     String sql = """
-        SELECT f.id, s.songName, s.songArtist, s.album
+        SELECT f.id, s.songName, s.songArtist, s.album, s.songId
         FROM favorites f
         JOIN songs s ON f.songId = s.songId
         WHERE f.userId = ?
@@ -169,8 +169,9 @@ public List<FavoriteSong> getFavoriteSongs(FavoriteGetRequest request) {
             String title = rs.getString("songName");
             String artist = rs.getString("songArtist");
             String album = rs.getString("album");
+            int songId = rs.getInt("songId");
 
-            result.add(new FavoriteSong(id, title, artist, album));
+            result.add(new FavoriteSong(id, title, artist, album, songId));
         }
     } catch (SQLException e) {
         throw new RuntimeException(e);

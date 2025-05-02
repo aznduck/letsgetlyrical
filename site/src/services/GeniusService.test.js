@@ -91,8 +91,8 @@ describe('GeniusService', () => {
         const artistId = 123;
         const defaultNumSongs = 10;
         const customNumSongs = 5;
-        const expectedUrlDefault = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${defaultNumSongs}`;
-        const expectedUrlCustom = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${customNumSongs}`;
+        const expectedUrlDefault = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${defaultNumSongs}&sort=popularity`;
+        const expectedUrlCustom = `${BACKEND_URL}/artists/${artistId}/songs?per_page=${customNumSongs}&sort=popularity`;
         const mockSongs = [{ id: 1, title: "Song A" }, { id: 2, title: "Song B" }];
 
         it('should fetch top songs successfully with default number', async () => {

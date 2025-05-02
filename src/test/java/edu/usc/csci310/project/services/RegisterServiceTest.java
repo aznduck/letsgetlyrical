@@ -1,9 +1,8 @@
 package edu.usc.csci310.project.services;
 
 import edu.usc.csci310.project.Utils;
-import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.exceptions.UsernameNotAvailableException;
 import edu.usc.csci310.project.requests.CreateUserRequest;
-import edu.usc.csci310.project.services.RegisterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -15,8 +14,6 @@ import java.sql.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
-import java.security.MessageDigest;
 
 import static edu.usc.csci310.project.Utils.hashPassword;
 

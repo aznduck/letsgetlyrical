@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback} from "react";
+import {useEffect, useState, useCallback, useRef} from "react";
 import {stemmer} from "porter-stemmer";
 import WordCloudHeader from "../components/WordCloudHeader";
 import SongList from "./SongList";
@@ -87,156 +87,198 @@ const getGeniusPathFromUrl = (url) => {
     }
 };
 
-const WordCloudContent = ({
-                       songsData = [],
-                       variant = "default",
-                       onAddFavorites,
-                       onCompareWithFriends,
-                   }) => {
-    const [selectedType, setSelectedType] = useState("cloud");
-    const [wordFrequencies, setWordFrequencies] = useState([]);
-    const [allLyricsText, setAllLyricsText] = useState("");
-    const [lyricsMap, setLyricsMap] = useState(new Map());
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [showSongList, setShowSongList] = useState(false);
-    const [selectedWord, setSelectedWord] = useState(null);
-    const [searchTerm, setSearchTerm] = useState("");
+const WordCloudContent = ({ songsData = [], variant = "default", onAddFavorites, onCompareWithFriends }) => {
+    const [selectedType, setSelectedType] = useState("cloud")
+    const [wordFrequencies, setWordFrequencies] = useState([])
+    const [allLyricsText, setAllLyricsText] = useState("")
+    const [lyricsMap, setLyricsMap] = useState(new Map())
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [showSongList, setShowSongList] = useState(false)
+    const [selectedWord, setSelectedWord] = useState(null)
+    const [searchTerm, setSearchTerm] = useState("")
+
+    // Ref for managing focus
+    const songListRef = useRef(null)
+    const lastFocusedElementRef = useRef(null)
 
     useEffect(() => {
         if (!songsData.length) {
-            setWordFrequencies([]);
-            setAllLyricsText("");
-            setLyricsMap(new Map());
-            setIsLoading(false);
-            setError(null);
-            return;
+            setWordFrequencies([])
+            setAllLyricsText("")
+            setLyricsMap(new Map())
+            setIsLoading(false)
+            setError(null)
+            return
         }
 
         const fetchAllLyrics = async () => {
-            setIsLoading(true);
-            setError(null);
-            setWordFrequencies([]);
-            setAllLyricsText("");
-            const newLyrics = new Map();
+            setIsLoading(true)
+            setError(null)
+            setWordFrequencies([])
+            setAllLyricsText("")
+            const newLyrics = new Map()
 
             const tasks = songsData.map(async (song) => {
-                const songId = song.id || song.url;
-                const path = getGeniusPathFromUrl(song.url);
-                if (!path) return {songId, lyrics: null, ok: false};
+                const songId = song.id || song.url
+                const path = getGeniusPathFromUrl(song.url)
+                if (!path) return { songId, lyrics: null, ok: false }
                 try {
-                    const lyrics = await GeniusService.getLyrics(`https://genius.com/${path}`);
-                    return {songId, lyrics, ok: true};
+                    const lyrics = await GeniusService.getLyrics(`https://genius.com/${path}`)
+                    return { songId, lyrics, ok: true }
                 } catch (err) {
-                    console.error(`Lyric fetch failed for ${song.title ?? song.url}:`, err);
-                    return {songId, lyrics: null, ok: false};
+                    console.error(`Lyric fetch failed for ${song.title ?? song.url}:`, err)
+                    return { songId, lyrics: null, ok: false }
                 }
-            });
+            })
 
             try {
-                const results = await Promise.all(tasks);
-                let combined = "";
-                let success = 0;
-                results.forEach(({songId, lyrics, ok}) => {
-                    newLyrics.set(songId, lyrics);
+                const results = await Promise.all(tasks)
+                let combined = ""
+                let success = 0
+                results.forEach(({ songId, lyrics, ok }) => {
+                    newLyrics.set(songId, lyrics)
                     if (ok && lyrics) {
-                        combined += `${lyrics}\n\n`;
-                        success += 1;
+                        combined += `${lyrics}\n\n`
+                        success += 1
                     }
-                });
-                setLyricsMap(newLyrics);
-                setAllLyricsText(combined);
-                if (!success) setError(`Failed to fetch lyrics for all ${songsData.length} songs.`);
-                else if (success < songsData.length) setError(`Fetched lyrics for ${success}/${songsData.length} songs.`);
+                })
+                setLyricsMap(newLyrics)
+                setAllLyricsText(combined)
+                if (!success) setError(`Failed to fetch lyrics for all ${songsData.length} songs.`)
+                else if (success < songsData.length) setError(`Fetched lyrics for ${success}/${songsData.length} songs.`)
             } catch (err) {
-                console.error("Unexpected error while fetching lyrics:", err);
-                setError("Unexpected error while fetching lyrics.");
+                console.error("Unexpected error while fetching lyrics:", err)
+                setError("Unexpected error while fetching lyrics.")
             } finally {
-                setIsLoading(false);
+                setIsLoading(false)
             }
-        };
+        }
 
-        fetchAllLyrics();
-    }, [songsData]);
+        fetchAllLyrics()
+    }, [songsData])
 
     useEffect(() => {
-        if (allLyricsText && !isLoading) setWordFrequencies(getFrequencies(allLyricsText));
-        else if (!isLoading) setWordFrequencies([]);
-    }, [allLyricsText, isLoading]);
+        if (allLyricsText && !isLoading) setWordFrequencies(getFrequencies(allLyricsText))
+        else if (!isLoading) setWordFrequencies([])
+    }, [allLyricsText, isLoading])
 
     const handleTypeChange = useCallback((type) => {
-        setSelectedType(type);
-        setSelectedWord(null);
-        setShowSongList(false);
-    }, []);
+        setSelectedType(type)
+        setSelectedWord(null)
+        setShowSongList(false)
+    }, [])
 
     // Inside WordCloud component
+    const handleWordClick = useCallback(
+        (data) => {
+            console.log("handleWordClick received data:", data)
+            if (!data) {
+                console.warn("handleWordClick received null/undefined data.")
+                return
+            }
 
-    const handleWordClick = useCallback((data) => {
-        console.log("handleWordClick received data:", data);
-        if (!data) {
-            console.warn("handleWordClick received null/undefined data.");
-            return;
-        }
+            // Store the currently focused element
+            lastFocusedElementRef.current = document.activeElement
 
-        const term = data.word ?? data.text ?? "";
+            const term = data.word ?? data.text ?? ""
+            const frequency = data.frequency ?? data.value ?? 0
 
-        const frequency = data.frequency ?? data.value ?? 0;
+            console.log(`handleWordClick extracted term: '${term}', frequency/value: ${frequency}`)
 
-        console.log(`handleWordClick extracted term: '${term}', frequency/value: ${frequency}`);
-
-        const trimmedTerm = term.trim();
-        if (trimmedTerm.length > 0) {
-            setSearchTerm(trimmedTerm);
-            setSelectedWord({ word: trimmedTerm, frequency: frequency });
-            setShowSongList(true);
-        } else {
-            console.warn(`handleWordClick: Extracted term ('${term}') is empty or whitespace. SongList will not be shown.`);
-        }
-    }, [setSearchTerm, setSelectedWord, setShowSongList]);
+            const trimmedTerm = term.trim()
+            if (trimmedTerm.length > 0) {
+                setSearchTerm(trimmedTerm)
+                setSelectedWord({ word: trimmedTerm, frequency: frequency })
+                setShowSongList(true)
+            } else {
+                console.warn(`handleWordClick: Extracted term ('${term}') is empty or whitespace. SongList will not be shown.`)
+            }
+        },
+        [setSearchTerm, setSelectedWord, setShowSongList],
+    )
 
     const handleCloseSongList = useCallback(() => {
-        setShowSongList(false);
-        setSelectedWord(null);
-        setSearchTerm("");
-    }, []);
+        setShowSongList(false)
+        setSelectedWord(null)
+        setSearchTerm("")
 
-    const fontSizeMapper = useCallback((w) => Math.max(18, Math.min(70, Math.log2(w.value + 1) * 8)), []);
+        // Return focus to the element that was focused before opening the song list
+        if (lastFocusedElementRef.current) {
+            lastFocusedElementRef.current.focus()
+        }
+    }, [])
+
+    const fontSizeMapper = useCallback((w) => Math.max(18, Math.min(70, Math.log2(w.value + 1) * 8)), [])
 
     const renderContent = () => {
-        if (isLoading) return <div className="word-cloud-loading">Fetching lyrics…</div>;
-        if (error && !wordFrequencies.length) return <div className="word-cloud-error">Error: {error}</div>;
+        if (isLoading)
+            return (
+                <div className="word-cloud-loading" role="status" aria-live="polite">
+                    Fetching lyrics…
+                </div>
+            )
+        if (error && !wordFrequencies.length)
+            return (
+                <div className="word-cloud-error" role="alert">
+                    {error}
+                </div>
+            )
         if (!wordFrequencies.length)
             return (
-                <div className="word-cloud-info">
+                <div className="word-cloud-info" role="status">
                     {songsData.length ? "No significant words found." : "Select songs to generate a word cloud."}
                 </div>
-            );
+            )
 
         if (selectedType === "table") {
             return (
-                <div className="word-table-container">
-                    {error && <div className="word-cloud-warning">{error}</div>}
+                <div className="word-table-container" role="region" aria-label="Word frequency table">
+                    {error && (
+                        <div className="word-cloud-warning" role="alert">
+                            {error}
+                        </div>
+                    )}
                     <div className="word-table-body">
                         {wordFrequencies.map((item, idx) => (
-                            <div key={`${item.word}-${idx}`} onClick={() => {
-                                console.log("Table Row Clicked. Item:", item);
-                                handleWordClick(item)
-                            }}
-                                 className="word-table-row">
+                            <div
+                                key={`${item.word}-${idx}`}
+                                onClick={() => {
+                                    console.log("Table Row Clicked. Item:", item)
+                                    handleWordClick(item)
+                                }}
+                                className="word-table-row"
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        handleWordClick(item)
+                                        e.preventDefault()
+                                    }
+                                }}
+                                aria-label={`${item.word}: ${item.frequency} occurrences. Press Enter to view songs containing this word.`}
+                            >
                                 {item.word} – {item.frequency}
                             </div>
                         ))}
                     </div>
                 </div>
-            );
+            )
         }
 
-        const cloudData = wordFrequencies.map(({word, frequency}) => ({text: word, value: frequency}));
+        const cloudData = wordFrequencies.map(({ word, frequency }) => ({ text: word, value: frequency }))
         return (
-            <div className="word-cloud-container">
-                {error && <div className="word-cloud-warning">{error}</div>}
-                <div className="wordcloud-wrapper" style={{height: 400, width: "100%"}}>
+            <div className="word-cloud-container" role="region" aria-label="Word cloud visualization">
+                {error && (
+                    <div className="word-cloud-warning" role="alert">
+                        {error}
+                    </div>
+                )}
+                <div
+                    className="wordcloud-wrapper"
+                    style={{ height: 400, width: "100%" }}
+                    aria-label="Interactive word cloud. Click on words to see songs containing them."
+                >
                     <Cloud
                         data={cloudData}
                         fontSizeMapper={fontSizeMapper}
@@ -245,27 +287,30 @@ const WordCloudContent = ({
                         padding={2}
                         random={() => 0.5}
                         onWordClick={(event, wordData) => {
-                            console.log("Cloud onWordClick - wordData object received:", wordData);
+                            console.log("Cloud onWordClick - wordData object received:", wordData)
 
-                            if (!wordData || typeof wordData.text === 'undefined') {
-                                console.error("Cloud onWordClick: Second argument 'wordData' is missing or invalid:", wordData);
-                                return;
+                            if (!wordData || typeof wordData.text === "undefined") {
+                                console.error("Cloud onWordClick: Second argument 'wordData' is missing or invalid:", wordData)
+                                return
                             }
 
-                            console.log("Cloud passing wordData directly to handleWordClick:", wordData);
-                            handleWordClick(wordData);
-
+                            console.log("Cloud passing wordData directly to handleWordClick:", wordData)
+                            handleWordClick(wordData)
                         }}
                         width={500}
                         height={400}
                     />
                 </div>
             </div>
-        );
-    };
+        )
+    }
 
     return (
-        <div className={`word-cloud-section ${selectedType === "table" ? "word-cloud-section-table" : ""}`}>
+        <div
+            className={`word-cloud-section ${selectedType === "table" ? "word-cloud-section-table" : ""}`}
+            role="region"
+            aria-label="Word frequency analysis"
+        >
             <WordCloudHeader
                 variant={variant}
                 selectedType={selectedType}
@@ -275,11 +320,16 @@ const WordCloudContent = ({
             />
             {renderContent()}
             {showSongList && (
-                <SongList searchTerm={searchTerm} songs={songsData} lyricsMap={lyricsMap}
-                          onClose={handleCloseSongList}/>
+                <SongList
+                    searchTerm={searchTerm}
+                    songs={songsData}
+                    lyricsMap={lyricsMap}
+                    onClose={handleCloseSongList}
+                    ref={songListRef}
+                />
             )}
         </div>
-    );
-};
+    )
+}
 
-export default WordCloudContent;
+export default WordCloudContent

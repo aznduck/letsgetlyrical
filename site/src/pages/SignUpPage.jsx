@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import { useState, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 
@@ -21,6 +21,22 @@ const SignUpPage = () => {
     })
     const [success, setSuccess] = useState(false)
     const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
+
+    const formRef = useRef(null)
+    const usernameRef = useRef(null)
+    const generalErrorRef = useRef(null)
+
+    useEffect(() => {
+        if (usernameRef.current) {
+            usernameRef.current.focus()
+        }
+    }, [])
+
+    useEffect(() => {
+        if (errors.general && generalErrorRef.current) {
+            generalErrorRef.current.focus()
+        }
+    }, [errors.general])
 
     useEffect(() => {
         let redirectTimer
@@ -58,10 +74,19 @@ const SignUpPage = () => {
             general: ""
         })
         setShowCancelConfirmation(false)
+
+        if (usernameRef.current) {
+            usernameRef.current.focus()
+        }
     }
 
     const handleCancelConfirmation = () => {
         setShowCancelConfirmation(false)
+
+        const cancelButton = document.querySelector(".cancel-button")
+        if (cancelButton) {
+            cancelButton.focus()
+        }
     }
 
     const handleSubmit = async (e) => {
@@ -137,16 +162,24 @@ const SignUpPage = () => {
             {showCancelConfirmation && <CancelModal onConfirm={handleConfirmCancel} onCancel={handleCancelConfirmation} />}
 
             <div className="sign-up-container">
-                <form onSubmit={handleSubmit} className="sign-up-form">
-                    <h1>Create an account</h1>
+                <form onSubmit={handleSubmit}
+                      className="sign-up-form"
+                      aria-labelledby="signup-heading"
+                      noValidate>
+                    <h1 id="signup-heading">Create an account</h1>
 
                     <div className="sign-up-subtitle">
-                        Already have an account? <Link to="/login">Log in</Link>
+                        Already have an account? <Link to="/login"
+                                                       aria-label="Log in to your existing account">Log in</Link>
                     </div>
 
                     {/* Display general error if present */}
                     {errors.general && (
-                        <div className="error-message general-error">
+                        <div className="error-message general-error"
+                             role="alert"
+                             aria-live="assertive"
+                             ref={generalErrorRef}
+                             tabIndex={-1}>
                             {errors.general}
                         </div>
                     )}
@@ -158,9 +191,13 @@ const SignUpPage = () => {
                                value={username}
                                onChange={(e) => setUsername(e.target.value)}
                                className={errors.username ? "input-error" : ""}
+                               aria-required="true"
+                               aria-invalid={errors.username ? "true" : "false"}
+                               aria-describedby={errors.username ? "username-error" : undefined}
                                required
                         />
-                        {errors.username && <div className="error-message">{errors.username}</div>}
+                        {errors.username && <div className="error-message"
+                                                 id="username-error" role="alert">{errors.username}</div>}
                     </div>
 
                     <PasswordInput
@@ -169,8 +206,9 @@ const SignUpPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         error={errors.password}
+                        aria-describedby={!errors.password ? "password-requirements" : undefined}
                     />
-                    {!errors.password && <div className="password-req">Must use 1 uppercase, 1 lowercase, and 1 number</div>}
+                    {!errors.password && <div className="password-req" id="password-requirements">Must use 1 uppercase, 1 lowercase, and 1 number</div>}
 
                     <PasswordInput
                         id="confirmpassword"
@@ -181,10 +219,16 @@ const SignUpPage = () => {
                     />
 
                     <div className="button-group">
-                        <button type="button" className="cancel-button" onClick={handleCancelClick} disabled={success}>
+                        <button type="button"
+                                className="cancel-button"
+                                onClick={handleCancelClick}
+                                disabled={success}
+                                aria-label="Cancel account creation">
                             Cancel
                         </button>
-                        <button type="submit" className="submit-button">
+                        <button type="submit"
+                                className="submit-button"
+                                aria-label="create an account">
                             Create an account
                         </button>
                     </div>

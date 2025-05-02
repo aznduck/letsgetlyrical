@@ -5,23 +5,24 @@ import "../styles/Favorites.css"
 import FavoriteService from "../services/FavoriteService"
 
 const mockFavorites = [
-    { id: 1, title: "Song Title 1", artist: "Artist Name 1", album: "Album Name 1" },
-    { id: 2, title: "Song Title 2", artist: "Artist Name 2", album: "Album Name 2" },
-    { id: 3, title: "Song Title 3", artist: "Artist Name 3", album: "Album Name 3" },
-    { id: 4, title: "Song Title 4", artist: "Artist Name 4", album: "Album Name 4" },
-    { id: 5, title: "Song Title 5", artist: "Artist Name 5", album: "Album Name 5" },
-    { id: 6, title: "Song Title 6", artist: "Artist Name 6", album: "Album Name 6" },
-    { id: 7, title: "Song Title 7", artist: "Artist Name 7", album: "Album Name 7" },
-    { id: 8, title: "Song Title 8", artist: "Artist Name 8", album: "Album Name 8" },
-    { id: 9, title: "Song Title 9", artist: "Artist Name 9", album: "Album Name 9" },
-    { id: 10, title: "Song Title 10", artist: "Artist Name 10", album: "Album Name 10" },
-    { id: 11, title: "Song Title 11", artist: "Artist Name 11", album: "Album Name 11" },
-    { id: 12, title: "Song Title 12", artist: "Artist Name 12", album: "Album Name 12" },
-    { id: 13, title: "Song Title 13", artist: "Artist Name 13", album: "Album Name 13" },
-    { id: 14, title: "Song Title 14", artist: "Artist Name 14", album: "Album Name 14" },
-    { id: 15, title: "Song Title 15", artist: "Artist Name 15", album: "Album Name 15" },
-    { id: 16, title: "Song Title longer with a much longer name", artist: "Artist Name 16", album: "Album Name 16" },
-]
+    { id: 1, title: "Song Title 1", artist: "Artist Name 1", album: "Album Name 1", songId: "1" },
+    { id: 2, title: "Song Title 2", artist: "Artist Name 2", album: "Album Name 2", songId: "2" },
+    { id: 3, title: "Song Title 3", artist: "Artist Name 3", album: "Album Name 3", songId: "3" },
+    { id: 4, title: "Song Title 4", artist: "Artist Name 4", album: "Album Name 4", songId: "4" },
+    { id: 5, title: "Song Title 5", artist: "Artist Name 5", album: "Album Name 5", songId: "5" },
+    { id: 6, title: "Song Title 6", artist: "Artist Name 6", album: "Album Name 6", songId: "6" },
+    { id: 7, title: "Song Title 7", artist: "Artist Name 7", album: "Album Name 7", songId: "7" },
+    { id: 8, title: "Song Title 8", artist: "Artist Name 8", album: "Album Name 8", songId: "8" },
+    { id: 9, title: "Song Title 9", artist: "Artist Name 9", album: "Album Name 9", songId: "9" },
+    { id: 10, title: "Song Title 10", artist: "Artist Name 10", album: "Album Name 10", songId: "10" },
+    { id: 11, title: "Song Title 11", artist: "Artist Name 11", album: "Album Name 11", songId: "11" },
+    { id: 12, title: "Song Title 12", artist: "Artist Name 12", album: "Album Name 12", songId: "12" },
+    { id: 13, title: "Song Title 13", artist: "Artist Name 13", album: "Album Name 13", songId: "13" },
+    { id: 14, title: "Song Title 14", artist: "Artist Name 14", album: "Album Name 14", songId: "14" },
+    { id: 15, title: "Song Title 15", artist: "Artist Name 15", album: "Album Name 15", songId: "15" },
+    { id: 16, title: "Song Title longer with a much longer name", artist: "Artist Name 16", album: "Album Name 16", songId: "16" },
+];
+
 
 function Favorites({ initialFavorites = null }) {
     const [showMenu, setShowMenu] = useState(false)
@@ -51,7 +52,8 @@ function Favorites({ initialFavorites = null }) {
 
                     if (Array.isArray(favoritesArray)) {
                         const withIds = favoritesArray.map((song, idx) => ({
-                            ...song
+                            ...song,
+                            id: idx+1 // overriding with front end assigned id
                         }));
                         setFavorites(withIds);
                     } else {
@@ -60,7 +62,7 @@ function Favorites({ initialFavorites = null }) {
                 }
                 catch(error) {
                     console.error("Failed to retrieve favorites: ", error);
-                    return { json: async () => ({ favorites: [] }) };
+                    setFavorites([]);
                 }
             };
 
@@ -168,15 +170,32 @@ function Favorites({ initialFavorites = null }) {
         closeActionMenu()
     }
 
-    const handleConfirmRemoveSong = () => {
-        const newFavorites = favorites.filter(
-            (_, index) => index !== favorites.findIndex((song) => song.id === songToRemove.id),
-        )
+    const handleConfirmRemoveSong = async () => {
+        const newFavorites = favorites.filter((song) => song.songId !== songToRemove.songId)
+            .map((song, index) => ({
+                ...song,
+                id: index + 1, // reset id starting from 1
+            }));
 
         // Update the IDs to maintain sequential order
         newFavorites.forEach((song, index) => {
             song.id = index + 1
         })
+
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        console.log(songToRemove);
+
+        const dataToPass = {
+            username: user.username,
+            songId: songToRemove.songId
+        }
+
+        const response = await FavoriteService.removeFavorites(dataToPass)
+
+        const data = await response.json();
+        console.log("Remove results:");
+        console.log(JSON.stringify(data));
 
         setFavorites(newFavorites)
         setShowRemoveConfirmation(false)
@@ -342,8 +361,8 @@ function Favorites({ initialFavorites = null }) {
                                 {song.title}
                             </div>
                             <div className="favorite-actions">
-                                <button className="favorite-action-button" onClick={() => handleSongHover(song)}>
-                                    <MoreHorizontal size={16}/>
+                                <button className="favorite-action-button" onClick={(e) => handleSongHover(e, index)} aria-label={`Actions for ${song.title}`}>
+                                    <MoreHorizontal size={16} aria-hidden="true"/>
                                 </button>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
-package edu.usc.csci310.project.exception;
+package edu.usc.csci310.project.exceptions;
 
-import edu.usc.csci310.project.exception.UsernameNotAvailableException;
+import edu.usc.csci310.project.exceptions.UsernameNotAvailableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -1,190 +1,46 @@
-import React from 'react';
-import { useNavigate} from "react-router-dom"
-import { useAuth } from "../App"
-import { useState } from "react"
-import {Search, X, ChevronUp, ChevronDown, Heart, Angry, Loader2} from "lucide-react"
+import { useRef, useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { Search, X, ChevronUp, ChevronDown, Heart, Angry, Loader2 } from "lucide-react"
 import Navbar from "../components/NavBar"
 import Footer from "../components/Footer"
 import SongDetailsPopup from "../components/SongDetailsPopUp"
 import Favorites from "../components/Favorites"
+import SkipLink from "../components/SkipLink"
+import { useAuth } from "../App"
+import { useModalFocus } from "../hooks/UseModalFocus"
+import FriendSearchBar from "../components/FriendsSearchBar"
+import FavoriteService from "../services/FavoriteService"
 import "../styles/ComparePage.css"
 import "../styles/SongDetailsPopUp.css"
 
-
 function ComparePage() {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
+    const { logout } = useAuth()
+    const navigate = useNavigate()
 
-    const handleLogout = () => {
-        logout();
-        navigate("/login");
-    };
-
-    const [searchQuery, setSearchQuery] = useState("")
     const [selectedFriends, setSelectedFriends] = useState([])
     const [comparisonResults, setComparisonResults] = useState([])
-    const [sortOrder, setSortOrder] = useState("desc") // "desc" for descending, "asc" for ascending
+    const [sortOrder, setSortOrder] = useState("desc")
     const [selectedSong, setSelectedSong] = useState(null)
     const [hoverSong, setHoverSong] = useState(null)
     const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 })
-
     const [showSoulmatePopup, setShowSoulmatePopup] = useState(false)
     const [showEnemyPopup, setShowEnemyPopup] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [soulmateResult, setSoulmateResult] = useState(null)
     const [enemyResult, setEnemyResult] = useState(null)
+    const [announceMessage, setAnnounceMessage] = useState("")
 
+    const soulmateModalRef = useModalFocus(showSoulmatePopup, () => setShowSoulmatePopup(false))
+    const enemyModalRef = useModalFocus(showEnemyPopup, () => setShowEnemyPopup(false))
 
-    const mockComparisonResults = [
-        {
-            id: 1,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 5,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao", "davidhan"],
-        },
-        {
-            id: 2,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 5,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao", "davidhan"],
-        },
-        {
-            id: 3,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 4,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao"],
-        },
-        {
-            id: 4,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 4,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen", "johnsongao"],
-        },
-        {
-            id: 5,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 3,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou", "felixchen"],
-        },
-        {
-            id: 6,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "vitozhou"],
-        },
-        {
-            id: 7,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "felixchen"],
-        },
-        {
-            id: 8,
-            title: "Baby",
-            artist: "Justin Bieber, Ludacris",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["vitozhou", "johnsongao"],
-        },
-        {
-            id: 9,
-            title: "Despacito",
-            artist: "Luis Fonsi, Daddy Yankee",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan", "davidhan"],
-        },
-        {
-            id: 10,
-            title: "Shape of You",
-            artist: "Ed Sheeran",
-            frequency: 2,
-            albumCover: "/placeholder.svg",
-            users: ["felixchen", "johnsongao"],
-        },
-        {
-            id: 11,
-            title: "Blinding Lights",
-            artist: "The Weeknd",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["maliahotan"],
-        },
-        {
-            id: 12,
-            title: "Dance Monkey",
-            artist: "Tones and I",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["vitozhou"],
-        },
-        {
-            id: 13,
-            title: "Rockstar",
-            artist: "Post Malone, 21 Savage",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["felixchen"],
-        },
-        {
-            id: 14,
-            title: "Someone You Loved",
-            artist: "Lewis Capaldi",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["johnsongao"],
-        },
-        {
-            id: 15,
-            title: "One Dance",
-            artist: "Drake, Wizkid, Kyla",
-            frequency: 1,
-            albumCover: "/placeholder.svg",
-            users: ["davidhan"],
-        },
-    ]
-
-    const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value)
-    }
-
-    const handleSearchClear = () => {
-        setSearchQuery("")
-    }
-
-    const handleSearchSubmit = (e) => {
-        e.preventDefault()
-        if (searchQuery.trim() && !selectedFriends.includes(searchQuery.trim())) {
-            setSelectedFriends([...selectedFriends, searchQuery.trim()])
-            setSearchQuery("")
-        }
+    const handleLogout = () => {
+        logout()
+        navigate("/login")
     }
 
     const handleRemoveFriend = (friend) => {
         setSelectedFriends(selectedFriends.filter((f) => f !== friend))
-    }
-
-    const handleCompare = () => {
-        //something something compare
-        // Sort
-        const sortedResults = [...mockComparisonResults].sort((a, b) => {
-            return sortOrder === "desc" ? b.frequency - a.frequency : a.frequency - b.frequency
-        })
-        setComparisonResults(sortedResults)
+        setAnnounceMessage(`Removed ${friend} from selected friends`)
     }
 
     async function fetchSoulmate(username) {
@@ -210,7 +66,7 @@ function ComparePage() {
         console.log("Finding lyrical soulmate")
         setShowSoulmatePopup(true)
         setIsLoading(true)
-        //mock for now
+
         console.log("username find soulmate")
         fetchSoulmate((getUsername())).then((resp)=>{
             return resp.json()
@@ -224,10 +80,7 @@ function ComparePage() {
             setIsLoading(false);
             setSoulmateResult("Error fetching soulmate");
         });*/
-        /*setTimeout(() => {
-            setIsLoading(false)
-            setSoulmateResult("maliahotan")
-        }, 2000)*/
+
     }
     function getUsername() {
         const user = localStorage.getItem("user");
@@ -248,7 +101,6 @@ function ComparePage() {
         console.log("Finding lyrical enemy")
         setShowEnemyPopup(true)
         setIsLoading(true)
-
         fetchSoulmate((getUsername())).then((resp)=>{
             return resp.json()
         }).then((r)=>{
@@ -258,209 +110,192 @@ function ComparePage() {
         });
     }
 
-    const closeSoulmatePopup = () => {
-        setShowSoulmatePopup(false)
-        setSoulmateResult(null)
-    }
-
-    const closeEnemyPopup = () => {
-        setShowEnemyPopup(false)
-        setEnemyResult(null)
-    }
-
-    const handleSongClick = (song) => {
-        setSelectedSong(song)
-    }
-
-    const closeSongDetails = () => {
-        setSelectedSong(null)
-    }
+    const handleSongClick = (song) => setSelectedSong(song)
+    const closeSongDetails = () => setSelectedSong(null)
 
     const toggleSortOrder = () => {
         const newSortOrder = sortOrder === "desc" ? "asc" : "desc"
         setSortOrder(newSortOrder)
-
-        // Re-sort the results based on the new sort order
-        const sortedResults = [...comparisonResults].sort((a, b) => {
-            return newSortOrder === "desc" ? b.frequency - a.frequency : a.frequency - b.frequency
-        })
+        const sortedResults = [...comparisonResults].sort((a, b) =>
+            newSortOrder === "desc" ? b.frequency - a.frequency : a.frequency - b.frequency
+        )
         setComparisonResults(sortedResults)
+        setAnnounceMessage(`Sorted by frequency ${newSortOrder}`)
     }
 
     const handleSongMouseEnter = (e, song) => {
         const rect = e.currentTarget.getBoundingClientRect()
-        setHoverPosition({
-            x: rect.right + 20,
-            y: rect.top,
-        })
+        setHoverPosition({ x: rect.right + 20, y: rect.top })
         setHoverSong(song)
     }
 
-    const handleSongMouseLeave = () => {
-        setHoverSong(null)
+    const handleSongMouseLeave = () => setHoverSong(null)
+
+    const handleCompare = async () => {
+        if (selectedFriends.length === 0) return
+        setIsLoading(true)
+
+        try {
+            const allFavorites = (await Promise.all(selectedFriends.map(async (username) => {
+                const res = await FavoriteService.fetchFavorites(username)
+                const data = await res.json()
+                return (data.favorites || []).map(song => ({
+                    ...song,
+                    user: username,
+                    albumCover: "/placeholder.svg"
+                }))
+            }))).flat()
+
+            const songMap = new Map()
+            for (const song of allFavorites) {
+                const key = `${song.title}-${song.artist}`.toLowerCase()
+                if (!songMap.has(key)) {
+                    songMap.set(key, { ...song, frequency: 1, users: [song.user] })
+                } else {
+                    const existing = songMap.get(key)
+                    if (!existing.users.includes(song.user)) {
+                        existing.frequency++
+                        existing.users.push(song.user)
+                    }
+                }
+            }
+
+            const sortedResults = Array.from(songMap.values()).sort((a, b) =>
+                sortOrder === "desc" ? b.frequency - a.frequency : a.frequency - b.frequency
+            )
+
+            setComparisonResults(sortedResults)
+        } catch (err) {
+            console.error(err)
+            setComparisonResults([])
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
         <div className="compare-page">
+            <SkipLink />
             <Navbar onLogout={handleLogout} />
 
             <div className="compare-container">
                 <div className="friends-search-section">
-                    <form onSubmit={handleSearchSubmit} className="friends-search-form">
-                        <div className="friends-search-input-container">
-                            <Search size={18} className="friends-search-icon"/>
-                            <input
-                                type="text"
-                                placeholder="Enter a username"
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                className="friends-search-input"
-                            />
-                            {searchQuery && (
-                                <button
-                                    type="button"
-                                    className="friends-clear-search"
-                                    onClick={handleSearchClear}
-                                    aria-label="Clear search"
-                                >
-                                    <X size={16}/>
-                                </button>
-                            )}
-                        </div>
-                    </form>
+                    <FriendSearchBar onSelectFriend={(user) => {
+                        if (!selectedFriends.includes(user.username)) {
+                            setSelectedFriends([...selectedFriends, user.username])
+                        }
+                    }} />
 
-                    <div className="selected-friends-list">
+                    <div className="selected-friends-list" role="list" aria-label="Selected friends">
                         {selectedFriends.map((friend, index) => (
-                            <div key={index} className="selected-friend">
+                            <div key={index} className="selected-friend" role="listitem">
                                 <span>{friend}</span>
-                                <button className="remove-friend-button" onClick={() => handleRemoveFriend(friend)}>
-                                    <X size={16}/>
+                                <button
+                                    className="remove-friend-button"
+                                    onClick={() => handleRemoveFriend(friend)}
+                                    aria-label={`Remove ${friend}`}
+                                >
+                                    <X size={16} />
                                 </button>
                             </div>
                         ))}
-                        {selectedFriends.length === 0 && <div className="no-friends-message">No friends selected</div>}
+                        {selectedFriends.length === 0 && (
+                            <div className="no-friends-message">No friends selected</div>
+                        )}
                     </div>
 
                     <div className="friends-search-actions">
-                        <button className="compare-button" onClick={handleCompare}
-                                disabled={selectedFriends.length === 0}>
+                        <button
+                            className="compare-button"
+                            onClick={handleCompare}
+                            disabled={selectedFriends.length === 0}
+                        >
                             Click to compare
                         </button>
                     </div>
                 </div>
 
-
-                <div className="comparison-section">
-                    <div className="comparison-header">
-                        <div className="comparison-title">
-                            <div className="comparison-icon">
-                                <div className="circle"></div>
-                                <div className="circle overlap"></div>
-                            </div>
+                <main>
+                    <section className="comparison-section">
+                        <div className="comparison-header">
                             <h2>Compare with Friends</h2>
                         </div>
-                    </div>
 
-                    {comparisonResults.length > 0 ? (
-                        <div className="comparison-results">
-                            <div className="comparison-table-header">
-                                <div className="common-songs-header">Common Songs</div>
-                                <button className="frequency-header-button" onClick={toggleSortOrder}>
-                                    Frequency
-                                    {sortOrder === "desc" ? <ChevronDown size={16}/> : <ChevronUp size={16}/>}
-                                </button>
+                        {isLoading ? (
+                            <div className="comparison-loading">
+                                <Loader2 className="loading-spinner" size={48} />
+                                <p>Finding common songs...</p>
                             </div>
-                            <div className="comparison-results-list">
-                                {comparisonResults.map((result) => (
-                                    <div
-                                        key={result.id}
-                                        className="comparison-result-item"
-                                        onClick={() => handleSongClick(result)}
-                                    >
-                                        <div className="compare-song-info">
-                                            <div className="song-thumbnail"></div>
-                                            <div className="song-details">
-                                                <div className="song-title">{result.title}</div>
-                                                <div className="song-artist">{result.artist}</div>
+                        ) : comparisonResults.length > 0 ? (
+                            <div className="comparison-results">
+                                <div className="comparison-table-header">
+                                    <div className="common-songs-header">Common Songs</div>
+                                    <button onClick={toggleSortOrder}>
+                                        Frequency {sortOrder === "desc" ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+                                    </button>
+                                </div>
+                                <div className="comparison-results-list">
+                                    {comparisonResults.map(result => (
+                                        <div
+                                            key={result.id}
+                                            className="comparison-result-item"
+                                            onClick={() => handleSongClick(result)}
+                                            onMouseEnter={(e) => handleSongMouseEnter(e, result)}
+                                            onMouseLeave={handleSongMouseLeave}
+                                        >
+                                            <div className="compare-song-info">
+                                                <div className="song-thumbnail" style={{ backgroundImage: `url(${result.albumCover})` }} />
+                                                <div className="song-details">
+                                                    <div className="song-title">{result.title}</div>
+                                                    <div className="song-artist">{result.artist}</div>
+                                                </div>
                                             </div>
+                                            <div className="song-frequency">{result.frequency}</div>
                                         </div>
-                                        <div className="song-frequency"
-                                             onMouseEnter={(e) => handleSongMouseEnter(e, result)}
-                                             onMouseLeave={handleSongMouseLeave}>{
-                                            result.frequency}
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="comparison-empty-state">
-                            <p>
-                                Enter your friends' username to compare
-                                <br/>
-                                your favorite songs or chose to find
-                                <br/>
-                                lyrical soulmate/enemy
-                            </p>
-                        </div>
-                    )}
+                        ) : (
+                            <p>No common songs found. Try adding friends and comparing again.</p>
+                        )}
 
-                    <div className="comparison-actions">
-                        <button className="find-soulmate-button" onClick={handleFindSoulmate}>
-                            Find Lyrical Soulmate
-                        </button>
-                        <button className="find-enemy-button" onClick={handleFindEnemy}>
-                            Find Lyrical Enemy
-                        </button>
-                    </div>
-                </div>
+                        <div className="comparison-actions">
+                            <button onClick={handleFindSoulmate}>Find Lyrical Soulmate</button>
+                            <button onClick={handleFindEnemy}>Find Lyrical Enemy</button>
+                        </div>
+                    </section>
 
-                <div className="favorites-container">
-                    <Favorites/>
-                </div>
+                    <section className="favorites-container">
+                        <Favorites />
+                    </section>
+                </main>
             </div>
 
-            {selectedSong && <SongDetailsPopup song={selectedSong} onClose={closeSongDetails}/>}
+            {selectedSong && <SongDetailsPopup song={selectedSong} onClose={closeSongDetails} />}
 
             {hoverSong && (
-                <div
-                    className="users-with-song-popup"
-                    style={{
-                        top: `${hoverPosition.y}px`,
-                        left: `${hoverPosition.x}px`,
-                    }}
-                >
-                    <h3 className="users-popup-title">Users with Song</h3>
-                    <div className="users-list">
-                        {hoverSong.users.map((user, index) => (
-                            <div key={index} className="user-item">
-                                <span className="user-number">{index + 1}</span>
-                                <span className="username">{user}</span>
-                            </div>
+                <div className="users-with-song-popup" style={{ top: `${hoverPosition.y}px`, left: `${hoverPosition.x}px` }}>
+                    <h3>Users with Song</h3>
+                    <ul>
+                        {hoverSong.users.map((user, idx) => (
+                            <li key={idx}>{user}</li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             )}
 
             {showSoulmatePopup && (
                 <div className="lyrical-match-overlay">
-                    <div className="lyrical-match-popup">
+                    <div className="lyrical-match-popup" ref={soulmateModalRef}>
                         {isLoading ? (
-                            <div className="lyrical-match-loading">
-                                <Loader2 className="loading-spinner" size={48} />
-                                <h2>Your lyrical soulmate is...</h2>
-                            </div>
+                            <Loader2 size={48} />
                         ) : (
-                            <div className="lyrical-match-result">
-                                <button className="close-match-button" onClick={closeSoulmatePopup}>
-                                    <X size={24} />
-                                </button>
+                            <>
+                                <button onClick={() => setShowSoulmatePopup(false)}><X size={24} /></button>
                                 <h2>Your lyrical soulmate is...</h2>
-                                <h1 className="match-username">{soulmateResult}</h1>
-                                <div className="match-icon-container">
-                                    <Heart className="match-icon soulmate-icon" size={120} />
-                                </div>
-                            </div>
+                                <h1>{soulmateResult}</h1>
+                                <Heart size={120} />
+                            </>
                         )}
                     </div>
                 </div>
@@ -468,25 +303,16 @@ function ComparePage() {
 
             {showEnemyPopup && (
                 <div className="lyrical-match-overlay">
-                    <div className="lyrical-match-popup">
+                    <div className="lyrical-match-popup" ref={enemyModalRef}>
                         {isLoading ? (
-                            <div className="lyrical-match-loading">
-                                <Loader2 className="loading-spinner" size={48} />
-                                <h2>Your lyrical enemy is...</h2>
-                            </div>
+                            <Loader2 size={48} />
                         ) : (
-                            <div className="lyrical-match-result">
-                                <button className="close-match-button" onClick={closeEnemyPopup}>
-                                    <X size={24} />
-                                </button>
+                            <>
+                                <button onClick={() => setShowEnemyPopup(false)}><X size={24} /></button>
                                 <h2>Your lyrical enemy is...</h2>
-                                <h1 className="match-username">{enemyResult}</h1>
-                                <div className="match-icon-container">
-                                    <div className="match-icon enemy-icon">
-                                        <Angry className="match-icon enemy-icon" size={120} />
-                                    </div>
-                                </div>
-                            </div>
+                                <h1>{enemyResult}</h1>
+                                <Angry size={120} />
+                            </>
                         )}
                     </div>
                 </div>

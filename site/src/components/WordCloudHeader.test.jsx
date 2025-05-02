@@ -102,20 +102,22 @@ describe("WordCloudHeader Component", () => {
         expect(generateButton).toBeInTheDocument()
 
         // Check for compare with friends button
-        const compareButton = screen.getByText("Compare with friends!")
-        expect(compareButton).toBeInTheDocument()
+        const compareButtons = screen.getAllByText("Compare with friends!");
+        expect(compareButtons).toHaveLength(2);
 
-        // Click generate button
+        const compareButtonsByAriaLabel = screen.getAllByLabelText("Compare with friends");
+        expect(compareButtonsByAriaLabel).toHaveLength(2);
+
         fireEvent.click(generateButton)
 
-        // Check that onGenerateFavorites was called
         expect(mockOnGenerateFavorites).toHaveBeenCalled()
 
-        // Click compare button
-        fireEvent.click(compareButton)
+        fireEvent.click(compareButtons[0]);
+        expect(mockOnCompareWithFriends).toHaveBeenCalled();
 
-        // Check that onCompareWithFriends was called
-        expect(mockOnCompareWithFriends).toHaveBeenCalled()
+        mockOnCompareWithFriends.mockReset();
+        fireEvent.click(compareButtons[1]);
+        expect(mockOnCompareWithFriends).toHaveBeenCalled();
     })
 
     test("disables generate button when cloud is already generated", () => {
