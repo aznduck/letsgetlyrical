@@ -38,6 +38,16 @@ function ComparePage() {
         navigate("/login")
     }
 
+    const closeSoulmatePopup = () => {
+        setShowSoulmatePopup(false)
+        setSoulmateResult(null)
+    }
+
+    const closeEnemyPopup = () => {
+        setShowEnemyPopup(false)
+        setEnemyResult(null)
+    }
+
     const handleRemoveFriend = (friend) => {
         setSelectedFriends(selectedFriends.filter((f) => f !== friend))
         setAnnounceMessage(`Removed ${friend} from selected friends`)
