@@ -1,6 +1,4 @@
-# 310 Project Repository Information
-
-This is the repository for the 310 group project.  This basic skeleton provides two initial branches:  **documentation** is for the group's Scrum process documentation, and **main** is the primary branch for development work as described in the project manual. 
+# Let's Get Lyrical!
 
 ## Brief Architecture Overview and Where Things Go
 ### React (Frontend)
